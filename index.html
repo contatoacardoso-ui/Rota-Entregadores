@@ -13,6 +13,7 @@
             --muted: #94a3b8;
             --border: #334155;
             --accent: #10b981;
+            --highlight: #f59e0b;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
@@ -24,9 +25,12 @@
         input[type="text"] {
             width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
             background: var(--card); color: var(--text); font-size: 1rem; outline: none; transition: 0.2s;
+            text-transform: uppercase;
         }
+        input[type="text"]::placeholder { text-transform: none; }
         input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
         .status { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 30px; }
+        .filtro-info { font-size: 0.8rem; color: var(--highlight); margin-bottom: 10px; text-align: center; font-weight: 600; }
         .card {
             background: var(--card); border: 1px solid var(--border); border-radius: 12px;
             padding: 16px; margin-bottom: 12px; animation: fadeIn 0.2s ease;
@@ -34,8 +38,8 @@
         .rua-title { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
         .entregador-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px dashed #2d3b4e; }
         .entregador-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .entregador-nome { font-weight: 600; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
-        .badge { background: rgba(16, 185, 129, 0.15); color: var(--accent); font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; width: fit-content; }
+        .entregador-nome { font-weight: 700; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .badge { background: rgba(16, 185, 129, 0.15); color: var(--accent); font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; width: fit-content; font-weight: 600; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -44,11 +48,11 @@
 <div class="container">
     <header>
         <h1>Consulta de Entregadores</h1>
-        <p>Digite o nome da rua para localizar a rota</p>
+        <p>Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
     </header>
 
     <div class="search-box">
-        <input type="text" id="campoBusca" placeholder="Ex: Rua das Flores, Av. Brasil..." autocomplete="off">
+        <input type="text" id="campoBusca" placeholder="Ex: Rua das Flores 250 ou Av. Brasil..." autocomplete="off">
     </div>
 
     <div id="resultados">
@@ -77,7 +81,61 @@
     let baseDados = [];
 
     function normalizar(texto) {
-        return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+        return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
+    }
+
+    // Separa texto da rua e eventual número buscado pelo usuário
+    function extrairRuaENumero(entrada) {
+        const limpo = normalizar(entrada);
+        // Captura número isolado no final ou após vírgula/espaço (ex: "RUA A 120", "RUA A, 120", "RUA A N 120")
+        const match = limpo.match(/^(.*?)(?:[\s,]+(?:N[º°O.]*\s*)?(\d+))$/);
+        if (match && match[1].trim().length >= 2) {
+            return {
+                textoRua: match[1].trim(),
+                numeroBuscado: parseInt(match[2], 10)
+            };
+        }
+        return {
+            textoRua: limpo,
+            numeroBuscado: null
+        };
+    }
+
+    // Verifica se o número buscado pertence à regra cadastrada para o entregador
+    function numeroAtendido(regraNumeracao, numeroBuscado) {
+        if (numeroBuscado === null) return true;
+        const regra = normalizar(regraNumeracao);
+
+        if (!regra || regra.includes("TODA")) return true;
+
+        // Verifica intervalos como "100 AO 500", "100 A 500", "100 - 500", "100 ATE 500"
+        const regexFaixa = /(\d+)\s*(?:AO|A|ATE|-)\s*(\d+)/g;
+        let m;
+        let temFaixa = false;
+        while ((m = regexFaixa.exec(regra)) !== null) {
+            temFaixa = true;
+            const inicio = parseInt(m[1], 10);
+            const fim = parseInt(m[2], 10);
+            const min = Math.min(inicio, fim);
+            const max = Math.max(inicio, fim);
+            if (numeroBuscado >= min && numeroBuscado <= max) {
+                return true;
+            }
+        }
+
+        // Se não bateu na faixa, verifica números avulsos listados (ex: "12, 45, 90")
+        const semFaixas = regra.replace(/(\d+)\s*(?:AO|A|ATE|-)\s*(\d+)/g, "");
+        const avulsos = semFaixas.match(/\d+/g);
+        if (avulsos) {
+            for (const n of avulsos) {
+                if (parseInt(n, 10) === numeroBuscado) return true;
+            }
+        }
+
+        // Se a regra não continha nenhum número legível (ex: texto livre como "LADO PAR"), mantém visível por segurança
+        if (!temFaixa && !avulsos) return true;
+
+        return false;
     }
 
     db.ref('rotas').on('value', (snapshot) => {
@@ -89,7 +147,7 @@
             });
         }
         filtrarRuas();
-    }, (error) => {
+    }, () => {
         document.getElementById('resultados').innerHTML = `<div class="status" style="color:#ef4444;">Erro de permissão no Firebase: verifique as Regras do Realtime Database.</div>`;
     });
 
@@ -99,23 +157,38 @@
     campoBusca.addEventListener('input', filtrarRuas);
 
     function filtrarRuas() {
-        const termo = normalizar(campoBusca.value);
+        const { textoRua, numeroBuscado } = extrairRuaENumero(campoBusca.value);
 
         if (baseDados.length === 0) {
             divResultados.innerHTML = '<div class="status">Nenhuma rua cadastrada no sistema.</div>';
             return;
         }
 
-        if (termo.length < 2) {
+        if (textoRua.length < 2) {
             divResultados.innerHTML = '<div class="status">Digite pelo menos 2 letras do nome da rua...</div>';
             return;
         }
 
-        const filtrados = baseDados.filter(item => normalizar(item.rua).includes(termo));
+        // Primeiro filtra pelo nome da rua
+        const porRua = baseDados.filter(item => normalizar(item.rua).includes(textoRua));
 
-        if (filtrados.length === 0) {
+        if (porRua.length === 0) {
             divResultados.innerHTML = '<div class="status">Nenhum entregador encontrado para esta rua.</div>';
             return;
+        }
+
+        // Depois aplica o filtro inteligente pelo número (se foi digitado)
+        let filtrados = porRua.filter(item => numeroAtendido(item.numeracao, numeroBuscado));
+        let avisoNumero = '';
+
+        if (numeroBuscado !== null) {
+            if (filtrados.length > 0) {
+                avisoNumero = `<div class="filtro-info">Filtrando atendimentos para o Nº ${numeroBuscado}</div>`;
+            } else {
+                // Caso a rua exista mas o número não bata com nenhuma faixa, exibe todos da rua com aviso
+                filtrados = porRua;
+                avisoNumero = `<div class="filtro-info">Nº ${numeroBuscado} fora das faixas específicas — exibindo todos da rua:</div>`;
+            }
         }
 
         const agrupadoPorRua = {};
@@ -123,17 +196,17 @@
             const chaveRua = normalizar(item.rua);
             if (!agrupadoPorRua[chaveRua]) {
                 agrupadoPorRua[chaveRua] = {
-                    nomeExibicao: item.rua,
+                    nomeExibicao: item.rua.toUpperCase(),
                     entregadores: []
                 };
             }
             agrupadoPorRua[chaveRua].entregadores.push({
-                nome: item.entregador,
-                numeracao: item.numeracao || "Toda a rua"
+                nome: item.entregador.toUpperCase(),
+                numeracao: (item.numeracao || "TODA A RUA").toUpperCase()
             });
         });
 
-        let html = '';
+        let html = avisoNumero;
         Object.values(agrupadoPorRua).forEach(grupo => {
             html += `<div class="card">
                         <div class="rua-title">${grupo.nomeExibicao}</div>`;
@@ -141,7 +214,7 @@
             grupo.entregadores.forEach(ent => {
                 html += `<div class="entregador-item">
                             <span class="entregador-nome">🚚 ${ent.nome}</span>
-                            <span class="badge">Numeração: ${ent.numeracao}</span>
+                            <span class="badge">NUMERAÇÃO: ${ent.numeracao}</span>
                          </div>`;
             });
 
