@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin - Gestão de Rotas</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #3b82f6;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
+        .container { width: 100%; max-width: 520px; }
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { font-size: 1.35rem; }
+        .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
+        input {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+            background: #0f172a; color: var(--text); font-size: 0.95rem; outline: none;
+        }
+        input:focus { border-color: var(--primary); }
+        .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+        button {
+            flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer; transition: 0.2s; color: #fff;
+        }
+        .btn-save { background: var(--primary); }
+        .btn-cancel { background: var(--border); display: none; }
+        .item-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        }
+        .item-info h3 { font-size: 0.95rem; color: var(--primary); margin-bottom: 3px; }
+        .item-info p { font-size: 0.85rem; color: var(--text); }
+        .item-info span { font-size: 0.8rem; color: var(--success); display: block; margin-top: 2px; }
+        .item-actions { display: flex; flex-direction: column; gap: 6px; }
+        .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; }
+        .btn-edit { background: var(--warning); color: #000; }
+        .btn-del { background: var(--danger); }
+        #loginScreen { margin-top: 60px; text-align: center; }
+        #appScreen { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Tela de Bloqueio Simples -->
+    <div id="loginScreen" class="box">
+        <h2 style="margin-bottom: 12px; font-size: 1.2rem;">Acesso Administrativo</h2>
+        <div class="form-group">
+            <input type="password" id="pinInput" inputmode="numeric" placeholder="Digite o PIN de acesso">
+        </div>
+        <button class="btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
+    </div>
+
+    <!-- Tela Principal Admin -->
+    <div id="appScreen">
+        <header>
+            <h1>Painel de Rotas e Entregadores</h1>
+        </header>
+
+        <div class="box">
+            <h2 id="formTitle" style="font-size: 1rem; margin-bottom: 12px; color: var(--primary);">Novo Cadastro</h2>
+            <input type="hidden" id="editId">
+
+            <div class="form-group">
+                <label>Nome do Entregador *</label>
+                <input type="text" id="entregador" placeholder="Ex: Carlos Silva" list="listaEntregadores">
+                <datalist id="listaEntregadores"></datalist>
+            </div>
+
+            <div class="form-group">
+                <label>Nome da Rua / Avenida *</label>
+                <input type="text" id="rua" placeholder="Ex: Rua das Acácias" list="listaRuas">
+                <datalist id="listaRuas"></datalist>
+            </div>
+
+            <div class="form-group">
+                <label>Numeração Atendida (Deixe vazio para "Toda a rua")</label>
+                <input type="text" id="numeracao" placeholder="Ex: 100 ao 450 | ou | Nº 12, 34, 90">
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-save" id="btnSalvar" onclick="salvarRegistro()">Salvar Cadastro</button>
+                <button class="btn-cancel" id="btnCancelar" onclick="cancelarEdicao()">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="filtroAdmin" placeholder="🔍 Filtrar cadastros por rua ou entregador..." oninput="renderizarLista()">
+        </div>
+
+        <div id="listaRegistros"></div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+    // PIN PADRÃO: 1234 (altere aqui quando quiser)
+    const SENHA_ADMIN = "1234";
+
+    function verificarPin() {
+        const pin = document.getElementById('pinInput').value;
+        if (pin === SENHA_ADMIN) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            sessionStorage.setItem('adminLogado', 'true');
+        } else {
+            alert("PIN incorreto!");
+        }
+    }
+
+    if (sessionStorage.getItem('adminLogado') === 'true') {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'block';
+    }
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
+        authDomain: "rota-entregadores.firebaseapp.com",
+        databaseURL: "https://rota-entregadores-default-rtdb.firebaseio.com",
+        projectId: "rota-entregadores",
+        storageBucket: "rota-entregadores.firebasestorage.app",
+        messagingSenderId: "1094577907467",
+        appId: "1:1094577907467:web:8472471b28b1ffa459640e",
+        measurementId: "G-V71JKBYEZY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const rotasRef = db.ref('rotas');
+
+    let registros = [];
+
+    rotasRef.on('value', (snapshot) => {
+        registros = [];
+        const data = snapshot.val();
+        const entregadoresUnicos = new Set();
+        const ruasUnicas = new Set();
+
+        if (data) {
+            Object.keys(data).forEach(id => {
+                const item = { id, ...data[id] };
+                registros.push(item);
+                entregadoresUnicos.add(item.entregador);
+                ruasUnicas.add(item.rua);
+            });
+        }
+
+        document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].map(e => `<option value="${e}">`).join('');
+        document.getElementById('listaRuas').innerHTML = [...ruasUnicas].map(r => `<option value="${r}">`).join('');
+
+        registros.sort((a, b) => a.rua.localeCompare(b.rua));
+        renderizarLista();
+    });
+
+    function salvarRegistro() {
+        const id = document.getElementById('editId').value;
+        const entregador = document.getElementById('entregador').value.trim();
+        const rua = document.getElementById('rua').value.trim();
+        let numeracao = document.getElementById('numeracao').value.trim();
+
+        if (!entregador || !rua) {
+            alert("Preencha o nome do entregador e o nome da rua.");
+            return;
+        }
+
+        if (!numeracao) numeracao = "Toda a rua";
+
+        const payload = { entregador, rua, numeracao };
+
+        if (id) {
+            rotasRef.child(id).update(payload).then(() => cancelarEdicao());
+        } else {
+            rotasRef.push(payload).then(() => {
+                document.getElementById('rua').value = '';
+                document.getElementById('numeracao').value = '';
+                document.getElementById('rua').focus();
+            });
+        }
+    }
+
+    function editarRegistro(id) {
+        const item = registros.find(r => r.id === id);
+        if (!item) return;
+
+        document.getElementById('editId').value = item.id;
+        document.getElementById('entregador').value = item.entregador;
+        document.getElementById('rua').value = item.rua;
+        document.getElementById('numeracao').value = item.numeracao === "Toda a rua" ? "" : item.numeracao;
+
+        document.getElementById('formTitle').innerText = "Editando Cadastro";
+        document.getElementById('btnSalvar').innerText = "Atualizar";
+        document.getElementById('btnCancelar').style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelarEdicao() {
+        document.getElementById('editId').value = '';
+        document.getElementById('entregador').value = '';
+        document.getElementById('rua').value = '';
+        document.getElementById('numeracao').value = '';
+
+        document.getElementById('formTitle').innerText = "Novo Cadastro";
+        document.getElementById('btnSalvar').innerText = "Salvar Cadastro";
+        document.getElementById('btnCancelar').style.display = "none";
+    }
+
+    function excluirRegistro(id, rua, entregador) {
+        if (confirm(`Remover ${entregador} da ${rua}?`)) {
+            rotasRef.child(id).remove();
+        }
+    }
+
+    function renderizarLista() {
+        const filtro = document.getElementById('filtroAdmin').value.toLowerCase().trim();
+        const container = document.getElementById('listaRegistros');
+
+        const filtrados = registros.filter(r =>
+            r.rua.toLowerCase().includes(filtro) ||
+            r.entregador.toLowerCase().includes(filtro)
+        );
+
+        if (filtrados.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">Nenhum registro encontrado.</p>';
+            return;
+        }
+
+        container.innerHTML = filtrados.map(item => `
+            <div class="item-card">
+                <div class="item-info">
+                    <h3>${item.rua}</h3>
+                    <p>🚚 ${item.entregador}</p>
+                    <span>Numeração: ${item.numeracao}</span>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-sm btn-edit" onclick="editarRegistro('${item.id}')">Editar</button>
+                    <button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua}', '${item.entregador}')">Excluir</button>
+                </div>
+            </div>
+        `).join('');
+    }
+</script>
+</body>
+</html>
