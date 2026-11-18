@@ -18,7 +18,7 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
-        .container { width: 100%; max-width: 520px; }
+        .container { width: 100%; max-width: 540px; }
         header { text-align: center; margin-bottom: 20px; }
         header h1 { font-size: 1.35rem; }
         .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
@@ -28,6 +28,8 @@
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
             background: #0f172a; color: var(--text); font-size: 0.95rem; outline: none;
         }
+        input.upper { text-transform: uppercase; }
+        input.upper::placeholder { text-transform: none; }
         input:focus { border-color: var(--primary); }
         .btn-row { display: flex; gap: 10px; margin-top: 14px; }
         button {
@@ -36,15 +38,31 @@
         }
         .btn-save { background: var(--primary); }
         .btn-cancel { background: var(--border); display: none; }
-        .item-card {
-            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-            padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        
+        /* Card Agrupado por Entregador */
+        .entregador-group {
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 14px; margin-bottom: 14px;
         }
-        .item-info h3 { font-size: 0.95rem; color: var(--primary); margin-bottom: 3px; }
-        .item-info p { font-size: 0.85rem; color: var(--text); }
-        .item-info span { font-size: 0.8rem; color: var(--success); display: block; margin-top: 2px; }
-        .item-actions { display: flex; flex-direction: column; gap: 6px; }
-        .btn-sm { padding: 6px 10px; font-size: 0.8rem; border-radius: 6px; }
+        .entregador-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;
+        }
+        .entregador-header h3 { font-size: 1rem; color: var(--primary); font-weight: 700; }
+        .entregador-count {
+            font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); color: var(--primary);
+            padding: 2px 8px; border-radius: 12px; font-weight: 600;
+        }
+        .rua-row {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: 8px 0; border-bottom: 1px dashed #2d3b4e;
+        }
+        .rua-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .rua-details { flex: 1; }
+        .rua-details p { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+        .rua-details span { font-size: 0.78rem; color: var(--success); display: block; margin-top: 2px; font-weight: 600; }
+        .item-actions { display: flex; gap: 6px; }
+        .btn-sm { padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; flex: none; }
         .btn-edit { background: var(--warning); color: #000; }
         .btn-del { background: var(--danger); }
         #loginScreen { margin-top: 60px; text-align: center; }
@@ -75,19 +93,19 @@
 
             <div class="form-group">
                 <label>Nome do Entregador *</label>
-                <input type="text" id="entregador" placeholder="Ex: Carlos Silva" list="listaEntregadores">
+                <input type="text" id="entregador" class="upper" placeholder="Ex: CARLOS SILVA" list="listaEntregadores">
                 <datalist id="listaEntregadores"></datalist>
             </div>
 
             <div class="form-group">
                 <label>Nome da Rua / Avenida *</label>
-                <input type="text" id="rua" placeholder="Ex: Rua das Acácias" list="listaRuas">
+                <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas">
                 <datalist id="listaRuas"></datalist>
             </div>
 
             <div class="form-group">
-                <label>Numeração Atendida (Deixe vazio para "Toda a rua")</label>
-                <input type="text" id="numeracao" placeholder="Ex: 100 ao 450 | ou | Nº 12, 34, 90">
+                <label>Numeração Atendida (Deixe vazio para "TODA A RUA")</label>
+                <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90">
             </div>
 
             <div class="btn-row">
@@ -97,7 +115,7 @@
         </div>
 
         <div class="form-group">
-            <input type="text" id="filtroAdmin" placeholder="🔍 Filtrar cadastros por rua ou entregador..." oninput="renderizarLista()">
+            <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Filtrar por entregador ou rua..." oninput="renderizarLista()">
         </div>
 
         <div id="listaRegistros"></div>
@@ -108,7 +126,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
-    // PIN PADRÃO: 1234 (altere aqui quando quiser)
     const SENHA_ADMIN = "1234";
 
     function verificarPin() {
@@ -126,6 +143,16 @@
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('appScreen').style.display = 'block';
     }
+
+    // Força conversão automática para MAIÚSCULAS enquanto o usuário digita
+    document.querySelectorAll('input.upper').forEach(input => {
+        input.addEventListener('input', function() {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        });
+    });
 
     const firebaseConfig = {
         apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
@@ -152,32 +179,36 @@
 
         if (data) {
             Object.keys(data).forEach(id => {
-                const item = { id, ...data[id] };
+                const item = {
+                    id,
+                    entregador: (data[id].entregador || "").toUpperCase().trim(),
+                    rua: (data[id].rua || "").toUpperCase().trim(),
+                    numeracao: (data[id].numeracao || "TODA A RUA").toUpperCase().trim()
+                };
                 registros.push(item);
                 entregadoresUnicos.add(item.entregador);
                 ruasUnicas.add(item.rua);
             });
         }
 
-        document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].map(e => `<option value="${e}">`).join('');
-        document.getElementById('listaRuas').innerHTML = [...ruasUnicas].map(r => `<option value="${r}">`).join('');
+        document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].sort().map(e => `<option value="${e}">`).join('');
+        document.getElementById('listaRuas').innerHTML = [...ruasUnicas].sort().map(r => `<option value="${r}">`).join('');
 
-        registros.sort((a, b) => a.rua.localeCompare(b.rua));
         renderizarLista();
     });
 
     function salvarRegistro() {
         const id = document.getElementById('editId').value;
-        const entregador = document.getElementById('entregador').value.trim();
-        const rua = document.getElementById('rua').value.trim();
-        let numeracao = document.getElementById('numeracao').value.trim();
+        const entregador = document.getElementById('entregador').value.toUpperCase().trim();
+        const rua = document.getElementById('rua').value.toUpperCase().trim();
+        let numeracao = document.getElementById('numeracao').value.toUpperCase().trim();
 
         if (!entregador || !rua) {
-            alert("Preencha o nome do entregador e o nome da rua.");
+            alert("PREENCHA O NOME DO ENTREGADOR E O NOME DA RUA.");
             return;
         }
 
-        if (!numeracao) numeracao = "Toda a rua";
+        if (!numeracao) numeracao = "TODA A RUA";
 
         const payload = { entregador, rua, numeracao };
 
@@ -199,7 +230,7 @@
         document.getElementById('editId').value = item.id;
         document.getElementById('entregador').value = item.entregador;
         document.getElementById('rua').value = item.rua;
-        document.getElementById('numeracao').value = item.numeracao === "Toda a rua" ? "" : item.numeracao;
+        document.getElementById('numeracao').value = item.numeracao === "TODA A RUA" ? "" : item.numeracao;
 
         document.getElementById('formTitle').innerText = "Editando Cadastro";
         document.getElementById('btnSalvar').innerText = "Atualizar";
@@ -219,18 +250,18 @@
     }
 
     function excluirRegistro(id, rua, entregador) {
-        if (confirm(`Remover ${entregador} da ${rua}?`)) {
+        if (confirm(`REMOVER ${entregador} DA ${rua}?`)) {
             rotasRef.child(id).remove();
         }
     }
 
     function renderizarLista() {
-        const filtro = document.getElementById('filtroAdmin').value.toLowerCase().trim();
+        const filtro = document.getElementById('filtroAdmin').value.toUpperCase().trim();
         const container = document.getElementById('listaRegistros');
 
         const filtrados = registros.filter(r =>
-            r.rua.toLowerCase().includes(filtro) ||
-            r.entregador.toLowerCase().includes(filtro)
+            r.rua.includes(filtro) ||
+            r.entregador.includes(filtro)
         );
 
         if (filtrados.length === 0) {
@@ -238,19 +269,45 @@
             return;
         }
 
-        container.innerHTML = filtrados.map(item => `
-            <div class="item-card">
-                <div class="item-info">
-                    <h3>${item.rua}</h3>
-                    <p>🚚 ${item.entregador}</p>
-                    <span>Numeração: ${item.numeracao}</span>
+        // Agrupa os endereços por entregador
+        const agrupadoPorEntregador = {};
+        filtrados.forEach(item => {
+            if (!agrupadoPorEntregador[item.entregador]) {
+                agrupadoPorEntregador[item.entregador] = [];
+            }
+            agrupadoPorEntregador[item.entregador].push(item);
+        });
+
+        // Ordena os entregadores em ordem alfabética
+        const nomesOrdenados = Object.keys(agrupadoPorEntregador).sort((a, b) => a.localeCompare(b));
+
+        container.innerHTML = nomesOrdenados.map(nomeEntregador => {
+            const ruasDoEntregador = agrupadoPorEntregador[nomeEntregador].sort((a, b) => a.rua.localeCompare(b.rua));
+            const totalRuas = ruasDoEntregador.length;
+
+            const linhasRuas = ruasDoEntregador.map(item => `
+                <div class="rua-row">
+                    <div class="rua-details">
+                        <p>${item.rua}</p>
+                        <span>NUMERAÇÃO: ${item.numeracao}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-sm btn-edit" onclick="editarRegistro('${item.id}')">Editar</button>
+                        <button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua.replace(/'/g, "\\'")}', '${item.entregador.replace(/'/g, "\\'")}')">Excluir</button>
+                    </div>
                 </div>
-                <div class="item-actions">
-                    <button class="btn-sm btn-edit" onclick="editarRegistro('${item.id}')">Editar</button>
-                    <button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua}', '${item.entregador}')">Excluir</button>
+            `).join('');
+
+            return `
+                <div class="entregador-group">
+                    <div class="entregador-header">
+                        <h3>🚚 ${nomeEntregador}</h3>
+                        <span class="entregador-count">${totalRuas} ${totalRuas === 1 ? 'RUA' : 'RUAS'}</span>
+                    </div>
+                    ${linhasRuas}
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 </script>
 </body>
