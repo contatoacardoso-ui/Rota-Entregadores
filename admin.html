@@ -145,6 +145,36 @@
             display: block;
             animation: slideDown 0.18s ease;
         }
+
+        /* Barra de ações globais do entregador (Renomear / Excluir tudo) */
+        .entregador-bulk-actions {
+            display: flex;
+            gap: 8px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 4px;
+        }
+        .btn-bulk {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 7px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .btn-rename-ent {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            border-color: rgba(59, 130, 246, 0.35);
+        }
+        .btn-del-ent {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-4px); }
             to { opacity: 1; transform: translateY(0); }
@@ -258,7 +288,6 @@
         document.getElementById('appScreen').style.display = 'block';
     }
 
-    // Controle de troca entre abas
     function trocarAba(aba) {
         document.getElementById('btnTabCadastro').classList.remove('ativa');
         document.getElementById('btnTabLista').classList.remove('ativa');
@@ -284,7 +313,6 @@
         }, 2500);
     }
 
-    // Conversão automática para MAIÚSCULAS enquanto digita
     document.querySelectorAll('input.upper').forEach(input => {
         input.addEventListener('input', function() {
             const start = this.selectionStart;
@@ -310,7 +338,7 @@
     const rotasRef = db.ref('rotas');
 
     let registros = [];
-    let entregadorAberto = null; // null = todos recolhidos ao iniciar
+    let entregadorAberto = null;
 
     rotasRef.on('value', (snapshot) => {
         registros = [];
@@ -375,7 +403,7 @@
             rotasRef.child(id).update(payload).then(() => {
                 entregadorAberto = entregador;
                 cancelarEdicao();
-                trocarAba('lista'); // Volta para a aba da lista mostrando o entregador atualizado
+                trocarAba('lista');
             });
         } else {
             rotasRef.push(payload).then(() => {
@@ -401,7 +429,7 @@
         document.getElementById('btnSalvar').innerText = "Atualizar";
         document.getElementById('btnCancelar').style.display = "block";
 
-        trocarAba('cadastro'); // Abre a aba de cadastro para editar
+        trocarAba('cadastro');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -425,6 +453,54 @@
         if (confirm(`REMOVER ${entregador} DA ${rua}?`)) {
             rotasRef.child(id).remove();
         }
+    }
+
+    // Renomeia o entregador em todos os registros vinculados a ele no Firebase
+    function renomearEntregador(nomeAtual) {
+        const entrada = prompt(`DIGITE O NOVO NOME PARA "${nomeAtual}":`, nomeAtual);
+        if (entrada === null) return; // Usuário cancelou
+
+        const novoNome = entrada.toUpperCase().trim();
+        if (!novoNome) {
+            alert("O NOME NÃO PODE FICAR VAZIO.");
+            return;
+        }
+        if (novoNome === nomeAtual) return;
+
+        const itensDoEntregador = registros.filter(r => r.entregador === nomeAtual);
+        if (itensDoEntregador.length === 0) return;
+
+        const atualizacoes = {};
+        itensDoEntregador.forEach(item => {
+            atualizacoes[`${item.id}/entregador`] = novoNome;
+        });
+
+        rotasRef.update(atualizacoes).then(() => {
+            entregadorAberto = novoNome;
+        });
+    }
+
+    // Exclui o entregador e todos os seus endereços cadastrados de uma vez
+    function excluirEntregadorCompleto(nomeEntregador) {
+        const itensDoEntregador = registros.filter(r => r.entregador === nomeEntregador);
+        const qtd = itensDoEntregador.length;
+
+        const confirmar = confirm(
+            `ATENÇÃO: DESEJA EXCLUIR O ENTREGADOR "${nomeEntregador}" E TODOS OS SEUS ${qtd} ${qtd === 1 ? 'ENDEREÇO CADASTRADO' : 'ENDEREÇOS CADASTRADOS'}?\n\nESSA AÇÃO NÃO PODE SER DESFEITA.`
+        );
+
+        if (!confirmar) return;
+
+        const remocoes = {};
+        itensDoEntregador.forEach(item => {
+            remocoes[item.id] = null;
+        });
+
+        rotasRef.update(remocoes).then(() => {
+            if (entregadorAberto === nomeEntregador) {
+                entregadorAberto = null;
+            }
+        });
     }
 
     function renderizarLista(autoExpandirFiltro = false) {
@@ -486,6 +562,10 @@
                         </div>
                     </div>
                     <div class="entregador-body">
+                        <div class="entregador-bulk-actions">
+                            <button class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear Entregador</button>
+                            <button class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir Entregador</button>
+                        </div>
                         ${linhasRuas}
                     </div>
                 </div>
