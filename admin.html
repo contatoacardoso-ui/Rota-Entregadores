@@ -19,9 +19,60 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
         .container { width: 100%; max-width: 540px; }
-        header { text-align: center; margin-bottom: 20px; }
+        header { text-align: center; margin-bottom: 16px; }
         header h1 { font-size: 1.35rem; }
-        .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+
+        /* Navegação por Abas */
+        .tabs {
+            display: flex;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 18px;
+            gap: 4px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 11px 8px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .tab-btn.ativa {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+        }
+        .tab-badge {
+            font-size: 0.72rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            color: inherit;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.18s ease;
+        }
+        .tab-content.ativa {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
         input {
@@ -32,12 +83,23 @@
         input.upper::placeholder { text-transform: none; }
         input:focus { border-color: var(--primary); }
         .btn-row { display: flex; gap: 10px; margin-top: 14px; }
-        button {
+        button.action-btn {
             flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600;
             font-size: 0.95rem; cursor: pointer; transition: 0.2s; color: #fff;
         }
         .btn-save { background: var(--primary); }
         .btn-cancel { background: var(--border); display: none; }
+        .feedback-msg {
+            display: none;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
         
         /* Card Expansível (Accordion) por Entregador */
         .entregador-group {
@@ -96,9 +158,9 @@
         .rua-details p { font-size: 0.88rem; font-weight: 600; color: var(--text); }
         .rua-details span { font-size: 0.76rem; color: var(--success); display: block; margin-top: 2px; font-weight: 600; }
         .item-actions { display: flex; gap: 6px; }
-        .btn-sm { padding: 6px 10px; font-size: 0.76rem; border-radius: 6px; flex: none; }
+        .btn-sm { padding: 6px 10px; font-size: 0.76rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
         .btn-edit { background: var(--warning); color: #000; }
-        .btn-del { background: var(--danger); }
+        .btn-del { background: var(--danger); color: #fff; }
         #loginScreen { margin-top: 60px; text-align: center; }
         #appScreen { display: none; }
     </style>
@@ -112,47 +174,65 @@
         <div class="form-group">
             <input type="password" id="pinInput" inputmode="numeric" placeholder="Digite o PIN de acesso">
         </div>
-        <button class="btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
+        <button class="action-btn btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
     </div>
 
     <!-- Tela Principal Admin -->
     <div id="appScreen">
         <header>
-            <h1>Painel de Rotas e Entregadores</h1>
+            <h1>Painel de Rotas</h1>
         </header>
 
-        <div class="box">
-            <h2 id="formTitle" style="font-size: 1rem; margin-bottom: 12px; color: var(--primary);">Novo Cadastro</h2>
-            <input type="hidden" id="editId">
+        <!-- Barra de Abas -->
+        <div class="tabs">
+            <button class="tab-btn ativa" id="btnTabCadastro" onclick="trocarAba('cadastro')">
+                ➕ Cadastro
+            </button>
+            <button class="tab-btn" id="btnTabLista" onclick="trocarAba('lista')">
+                🚚 Entregadores <span class="tab-badge" id="badgeTotalEntregadores">0</span>
+            </button>
+        </div>
 
-            <div class="form-group">
-                <label>Nome do Entregador *</label>
-                <input type="text" id="entregador" class="upper" placeholder="Ex: CARLOS SILVA" list="listaEntregadores">
-                <datalist id="listaEntregadores"></datalist>
-            </div>
+        <!-- ABA 1: SOMENTE CADASTRO / EDIÇÃO -->
+        <div id="abaCadastro" class="tab-content ativa">
+            <div class="box">
+                <h2 id="formTitle" style="font-size: 1rem; margin-bottom: 12px; color: var(--primary);">Novo Cadastro</h2>
+                <input type="hidden" id="editId">
 
-            <div class="form-group">
-                <label>Nome da Rua / Avenida *</label>
-                <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas">
-                <datalist id="listaRuas"></datalist>
-            </div>
+                <div class="form-group">
+                    <label>Nome do Entregador *</label>
+                    <input type="text" id="entregador" class="upper" placeholder="Ex: CARLOS SILVA" list="listaEntregadores">
+                    <datalist id="listaEntregadores"></datalist>
+                </div>
 
-            <div class="form-group">
-                <label>Numeração Atendida (Deixe vazio para "TODA A RUA")</label>
-                <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90">
-            </div>
+                <div class="form-group">
+                    <label>Nome da Rua / Avenida *</label>
+                    <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas">
+                    <datalist id="listaRuas"></datalist>
+                </div>
 
-            <div class="btn-row">
-                <button class="btn-save" id="btnSalvar" onclick="salvarRegistro()">Salvar Cadastro</button>
-                <button class="btn-cancel" id="btnCancelar" onclick="cancelarEdicao()">Cancelar</button>
+                <div class="form-group">
+                    <label>Numeração Atendida (Deixe vazio para "TODA A RUA")</label>
+                    <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90">
+                </div>
+
+                <div class="btn-row">
+                    <button class="action-btn btn-save" id="btnSalvar" onclick="salvarRegistro()">Salvar Cadastro</button>
+                    <button class="action-btn btn-cancel" id="btnCancelar" onclick="cancelarEdicao()">Cancelar</button>
+                </div>
+
+                <div id="feedbackMsg" class="feedback-msg"></div>
             </div>
         </div>
 
-        <div class="form-group">
-            <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Filtrar por entregador ou rua..." oninput="aoFiltrar()">
-        </div>
+        <!-- ABA 2: ENTREGADORES E ROTAS CADASTRADAS -->
+        <div id="abaLista" class="tab-content">
+            <div class="form-group">
+                <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Filtrar por entregador ou rua..." oninput="aoFiltrar()">
+            </div>
 
-        <div id="listaRegistros"></div>
+            <div id="listaRegistros"></div>
+        </div>
     </div>
 </div>
 
@@ -178,6 +258,33 @@
         document.getElementById('appScreen').style.display = 'block';
     }
 
+    // Controle de troca entre abas
+    function trocarAba(aba) {
+        document.getElementById('btnTabCadastro').classList.remove('ativa');
+        document.getElementById('btnTabLista').classList.remove('ativa');
+        document.getElementById('abaCadastro').classList.remove('ativa');
+        document.getElementById('abaLista').classList.remove('ativa');
+
+        if (aba === 'cadastro') {
+            document.getElementById('btnTabCadastro').classList.add('ativa');
+            document.getElementById('abaCadastro').classList.add('ativa');
+        } else {
+            document.getElementById('btnTabLista').classList.add('ativa');
+            document.getElementById('abaLista').classList.add('ativa');
+            renderizarLista();
+        }
+    }
+
+    function mostrarFeedback(texto) {
+        const el = document.getElementById('feedbackMsg');
+        el.innerText = texto;
+        el.style.display = 'block';
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 2500);
+    }
+
+    // Conversão automática para MAIÚSCULAS enquanto digita
     document.querySelectorAll('input.upper').forEach(input => {
         input.addEventListener('input', function() {
             const start = this.selectionStart;
@@ -203,8 +310,7 @@
     const rotasRef = db.ref('rotas');
 
     let registros = [];
-    // Controla qual entregador está expandido no momento (null = todos recolhidos ao iniciar)
-    let entregadorAberto = null;
+    let entregadorAberto = null; // null = todos recolhidos ao iniciar
 
     rotasRef.on('value', (snapshot) => {
         registros = [];
@@ -226,6 +332,7 @@
             });
         }
 
+        document.getElementById('badgeTotalEntregadores').innerText = entregadoresUnicos.size;
         document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].sort().map(e => `<option value="${e}">`).join('');
         document.getElementById('listaRuas').innerHTML = [...ruasUnicas].sort().map(r => `<option value="${r}">`).join('');
 
@@ -234,9 +341,9 @@
 
     function alternarEntregador(nomeEntregador) {
         if (entregadorAberto === nomeEntregador) {
-            entregadorAberto = null; // Recolhe se clicar no mesmo que já está aberto
+            entregadorAberto = null;
         } else {
-            entregadorAberto = nomeEntregador; // Abre o clicado e fecha automaticamente o anterior
+            entregadorAberto = nomeEntregador;
         }
         renderizarLista();
     }
@@ -244,7 +351,7 @@
     function aoFiltrar() {
         const filtro = document.getElementById('filtroAdmin').value.toUpperCase().trim();
         if (!filtro) {
-            entregadorAberto = null; // Ao limpar a busca, recolhe todos novamente
+            entregadorAberto = null;
         }
         renderizarLista(true);
     }
@@ -268,6 +375,7 @@
             rotasRef.child(id).update(payload).then(() => {
                 entregadorAberto = entregador;
                 cancelarEdicao();
+                trocarAba('lista'); // Volta para a aba da lista mostrando o entregador atualizado
             });
         } else {
             rotasRef.push(payload).then(() => {
@@ -275,6 +383,7 @@
                 document.getElementById('rua').value = '';
                 document.getElementById('numeracao').value = '';
                 document.getElementById('rua').focus();
+                mostrarFeedback(`✓ RUA SALVA PARA ${entregador}`);
             });
         }
     }
@@ -291,10 +400,13 @@
         document.getElementById('formTitle').innerText = "Editando Cadastro";
         document.getElementById('btnSalvar').innerText = "Atualizar";
         document.getElementById('btnCancelar').style.display = "block";
+
+        trocarAba('cadastro'); // Abre a aba de cadastro para editar
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function cancelarEdicao() {
+        const estavaEditando = document.getElementById('editId').value !== '';
         document.getElementById('editId').value = '';
         document.getElementById('entregador').value = '';
         document.getElementById('rua').value = '';
@@ -303,6 +415,10 @@
         document.getElementById('formTitle').innerText = "Novo Cadastro";
         document.getElementById('btnSalvar').innerText = "Salvar Cadastro";
         document.getElementById('btnCancelar').style.display = "none";
+
+        if (estavaEditando) {
+            trocarAba('lista');
+        }
     }
 
     function excluirRegistro(id, rua, entregador) {
@@ -321,7 +437,7 @@
         );
 
         if (filtrados.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:20px;">Nenhum registro encontrado.</p>';
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado.</p>';
             return;
         }
 
@@ -335,7 +451,6 @@
 
         const nomesOrdenados = Object.keys(agrupadoPorEntregador).sort((a, b) => a.localeCompare(b));
 
-        // Se o usuário digitou um filtro e nenhum entregador válido está aberto, abre o primeiro encontrado
         if (autoExpandirFiltro && filtro.length > 0 && !nomesOrdenados.includes(entregadorAberto)) {
             entregadorAberto = nomesOrdenados[0];
         }
