@@ -39,30 +39,64 @@
         .btn-save { background: var(--primary); }
         .btn-cancel { background: var(--border); display: none; }
         
-        /* Card Agrupado por Entregador */
+        /* Card Expansível (Accordion) por Entregador */
         .entregador-group {
             background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-            padding: 14px; margin-bottom: 14px;
+            margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s;
+        }
+        .entregador-group.aberto {
+            border-color: var(--primary);
         }
         .entregador-header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;
+            padding: 14px 16px; cursor: pointer; user-select: none;
+            transition: background-color 0.15s;
         }
-        .entregador-header h3 { font-size: 1rem; color: var(--primary); font-weight: 700; }
+        .entregador-header:active {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+        .entregador-title-wrap {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .entregador-header h3 { font-size: 0.98rem; color: var(--text); font-weight: 700; }
+        .entregador-group.aberto .entregador-header h3 { color: var(--primary); }
+        .entregador-meta {
+            display: flex; align-items: center; gap: 10px;
+        }
         .entregador-count {
             font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); color: var(--primary);
-            padding: 2px 8px; border-radius: 12px; font-weight: 600;
+            padding: 3px 8px; border-radius: 12px; font-weight: 600;
+        }
+        .chevron {
+            font-size: 0.8rem; color: var(--muted); transition: transform 0.2s ease;
+        }
+        .entregador-group.aberto .chevron {
+            transform: rotate(180deg); color: var(--primary);
+        }
+        .entregador-body {
+            display: none;
+            padding: 0 16px 12px 16px;
+            border-top: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.35);
+        }
+        .entregador-group.aberto .entregador-body {
+            display: block;
+            animation: slideDown 0.18s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .rua-row {
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
-            padding: 8px 0; border-bottom: 1px dashed #2d3b4e;
+            padding: 10px 0; border-bottom: 1px dashed #2d3b4e;
         }
-        .rua-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .rua-row:last-child { border-bottom: none; padding-bottom: 4px; }
         .rua-details { flex: 1; }
-        .rua-details p { font-size: 0.9rem; font-weight: 600; color: var(--text); }
-        .rua-details span { font-size: 0.78rem; color: var(--success); display: block; margin-top: 2px; font-weight: 600; }
+        .rua-details p { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+        .rua-details span { font-size: 0.76rem; color: var(--success); display: block; margin-top: 2px; font-weight: 600; }
         .item-actions { display: flex; gap: 6px; }
-        .btn-sm { padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; flex: none; }
+        .btn-sm { padding: 6px 10px; font-size: 0.76rem; border-radius: 6px; flex: none; }
         .btn-edit { background: var(--warning); color: #000; }
         .btn-del { background: var(--danger); }
         #loginScreen { margin-top: 60px; text-align: center; }
@@ -115,7 +149,7 @@
         </div>
 
         <div class="form-group">
-            <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Filtrar por entregador ou rua..." oninput="renderizarLista()">
+            <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Filtrar por entregador ou rua..." oninput="aoFiltrar()">
         </div>
 
         <div id="listaRegistros"></div>
@@ -144,7 +178,6 @@
         document.getElementById('appScreen').style.display = 'block';
     }
 
-    // Força conversão automática para MAIÚSCULAS enquanto o usuário digita
     document.querySelectorAll('input.upper').forEach(input => {
         input.addEventListener('input', function() {
             const start = this.selectionStart;
@@ -170,6 +203,8 @@
     const rotasRef = db.ref('rotas');
 
     let registros = [];
+    // Controla qual entregador está expandido no momento (null = todos recolhidos ao iniciar)
+    let entregadorAberto = null;
 
     rotasRef.on('value', (snapshot) => {
         registros = [];
@@ -197,6 +232,23 @@
         renderizarLista();
     });
 
+    function alternarEntregador(nomeEntregador) {
+        if (entregadorAberto === nomeEntregador) {
+            entregadorAberto = null; // Recolhe se clicar no mesmo que já está aberto
+        } else {
+            entregadorAberto = nomeEntregador; // Abre o clicado e fecha automaticamente o anterior
+        }
+        renderizarLista();
+    }
+
+    function aoFiltrar() {
+        const filtro = document.getElementById('filtroAdmin').value.toUpperCase().trim();
+        if (!filtro) {
+            entregadorAberto = null; // Ao limpar a busca, recolhe todos novamente
+        }
+        renderizarLista(true);
+    }
+
     function salvarRegistro() {
         const id = document.getElementById('editId').value;
         const entregador = document.getElementById('entregador').value.toUpperCase().trim();
@@ -213,9 +265,13 @@
         const payload = { entregador, rua, numeracao };
 
         if (id) {
-            rotasRef.child(id).update(payload).then(() => cancelarEdicao());
+            rotasRef.child(id).update(payload).then(() => {
+                entregadorAberto = entregador;
+                cancelarEdicao();
+            });
         } else {
             rotasRef.push(payload).then(() => {
+                entregadorAberto = entregador;
                 document.getElementById('rua').value = '';
                 document.getElementById('numeracao').value = '';
                 document.getElementById('rua').focus();
@@ -255,7 +311,7 @@
         }
     }
 
-    function renderizarLista() {
+    function renderizarLista(autoExpandirFiltro = false) {
         const filtro = document.getElementById('filtroAdmin').value.toUpperCase().trim();
         const container = document.getElementById('listaRegistros');
 
@@ -269,7 +325,6 @@
             return;
         }
 
-        // Agrupa os endereços por entregador
         const agrupadoPorEntregador = {};
         filtrados.forEach(item => {
             if (!agrupadoPorEntregador[item.entregador]) {
@@ -278,12 +333,18 @@
             agrupadoPorEntregador[item.entregador].push(item);
         });
 
-        // Ordena os entregadores em ordem alfabética
         const nomesOrdenados = Object.keys(agrupadoPorEntregador).sort((a, b) => a.localeCompare(b));
+
+        // Se o usuário digitou um filtro e nenhum entregador válido está aberto, abre o primeiro encontrado
+        if (autoExpandirFiltro && filtro.length > 0 && !nomesOrdenados.includes(entregadorAberto)) {
+            entregadorAberto = nomesOrdenados[0];
+        }
 
         container.innerHTML = nomesOrdenados.map(nomeEntregador => {
             const ruasDoEntregador = agrupadoPorEntregador[nomeEntregador].sort((a, b) => a.rua.localeCompare(b.rua));
             const totalRuas = ruasDoEntregador.length;
+            const estaAberto = entregadorAberto === nomeEntregador;
+            const nomeEscapado = nomeEntregador.replace(/'/g, "\\'");
 
             const linhasRuas = ruasDoEntregador.map(item => `
                 <div class="rua-row">
@@ -293,18 +354,25 @@
                     </div>
                     <div class="item-actions">
                         <button class="btn-sm btn-edit" onclick="editarRegistro('${item.id}')">Editar</button>
-                        <button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua.replace(/'/g, "\\'")}', '${item.entregador.replace(/'/g, "\\'")}')">Excluir</button>
+                        <button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua.replace(/'/g, "\\'")}', '${nomeEscapado}')">Excluir</button>
                     </div>
                 </div>
             `).join('');
 
             return `
-                <div class="entregador-group">
-                    <div class="entregador-header">
-                        <h3>🚚 ${nomeEntregador}</h3>
-                        <span class="entregador-count">${totalRuas} ${totalRuas === 1 ? 'RUA' : 'RUAS'}</span>
+                <div class="entregador-group ${estaAberto ? 'aberto' : ''}">
+                    <div class="entregador-header" onclick="alternarEntregador('${nomeEscapado}')">
+                        <div class="entregador-title-wrap">
+                            <h3>🚚 ${nomeEntregador}</h3>
+                        </div>
+                        <div class="entregador-meta">
+                            <span class="entregador-count">${totalRuas} ${totalRuas === 1 ? 'RUA' : 'RUAS'}</span>
+                            <span class="chevron">▼</span>
+                        </div>
                     </div>
-                    ${linhasRuas}
+                    <div class="entregador-body">
+                        ${linhasRuas}
+                    </div>
                 </div>
             `;
         }).join('');
