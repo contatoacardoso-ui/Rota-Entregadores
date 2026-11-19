@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Consulta de Rotas e Fila de Bipagem</title>
+    <title>Admin - Gestão de Rotas</title>
     <style>
         :root {
             --bg: #0f172a;
             --card: #1e293b;
             --primary: #3b82f6;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
             --text: #f8fafc;
             --muted: #94a3b8;
             --border: #334155;
-            --accent: #10b981;
-            --highlight: #f59e0b;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
-        .container { width: 100%; max-width: 520px; }
-        header { text-align: center; margin-bottom: 16px; padding-top: 6px; }
-        header h1 { font-size: 1.38rem; font-weight: 700; color: var(--text); }
-        header p { font-size: 0.84rem; color: var(--muted); margin-top: 4px; }
+        .container { width: 100%; max-width: 560px; }
+        header { text-align: center; margin-bottom: 16px; }
+        header h1 { font-size: 1.35rem; }
 
         /* Navegação por Abas */
         .tabs {
@@ -29,24 +29,24 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 4px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             gap: 4px;
         }
         .tab-btn {
             flex: 1;
-            padding: 11px 10px;
+            padding: 10px 6px;
             border: none;
             border-radius: 9px;
             background: transparent;
             color: var(--muted);
-            font-weight: 700;
-            font-size: 0.88rem;
+            font-weight: 600;
+            font-size: 0.84rem;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 5px;
         }
         .tab-btn.ativa {
             background: var(--primary);
@@ -54,8 +54,8 @@
             box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
         }
         .tab-badge {
-            font-size: 0.72rem;
-            padding: 2px 7px;
+            font-size: 0.7rem;
+            padding: 1px 6px;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.16);
             color: inherit;
@@ -67,37 +67,156 @@
         .tab-content.ativa {
             display: block;
         }
-
-        .search-box { position: sticky; top: 8px; z-index: 10; background: var(--bg); padding-bottom: 12px; }
-        input[type="text"] {
-            width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
-            background: var(--card); color: var(--text); font-size: 1rem; outline: none; transition: 0.2s;
-            text-transform: uppercase;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(3px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        input[type="text"]::placeholder { text-transform: none; }
-        input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
 
-        .status { text-align: center; color: var(--muted); font-size: 0.9rem; margin-top: 28px; }
-        .filtro-info { font-size: 0.8rem; color: var(--highlight); margin-bottom: 10px; text-align: center; font-weight: 600; }
+        .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
+        input {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+            background: #0f172a; color: var(--text); font-size: 0.95rem; outline: none;
+        }
+        input.upper { text-transform: uppercase; }
+        input.upper::placeholder { text-transform: none; }
+        input:focus { border-color: var(--primary); }
+        .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+        button.action-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer; transition: 0.2s; color: #fff;
+        }
+        .btn-save { background: var(--primary); }
+        .btn-cancel { background: var(--border); display: none; }
+        .feedback-msg {
+            display: none;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
 
-        .card {
+        /* Card Expansível (Accordion) por Entregador */
+        .entregador-group {
             background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-            padding: 16px; margin-bottom: 12px; animation: fadeIn 0.2s ease;
+            margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s;
         }
-        .rua-title { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-        .entregador-item { display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px dashed #2d3b4e; }
-        .entregador-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .entregador-nome { font-weight: 700; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
-        .badge { background: rgba(16, 185, 129, 0.15); color: var(--accent); font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; width: fit-content; font-weight: 600; }
+        .entregador-group.aberto {
+            border-color: var(--primary);
+        }
+        .entregador-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px; cursor: pointer; user-select: none;
+            transition: background-color 0.15s;
+        }
+        .entregador-header:active {
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+        .entregador-title-wrap {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .entregador-header h3 { font-size: 0.98rem; color: var(--text); font-weight: 700; }
+        .entregador-group.aberto .entregador-header h3 { color: var(--primary); }
+        .entregador-meta {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .entregador-count {
+            font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); color: var(--primary);
+            padding: 3px 8px; border-radius: 12px; font-weight: 600;
+        }
+        .chevron {
+            font-size: 0.8rem; color: var(--muted); transition: transform 0.2s ease;
+        }
+        .entregador-group.aberto .chevron {
+            transform: rotate(180deg); color: var(--primary);
+        }
+        .entregador-body {
+            display: none;
+            padding: 0 16px 12px 16px;
+            border-top: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.35);
+        }
+        .entregador-group.aberto .entregador-body {
+            display: block;
+            animation: slideDown 0.18s ease;
+        }
 
-        /* Fila de Bipagem (Somente visualização para motoristas) */
+        .entregador-bulk-actions {
+            display: flex;
+            gap: 8px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 4px;
+        }
+        .btn-bulk {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 7px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .btn-rename-ent {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            border-color: rgba(59, 130, 246, 0.35);
+        }
+        .btn-del-ent {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .rua-row {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: 10px 0; border-bottom: 1px dashed #2d3b4e;
+        }
+        .rua-row:last-child { border-bottom: none; padding-bottom: 4px; }
+        .rua-details { flex: 1; }
+        .rua-details p { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+        .rua-details span { font-size: 0.76rem; color: var(--success); display: block; margin-top: 2px; font-weight: 600; }
+        .item-actions { display: flex; gap: 6px; }
+        .btn-sm { padding: 6px 10px; font-size: 0.76rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
+        .btn-edit { background: var(--warning); color: #000; }
+        .btn-del { background: var(--danger); color: #fff; }
+
+        /* Fila de Bipagem */
+        .fila-add-row {
+            display: flex;
+            gap: 8px;
+        }
+        .fila-add-row input {
+            flex: 1;
+        }
+        .btn-add-fila {
+            padding: 0 16px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
         .fila-section-title {
             font-size: 0.78rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--muted);
             font-weight: 700;
-            margin: 12px 0 8px 0;
+            margin: 14px 0 8px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -106,13 +225,13 @@
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 13px 15px;
+            padding: 12px 14px;
             margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            animation: fadeIn 0.18s ease;
+            transition: opacity 0.2s, border-color 0.2s;
         }
         .fila-card.aguardando {
             border-left: 4px solid var(--primary);
@@ -128,26 +247,44 @@
             background: rgba(59, 130, 246, 0.16);
             color: var(--primary);
             font-weight: 800;
-            font-size: 0.84rem;
-            padding: 4px 9px;
+            font-size: 0.82rem;
+            padding: 4px 8px;
             border-radius: 7px;
             flex-shrink: 0;
         }
         .fila-nome {
-            font-size: 0.96rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--text);
             word-break: break-word;
         }
-        .fila-tag-aguardando {
-            font-size: 0.74rem;
-            font-weight: 700;
-            color: var(--accent);
-            background: rgba(16, 185, 129, 0.14);
-            padding: 3px 8px;
-            border-radius: 6px;
+        .fila-actions {
+            display: flex;
+            gap: 6px;
             flex-shrink: 0;
         }
+        .btn-bipar {
+            background: rgba(16, 185, 129, 0.16);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 7px 11px;
+            border-radius: 7px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-rm-fila {
+            background: rgba(239, 68, 68, 0.14);
+            color: var(--danger);
+            border: none;
+            padding: 7px 9px;
+            border-radius: 7px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Motorista já enviado para bipagem (ao final, apagado e riscado) */
         .fila-card.bipado {
             background: rgba(15, 23, 42, 0.55);
             border-color: #263244;
@@ -163,49 +300,240 @@
             font-weight: 600;
         }
         .fila-status-tag {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--muted);
             text-transform: uppercase;
             margin-left: 6px;
         }
+        .btn-desfazer-bip {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 6px 9px;
+            border-radius: 7px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .fila-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .btn-limpar-bip {
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        /* Pop-up Modal Moderno de Conflito */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.78);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-backdrop.aberto {
+            display: flex;
+            animation: fadeIn 0.16s ease;
+        }
+        .modal-card {
+            width: 100%;
+            max-width: 430px;
+            background: var(--card);
+            border: 1px solid var(--warning);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .modal-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(245, 158, 11, 0.16);
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .modal-header h3 {
+            font-size: 1.05rem;
+            color: var(--warning);
+            font-weight: 700;
+        }
+        .modal-body {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.45;
+            margin-bottom: 16px;
+        }
+        .modal-highlight-box {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 0.85rem;
+        }
+        .modal-highlight-box p {
+            margin-bottom: 4px;
+            color: var(--muted);
+        }
+        .modal-highlight-box p:last-child {
+            margin-bottom: 0;
+        }
+        .modal-highlight-box strong {
+            color: var(--text);
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-modal-cancel {
+            flex: 1;
+            padding: 11px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #0f172a;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+        .btn-modal-confirm {
+            flex: 1;
+            padding: 11px;
+            border-radius: 8px;
+            border: none;
+            background: var(--warning);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+
+        #loginScreen { margin-top: 60px; text-align: center; }
+        #appScreen { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1 id="tituloHeader">Consulta de Entregadores</h1>
-        <p id="subtituloHeader">Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
-    </header>
-
-    <!-- Barra de Abas -->
-    <div class="tabs">
-        <button class="tab-btn ativa" id="btnTabConsulta" onclick="trocarAba('consulta')">
-            🔍 Consulta Endereços
-        </button>
-        <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
-            📋 Fila Bipagem <span class="tab-badge" id="badgeFilaMotoristas">0</span>
-        </button>
+    <!-- Tela de Bloqueio Simples -->
+    <div id="loginScreen" class="box">
+        <h2 style="margin-bottom: 12px; font-size: 1.2rem;">Acesso Administrativo</h2>
+        <div class="form-group">
+            <input type="password" id="pinInput" inputmode="numeric" placeholder="Digite o PIN de acesso">
+        </div>
+        <button class="action-btn btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
     </div>
 
-    <!-- ABA 1: CONSULTA DE ENDEREÇOS -->
-    <div id="abaConsulta" class="tab-content ativa">
-        <div class="search-box">
-            <input type="text" id="campoBusca" placeholder="Ex: Rua das Flores 250 ou Av. Brasil..." autocomplete="off">
+    <!-- Tela Principal Admin -->
+    <div id="appScreen">
+        <header>
+            <h1>Painel de Rotas</h1>
+        </header>
+
+        <!-- Barra de Abas -->
+        <div class="tabs">
+            <button class="tab-btn ativa" id="btnTabCadastro" onclick="trocarAba('cadastro')">
+                ➕ Cadastro
+            </button>
+            <button class="tab-btn" id="btnTabLista" onclick="trocarAba('lista')">
+                🚚 Entregadores <span class="tab-badge" id="badgeTotalEntregadores">0</span>
+            </button>
+            <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
+                📋 Fila Bipagem <span class="tab-badge" id="badgeFilaAtiva">0</span>
+            </button>
         </div>
 
-        <div id="resultados">
-            <div class="status">Conectando ao banco de dados...</div>
+        <!-- ABA 1: CADASTRO / EDIÇÃO -->
+        <div id="abaCadastro" class="tab-content ativa">
+            <div class="box">
+                <h2 id="formTitle" style="font-size: 1rem; margin-bottom: 12px; color: var(--primary);">Novo Cadastro</h2>
+                <input type="hidden" id="editId">
+
+                <div class="form-group">
+                    <label>Nome do Entregador *</label>
+                    <input type="text" id="entregador" class="upper" placeholder="Ex: CARLOS SILVA" list="listaEntregadores">
+                    <datalist id="listaEntregadores"></datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>Nome da Rua / Avenida *</label>
+                    <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas">
+                    <datalist id="listaRuas"></datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>Numeração Atendida (Deixe vazio para "TODA A RUA")</label>
+                    <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90">
+                </div>
+
+                <div class="btn-row">
+                    <button class="action-btn btn-save" id="btnSalvar" onclick="prepararSalvamento()">Salvar Cadastro</button>
+                    <button class="action-btn btn-cancel" id="btnCancelar" onclick="cancelarEdicao()">Cancelar</button>
+                </div>
+
+                <div id="feedbackMsg" class="feedback-msg"></div>
+            </div>
+        </div>
+
+        <!-- ABA 2: ENTREGADORES E ROTAS CADASTRADAS -->
+        <div id="abaLista" class="tab-content">
+            <div class="form-group">
+                <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Buscar rua ou endereço (ex: RUA BRASIL ou RUA BRASIL 150)..." oninput="aoFiltrar()">
+            </div>
+
+            <div id="listaRegistros"></div>
+        </div>
+
+        <!-- ABA 3: FILA DE BIPAGEM -->
+        <div id="abaFila" class="tab-content">
+            <div class="box">
+                <label>Adicionar Motorista na Fila (por ordem de chegada)</label>
+                <div class="fila-add-row">
+                    <input type="text" id="inputFilaMotorista" class="upper" placeholder="NOME DO MOTORISTA" list="listaEntregadores" onkeydown="if(event.key==='Enter') adicionarNaFila()">
+                    <button class="btn-add-fila" onclick="adicionarNaFila()">+ Entrar</button>
+                </div>
+            </div>
+
+            <div id="conteudoFila"></div>
         </div>
     </div>
+</div>
 
-    <!-- ABA 2: FILA DE BIPAGEM -->
-    <div id="abaFila" class="tab-content">
-        <div id="conteudoFilaMotoristas">
-            <div class="status">Carregando fila de bipagem...</div>
+<!-- Pop-up Moderno de Conflito de Endereço -->
+<div id="modalConflito" class="modal-backdrop" onclick="if(event.target===this) fecharModalConflito()">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="modal-icon">⚠️</div>
+            <h3>Endereço Já Cadastrado</h3>
+        </div>
+        <div class="modal-body" id="textoModalConflito"></div>
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="fecharModalConflito()">Cancelar</button>
+            <button class="btn-modal-confirm" id="btnConfirmarConflito" onclick="confirmarTransferenciaConflito()">Confirmar Alteração</button>
         </div>
     </div>
 </div>
@@ -214,6 +542,65 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
+    const SENHA_ADMIN = "1234";
+
+    function verificarPin() {
+        const pin = document.getElementById('pinInput').value;
+        if (pin === SENHA_ADMIN) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            sessionStorage.setItem('adminLogado', 'true');
+        } else {
+            alert("PIN incorreto!");
+        }
+    }
+
+    if (sessionStorage.getItem('adminLogado') === 'true') {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'block';
+    }
+
+    function trocarAba(aba) {
+        document.getElementById('btnTabCadastro').classList.remove('ativa');
+        document.getElementById('btnTabLista').classList.remove('ativa');
+        document.getElementById('btnTabFila').classList.remove('ativa');
+
+        document.getElementById('abaCadastro').classList.remove('ativa');
+        document.getElementById('abaLista').classList.remove('ativa');
+        document.getElementById('abaFila').classList.remove('ativa');
+
+        if (aba === 'cadastro') {
+            document.getElementById('btnTabCadastro').classList.add('ativa');
+            document.getElementById('abaCadastro').classList.add('ativa');
+        } else if (aba === 'lista') {
+            document.getElementById('btnTabLista').classList.add('ativa');
+            document.getElementById('abaLista').classList.add('ativa');
+            renderizarLista();
+        } else if (aba === 'fila') {
+            document.getElementById('btnTabFila').classList.add('ativa');
+            document.getElementById('abaFila').classList.add('ativa');
+            renderizarFila();
+        }
+    }
+
+    function mostrarFeedback(texto) {
+        const el = document.getElementById('feedbackMsg');
+        el.innerText = texto;
+        el.style.display = 'block';
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 2600);
+    }
+
+    document.querySelectorAll('input.upper').forEach(input => {
+        input.addEventListener('input', function() {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        });
+    });
+
     const firebaseConfig = {
         apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
         authDomain: "rota-entregadores.firebaseapp.com",
@@ -227,35 +614,318 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const rotasRef = db.ref('rotas');
+    const filaRef = db.ref('fila_bipagem');
 
-    let baseDados = [];
-    let filaMotoristas = [];
-
-    function trocarAba(aba) {
-        document.getElementById('btnTabConsulta').classList.remove('ativa');
-        document.getElementById('btnTabFila').classList.remove('ativa');
-        document.getElementById('abaConsulta').classList.remove('ativa');
-        document.getElementById('abaFila').classList.remove('ativa');
-
-        if (aba === 'consulta') {
-            document.getElementById('btnTabConsulta').classList.add('ativa');
-            document.getElementById('abaConsulta').classList.add('ativa');
-            document.getElementById('tituloHeader').innerText = "Consulta de Entregadores";
-            document.getElementById('subtituloHeader').innerText = "Digite a rua ou rua + número (ex: Rua das Flores 250)";
-        } else {
-            document.getElementById('btnTabFila').classList.add('ativa');
-            document.getElementById('abaFila').classList.add('ativa');
-            document.getElementById('tituloHeader').innerText = "Fila de Bipagem";
-            document.getElementById('subtituloHeader').innerText = "Acompanhe sua ordem de chegada e saída para bipagem";
-            renderizarFilaMotoristas();
-        }
-    }
+    let registros = [];
+    let filaItens = [];
+    let entregadoresExpandidos = new Set();
+    let conflitoPendente = null;
 
     function normalizar(texto) {
         return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
     }
 
-    function extrairRuaENumero(entrada) {
+    // Escuta rotas em tempo real
+    rotasRef.on('value', (snapshot) => {
+        registros = [];
+        const data = snapshot.val();
+        const entregadoresUnicos = new Set();
+        const ruasUnicas = new Set();
+
+        if (data) {
+            Object.keys(data).forEach(id => {
+                const item = {
+                    id,
+                    entregador: (data[id].entregador || "").toUpperCase().trim(),
+                    rua: (data[id].rua || "").toUpperCase().trim(),
+                    numeracao: (data[id].numeracao || "TODA A RUA").toUpperCase().trim()
+                };
+                registros.push(item);
+                if (item.entregador) entregadoresUnicos.add(item.entregador);
+                if (item.rua) ruasUnicas.add(item.rua);
+            });
+        }
+
+        document.getElementById('badgeTotalEntregadores').innerText = entregadoresUnicos.size;
+        document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].sort().map(e => `<option value="${e}">`).join('');
+        document.getElementById('listaRuas').innerHTML = [...ruasUnicas].sort().map(r => `<option value="${r}">`).join('');
+
+        renderizarLista();
+    });
+
+    // Escuta fila de bipagem em tempo real
+    filaRef.on('value', (snapshot) => {
+        filaItens = [];
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach(id => {
+                filaItens.push({
+                    id,
+                    motorista: (data[id].motorista || "").toUpperCase().trim(),
+                    ordem: Number(data[id].ordem) || 0,
+                    bipado: Boolean(data[id].bipado),
+                    bipadoEm: Number(data[id].bipadoEm) || 0
+                });
+            });
+        }
+        const qtdAguardando = filaItens.filter(f => !f.bipado).length;
+        document.getElementById('badgeFilaAtiva').innerText = qtdAguardando;
+        renderizarFila();
+    });
+
+    // --- FUNÇÕES DE CADASTRO E CONFLITO DE ENDEREÇO ---
+
+    function extrairFaixasENumeros(regraTexto) {
+        const regra = normalizar(regraTexto);
+        const faixas = [];
+        const avulsos = new Set();
+
+        if (!regra || regra.includes("TODA")) {
+            return { todaRua: true, faixas, avulsos };
+        }
+
+        const regexFaixa = /(\d+)\s*(?:AO|A|ATE|-)\s*(\d+)/g;
+        let m;
+        while ((m = regexFaixa.exec(regra)) !== null) {
+            const n1 = parseInt(m[1], 10);
+            const n2 = parseInt(m[2], 10);
+            faixas.push({ min: Math.min(n1, n2), max: Math.max(n1, n2) });
+        }
+
+        const semFaixas = regra.replace(/(\d+)\s*(?:AO|A|ATE|-)\s*(\d+)/g, " ");
+        const nums = semFaixas.match(/\d+/g);
+        if (nums) {
+            nums.forEach(n => avulsos.add(parseInt(n, 10)));
+        }
+
+        return { todaRua: false, faixas, avulsos };
+    }
+
+    function haSobreposicaoNumerica(regraA, regraB) {
+        const a = extrairFaixasENumeros(regraA);
+        const b = extrairFaixasENumeros(regraB);
+
+        // Se qualquer um dos lados atende a rua inteira, há sobreposição no endereço
+        if (a.todaRua || b.todaRua) return true;
+
+        // Se nenhum dos lados tem números extraíveis (ex: texto livre), considera conflito na mesma rua
+        const aSemNum = a.faixas.length === 0 && a.avulsos.size === 0;
+        const bSemNum = b.faixas.length === 0 && b.avulsos.size === 0;
+        if (aSemNum && bSemNum) return true;
+
+        for (const fA of a.faixas) {
+            for (const fB of b.faixas) {
+                if (fA.min <= fB.max && fB.min <= fA.max) return true;
+            }
+            for (const avB of b.avulsos) {
+                if (avB >= fA.min && avB <= fA.max) return true;
+            }
+        }
+
+        for (const fB of b.faixas) {
+            for (const avA of a.avulsos) {
+                if (avA >= fB.min && avA <= fB.max) return true;
+            }
+        }
+
+        for (const avA of a.avulsos) {
+            if (b.avulsos.has(avA)) return true;
+        }
+
+        return false;
+    }
+
+    function buscarConflitosOutroMotorista(editId, entregadorNovo, ruaNova, numeracaoNova) {
+        const ruaNorm = normalizar(ruaNova);
+        const entNovoNorm = normalizar(entregadorNovo);
+
+        return registros.filter(item => {
+            if (editId && item.id === editId) return false;
+            if (normalizar(item.entregador) === entNovoNorm) return false;
+            if (normalizar(item.rua) !== ruaNorm) return false;
+            return haSobreposicaoNumerica(item.numeracao, numeracaoNova);
+        });
+    }
+
+    function prepararSalvamento() {
+        const id = document.getElementById('editId').value;
+        const entregador = document.getElementById('entregador').value.toUpperCase().trim();
+        const rua = document.getElementById('rua').value.toUpperCase().trim();
+        let numeracao = document.getElementById('numeracao').value.toUpperCase().trim();
+
+        if (!entregador || !rua) {
+            alert("PREENCHA O NOME DO ENTREGADOR E O NOME DA RUA.");
+            return;
+        }
+
+        if (!numeracao) numeracao = "TODA A RUA";
+
+        const conflitos = buscarConflitosOutroMotorista(id, entregador, rua, numeracao);
+
+        if (conflitos.length > 0) {
+            conflitoPendente = {
+                id,
+                entregador,
+                rua,
+                numeracao,
+                conflitos
+            };
+            abrirModalConflito(conflitoPendente);
+            return;
+        }
+
+        executarSalvamento({ id, entregador, rua, numeracao, conflitos: [] });
+    }
+
+    function abrirModalConflito(dados) {
+        const detalhesConflitos = dados.conflitos.map(c => `
+            <div class="modal-highlight-box">
+                <p>Motorista atual: <strong>🚚 ${c.entregador}</strong></p>
+                <p>Endereço: <strong>${c.rua}</strong></p>
+                <p>Numeração: <strong>${c.numeracao}</strong></p>
+            </div>
+        `).join('');
+
+        document.getElementById('textoModalConflito').innerHTML = `
+            O endereço <strong>${dados.rua}</strong> (<strong>${dados.numeracao}</strong>) já está cadastrado para outro motorista:
+            ${detalhesConflitos}
+            Deseja confirmar a alteração para <strong>${dados.entregador}</strong>? Ao confirmar, o endereço será removido do motorista anterior.
+        `;
+
+        document.getElementById('modalConflito').classList.add('aberto');
+    }
+
+    function fecharModalConflito() {
+        conflitoPendente = null;
+        document.getElementById('modalConflito').classList.remove('aberto');
+    }
+
+    function confirmarTransferenciaConflito() {
+        if (!conflitoPendente) return;
+        const dados = conflitoPendente;
+        fecharModalConflito();
+        executarSalvamento(dados);
+    }
+
+    function executarSalvamento({ id, entregador, rua, numeracao, conflitos }) {
+        const payload = { entregador, rua, numeracao };
+
+        const operacaoPrincipal = id
+            ? rotasRef.child(id).update(payload)
+            : rotasRef.push(payload);
+
+        operacaoPrincipal.then(() => {
+            if (conflitos && conflitos.length > 0) {
+                const remocoes = {};
+                conflitos.forEach(c => {
+                    remocoes[c.id] = null;
+                });
+                rotasRef.update(remocoes);
+            }
+
+            entregadoresExpandidos.clear();
+            entregadoresExpandidos.add(entregador);
+
+            if (id) {
+                cancelarEdicao();
+                trocarAba('lista');
+            } else {
+                document.getElementById('rua').value = '';
+                document.getElementById('numeracao').value = '';
+                document.getElementById('rua').focus();
+                mostrarFeedback(`✓ RUA SALVA PARA ${entregador}`);
+            }
+        });
+    }
+
+    function editarRegistro(id) {
+        const item = registros.find(r => r.id === id);
+        if (!item) return;
+
+        document.getElementById('editId').value = item.id;
+        document.getElementById('entregador').value = item.entregador;
+        document.getElementById('rua').value = item.rua;
+        document.getElementById('numeracao').value = item.numeracao === "TODA A RUA" ? "" : item.numeracao;
+
+        document.getElementById('formTitle').innerText = "Editando Cadastro";
+        document.getElementById('btnSalvar').innerText = "Atualizar";
+        document.getElementById('btnCancelar').style.display = "block";
+
+        trocarAba('cadastro');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelarEdicao() {
+        const estavaEditando = document.getElementById('editId').value !== '';
+        document.getElementById('editId').value = '';
+        document.getElementById('entregador').value = '';
+        document.getElementById('rua').value = '';
+        document.getElementById('numeracao').value = '';
+
+        document.getElementById('formTitle').innerText = "Novo Cadastro";
+        document.getElementById('btnSalvar').innerText = "Salvar Cadastro";
+        document.getElementById('btnCancelar').style.display = "none";
+
+        if (estavaEditando) {
+            trocarAba('lista');
+        }
+    }
+
+    function excluirRegistro(id, rua, entregador) {
+        if (confirm(`REMOVER ${entregador} DA ${rua}?`)) {
+            rotasRef.child(id).remove();
+        }
+    }
+
+    function renomearEntregador(nomeAtual) {
+        const entrada = prompt(`DIGITE O NOVO NOME PARA "${nomeAtual}":`, nomeAtual);
+        if (entrada === null) return;
+
+        const novoNome = entrada.toUpperCase().trim();
+        if (!novoNome) {
+            alert("O NOME NÃO PODE FICAR VAZIO.");
+            return;
+        }
+        if (novoNome === nomeAtual) return;
+
+        const itensDoEntregador = registros.filter(r => r.entregador === nomeAtual);
+        if (itensDoEntregador.length === 0) return;
+
+        const atualizacoes = {};
+        itensDoEntregador.forEach(item => {
+            atualizacoes[`${item.id}/entregador`] = novoNome;
+        });
+
+        rotasRef.update(atualizacoes).then(() => {
+            entregadoresExpandidos.delete(nomeAtual);
+            entregadoresExpandidos.add(novoNome);
+        });
+    }
+
+    function excluirEntregadorCompleto(nomeEntregador) {
+        const itensDoEntregador = registros.filter(r => r.entregador === nomeEntregador);
+        const qtd = itensDoEntregador.length;
+
+        const confirmar = confirm(
+            `ATENÇÃO: DESEJA EXCLUIR O ENTREGADOR "${nomeEntregador}" E TODOS OS SEUS ${qtd} ${qtd === 1 ? 'ENDEREÇO CADASTRADO' : 'ENDEREÇOS CADASTRADOS'}?\n\nESSA AÇÃO NÃO PODE SER DESFEITA.`
+        );
+
+        if (!confirmar) return;
+
+        const remocoes = {};
+        itensDoEntregador.forEach(item => {
+            remocoes[item.id] = null;
+        });
+
+        rotasRef.update(remocoes).then(() => {
+            entregadoresExpandidos.delete(nomeEntregador);
+        });
+    }
+
+    // --- BUSCA INTELIGENTE DE ENDEREÇO NA ABA ENTREGADORES ---
+
+    function extrairBuscaEndereco(entrada) {
         const limpo = normalizar(entrada);
         const match = limpo.match(/^(.*?)(?:[\s,]+(?:N[º°O.]*\s*)?(\d+))$/);
         if (match && match[1].trim().length >= 2) {
@@ -273,7 +943,6 @@
     function numeroAtendido(regraNumeracao, numeroBuscado) {
         if (numeroBuscado === null) return true;
         const regra = normalizar(regraNumeracao);
-
         if (!regra || regra.includes("TODA")) return true;
 
         const regexFaixa = /(\d+)\s*(?:AO|A|ATE|-)\s*(\d+)/g;
@@ -281,11 +950,9 @@
         let temFaixa = false;
         while ((m = regexFaixa.exec(regra)) !== null) {
             temFaixa = true;
-            const inicio = parseInt(m[1], 10);
-            const fim = parseInt(m[2], 10);
-            const min = Math.min(inicio, fim);
-            const max = Math.max(inicio, fim);
-            if (numeroBuscado >= min && numeroBuscado <= max) {
+            const n1 = parseInt(m[1], 10);
+            const n2 = parseInt(m[2], 10);
+            if (numeroBuscado >= Math.min(n1, n2) && numeroBuscado <= Math.max(n1, n2)) {
                 return true;
             }
         }
@@ -299,128 +966,179 @@
         }
 
         if (!temFaixa && !avulsos) return true;
-
         return false;
     }
 
-    // Escuta rotas em tempo real
-    db.ref('rotas').on('value', (snapshot) => {
-        baseDados = [];
-        const data = snapshot.val();
-        if (data) {
-            Object.keys(data).forEach(id => {
-                baseDados.push({ id, ...data[id] });
-            });
+    function alternarEntregador(nomeEntregador) {
+        if (entregadoresExpandidos.has(nomeEntregador)) {
+            entregadoresExpandidos.delete(nomeEntregador);
+        } else {
+            entregadoresExpandidos.clear();
+            entregadoresExpandidos.add(nomeEntregador);
         }
-        filtrarRuas();
-    }, () => {
-        document.getElementById('resultados').innerHTML = `<div class="status" style="color:#ef4444;">Erro de permissão no Firebase: verifique as Regras do Realtime Database.</div>`;
-    });
-
-    // Escuta fila de bipagem em tempo real
-    db.ref('fila_bipagem').on('value', (snapshot) => {
-        filaMotoristas = [];
-        const data = snapshot.val();
-        if (data) {
-            Object.keys(data).forEach(id => {
-                filaMotoristas.push({
-                    id,
-                    motorista: (data[id].motorista || "").toUpperCase().trim(),
-                    ordem: Number(data[id].ordem) || 0,
-                    bipado: Boolean(data[id].bipado),
-                    bipadoEm: Number(data[id].bipadoEm) || 0
-                });
-            });
-        }
-        const qtdAguardando = filaMotoristas.filter(f => !f.bipado).length;
-        document.getElementById('badgeFilaMotoristas').innerText = qtdAguardando;
-        renderizarFilaMotoristas();
-    });
-
-    const campoBusca = document.getElementById('campoBusca');
-    const divResultados = document.getElementById('resultados');
-
-    campoBusca.addEventListener('input', filtrarRuas);
-
-    function filtrarRuas() {
-        const { textoRua, numeroBuscado } = extrairRuaENumero(campoBusca.value);
-
-        if (baseDados.length === 0) {
-            divResultados.innerHTML = '<div class="status">Nenhuma rua cadastrada no sistema.</div>';
-            return;
-        }
-
-        if (textoRua.length < 2) {
-            divResultados.innerHTML = '<div class="status">Digite pelo menos 2 letras do nome da rua...</div>';
-            return;
-        }
-
-        const porRua = baseDados.filter(item => normalizar(item.rua).includes(textoRua));
-
-        if (porRua.length === 0) {
-            divResultados.innerHTML = '<div class="status">Nenhum entregador encontrado para esta rua.</div>';
-            return;
-        }
-
-        let filtrados = porRua.filter(item => numeroAtendido(item.numeracao, numeroBuscado));
-        let avisoNumero = '';
-
-        if (numeroBuscado !== null) {
-            if (filtrados.length > 0) {
-                avisoNumero = `<div class="filtro-info">Filtrando atendimentos para o Nº ${numeroBuscado}</div>`;
-            } else {
-                filtrados = porRua;
-                avisoNumero = `<div class="filtro-info">Nº ${numeroBuscado} fora das faixas específicas — exibindo todos da rua:</div>`;
-            }
-        }
-
-        const agrupadoPorRua = {};
-        filtrados.forEach(item => {
-            const chaveRua = normalizar(item.rua);
-            if (!agrupadoPorRua[chaveRua]) {
-                agrupadoPorRua[chaveRua] = {
-                    nomeExibicao: item.rua.toUpperCase(),
-                    entregadores: []
-                };
-            }
-            agrupadoPorRua[chaveRua].entregadores.push({
-                nome: item.entregador.toUpperCase(),
-                numeracao: (item.numeracao || "TODA A RUA").toUpperCase()
-            });
-        });
-
-        let html = avisoNumero;
-        Object.values(agrupadoPorRua).forEach(grupo => {
-            html += `<div class="card">
-                        <div class="rua-title">${grupo.nomeExibicao}</div>`;
-            
-            grupo.entregadores.forEach(ent => {
-                html += `<div class="entregador-item">
-                            <span class="entregador-nome">🚚 ${ent.nome}</span>
-                            <span class="badge">NUMERAÇÃO: ${ent.numeracao}</span>
-                         </div>`;
-            });
-
-            html += `</div>`;
-        });
-
-        divResultados.innerHTML = html;
+        renderizarLista();
     }
 
-    function renderizarFilaMotoristas() {
-        const container = document.getElementById('conteudoFilaMotoristas');
+    function aoFiltrar() {
+        renderizarLista(true);
+    }
+
+    function renderizarLista(modoBuscaAtiva = false) {
+        const filtroBruto = document.getElementById('filtroAdmin').value.toUpperCase().trim();
+        const container = document.getElementById('listaRegistros');
+
+        if (registros.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado.</p>';
+            return;
+        }
+
+        let itensExibidos = registros;
+        let expandirPorBusca = new Set();
+
+        if (filtroBruto.length > 0) {
+            const { textoRua, numeroBuscado } = extrairBuscaEndereco(filtroBruto);
+
+            // Tenta match de endereço (rua + eventual número)
+            let matchesEndereco = registros.filter(r => {
+                const bateRua = normalizar(r.rua).includes(textoRua);
+                if (!bateRua) return false;
+                return numeroAtendido(r.numeracao, numeroBuscado);
+            });
+
+            // Se não bateu como rua, permite filtrar também por nome do motorista
+            if (matchesEndereco.length === 0) {
+                matchesEndereco = registros.filter(r => normalizar(r.entregador).includes(filtroBruto));
+            }
+
+            itensExibidos = matchesEndereco;
+
+            // Agrupa para saber quantos motoristas atendem esse endereço
+            const motoristasUnicos = new Set(itensExibidos.map(i => i.entregador));
+            if (motoristasUnicos.size > 1) {
+                // Mais de um motorista faz a rua: expande todos os motoristas correspondentes
+                motoristasUnicos.forEach(m => expandirPorBusca.add(m));
+            } else if (motoristasUnicos.size === 1) {
+                // Endereço específico de um único motorista: expande somente ele
+                expandirPorBusca.add([...motoristasUnicos][0]);
+            }
+        }
+
+        if (itensExibidos.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado.</p>';
+            return;
+        }
+
+        const agrupadoPorEntregador = {};
+        itensExibidos.forEach(item => {
+            if (!agrupadoPorEntregador[item.entregador]) {
+                agrupadoPorEntregador[item.entregador] = [];
+            }
+            agrupadoPorEntregador[item.entregador].push(item);
+        });
+
+        const nomesOrdenados = Object.keys(agrupadoPorEntregador).sort((a, b) => a.localeCompare(b));
+
+        container.innerHTML = nomesOrdenados.map(nomeEntregador => {
+            const ruasDoEntregador = agrupadoPorEntregador[nomeEntregador].sort((a, b) => a.rua.localeCompare(b.rua));
+            const totalRuas = ruasDoEntregador.length;
+
+            const estaAberto = filtroBruto.length > 0
+                ? expandirPorBusca.has(nomeEntregador)
+                : entregadoresExpandidos.has(nomeEntregador);
+
+            const nomeEscapado = nomeEntregador.replace(/'/g, "\\'");
+
+            const linhasRuas = ruasDoEntregador.map(item => `
+                <div class="rua-row">
+                    <div class="rua-details">
+                        <p>${item.rua}</p>
+                        <span>NUMERAÇÃO: ${item.numeracao}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-sm btn-edit" onclick="editarRegistro('${item.id}')">Editar</button>
+                        <button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua.replace(/'/g, "\\'")}', '${nomeEscapado}')">Excluir</button>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div class="entregador-group ${estaAberto ? 'aberto' : ''}">
+                    <div class="entregador-header" onclick="alternarEntregador('${nomeEscapado}')">
+                        <div class="entregador-title-wrap">
+                            <h3>🚚 ${nomeEntregador}</h3>
+                        </div>
+                        <div class="entregador-meta">
+                            <span class="entregador-count">${totalRuas} ${totalRuas === 1 ? 'RUA' : 'RUAS'}</span>
+                            <span class="chevron">▼</span>
+                        </div>
+                    </div>
+                    <div class="entregador-body">
+                        <div class="entregador-bulk-actions">
+                            <button class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear Entregador</button>
+                            <button class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir Entregador</button>
+                        </div>
+                        ${linhasRuas}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // --- FUNÇÕES DA FILA DE BIPAGEM ---
+
+    function adicionarNaFila() {
+        const input = document.getElementById('inputFilaMotorista');
+        const nome = input.value.toUpperCase().trim();
+        if (!nome) return;
+
+        const maxOrdem = filaItens.reduce((maior, item) => Math.max(maior, item.ordem || 0), 0);
+
+        filaRef.push({
+            motorista: nome,
+            ordem: maxOrdem + 1,
+            bipado: false,
+            bipadoEm: 0
+        }).then(() => {
+            input.value = '';
+            input.focus();
+        });
+    }
+
+    function marcarBipagem(id, estadoBipado) {
+        filaRef.child(id).update({
+            bipado: estadoBipado,
+            bipadoEm: estadoBipado ? Date.now() : 0
+        });
+    }
+
+    function removerDaFila(id) {
+        filaRef.child(id).remove();
+    }
+
+    function limparBipados() {
+        const bipados = filaItens.filter(f => f.bipado);
+        if (bipados.length === 0) return;
+        if (confirm(`REMOVER ${bipados.length} ${bipados.length === 1 ? 'MOTORISTA BIPADO' : 'MOTORISTAS BIPADOS'} DA LISTA?`)) {
+            const remocoes = {};
+            bipados.forEach(item => { remocoes[item.id] = null; });
+            filaRef.update(remocoes);
+        }
+    }
+
+    function renderizarFila() {
+        const container = document.getElementById('conteudoFila');
         if (!container) return;
 
-        const aguardando = filaMotoristas
+        const aguardando = filaItens
             .filter(f => !f.bipado)
             .sort((a, b) => a.ordem - b.ordem);
 
-        const bipados = filaMotoristas
+        const bipados = filaItens
             .filter(f => f.bipado)
             .sort((a, b) => a.bipadoEm - b.bipadoEm);
 
         if (aguardando.length === 0 && bipados.length === 0) {
-            container.innerHTML = '<div class="status">Nenhum motorista na fila de bipagem no momento.</div>';
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum motorista na fila de bipagem.</p>';
             return;
         }
 
@@ -434,11 +1152,14 @@
                         <span class="fila-pos">#${idx + 1}</span>
                         <span class="fila-nome">${item.motorista}</span>
                     </div>
-                    <span class="fila-tag-aguardando">NA FILA</span>
+                    <div class="fila-actions">
+                        <button class="btn-bipar" onclick="marcarBipagem('${item.id}', true)">✓ Foi p/ Bipagem</button>
+                        <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover da fila">✕</button>
+                    </div>
                 </div>
             `).join('');
         } else {
-            html += `<div class="status" style="margin-top:16px; margin-bottom:16px;">Nenhum motorista aguardando na fila no momento.</div>`;
+            html += `<p style="text-align:center; color:var(--muted); margin:14px 0; font-size:0.88rem;">Todos os motoristas da fila já foram para bipagem.</p>`;
         }
 
         if (bipados.length > 0) {
@@ -449,8 +1170,18 @@
                         <span class="fila-pos">BIP</span>
                         <span class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></span>
                     </div>
+                    <div class="fila-actions">
+                        <button class="btn-desfazer-bip" onclick="marcarBipagem('${item.id}', false)">↩ Voltar</button>
+                        <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover">✕</button>
+                    </div>
                 </div>
             `).join('');
+
+            html += `
+                <div class="fila-toolbar">
+                    <button class="btn-limpar-bip" onclick="limparBipados()">🧹 Limpar Bipados</button>
+                </div>
+            `;
         }
 
         container.innerHTML = html;
