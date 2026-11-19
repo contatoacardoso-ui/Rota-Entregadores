@@ -22,16 +22,12 @@
         header { text-align: center; margin-bottom: 16px; }
         header h1 { font-size: 1.35rem; }
 
-        /* Navegação por Abas Alinhada em Linha Única */
+        /* 3 Botões de Aba Independentes */
         .tabs {
             display: grid;
             grid-template-columns: 0.9fr 1.2fr 1.15fr;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 4px;
             margin-bottom: 18px;
-            gap: 4px;
+            gap: 8px;
             overflow-x: auto;
             scrollbar-width: none;
             -webkit-overflow-scrolling: touch;
@@ -43,9 +39,9 @@
             min-width: max-content;
             height: 40px;
             padding: 0 10px;
-            border: none;
-            border-radius: 9px;
-            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
             color: var(--muted);
             font-weight: 700;
             font-size: clamp(0.75rem, 3.1vw, 0.85rem);
@@ -60,13 +56,14 @@
         }
         .tab-btn.ativa {
             background: var(--primary);
+            border-color: var(--primary);
             color: #fff;
-            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
         }
         .tab-count {
             font-size: 0.78rem;
             font-weight: 700;
-            opacity: 0.9;
+            opacity: 0.92;
         }
         .tab-content {
             display: none;
@@ -354,7 +351,7 @@
             cursor: pointer;
         }
 
-        /* Pop-up Modal Moderno de Conflito */
+        /* Pop-up Modal Moderno Unificado */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -374,11 +371,15 @@
             width: 100%;
             max-width: 430px;
             background: var(--card);
-            border: 1px solid var(--warning);
+            border: 1px solid var(--border);
             border-radius: 14px;
             padding: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
         }
+        .modal-card.tipo-warning { border-color: var(--warning); }
+        .modal-card.tipo-danger { border-color: var(--danger); }
+        .modal-card.tipo-info { border-color: var(--primary); }
+
         .modal-header {
             display: flex;
             align-items: center;
@@ -389,24 +390,29 @@
             width: 36px;
             height: 36px;
             border-radius: 10px;
-            background: rgba(245, 158, 11, 0.16);
-            color: var(--warning);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.1rem;
             flex-shrink: 0;
         }
-        .modal-header h3 {
-            font-size: 1.05rem;
-            color: var(--warning);
-            font-weight: 700;
-        }
+        .tipo-warning .modal-icon { background: rgba(245, 158, 11, 0.16); color: var(--warning); }
+        .tipo-danger .modal-icon { background: rgba(239, 68, 68, 0.16); color: var(--danger); }
+        .tipo-info .modal-icon { background: rgba(59, 130, 246, 0.16); color: var(--primary); }
+
+        .modal-header h3 { font-size: 1.05rem; font-weight: 700; }
+        .tipo-warning .modal-header h3 { color: var(--warning); }
+        .tipo-danger .modal-header h3 { color: var(--danger); }
+        .tipo-info .modal-header h3 { color: var(--primary); }
+
         .modal-body {
             font-size: 0.9rem;
             color: var(--text);
             line-height: 1.45;
             margin-bottom: 16px;
+        }
+        .modal-input-wrap {
+            margin-top: 12px;
         }
         .modal-highlight-box {
             background: #0f172a;
@@ -446,12 +452,13 @@
             padding: 11px;
             border-radius: 8px;
             border: none;
-            background: var(--warning);
-            color: #0f172a;
             font-weight: 700;
             font-size: 0.88rem;
             cursor: pointer;
         }
+        .tipo-warning .btn-modal-confirm { background: var(--warning); color: #0f172a; }
+        .tipo-danger .btn-modal-confirm { background: var(--danger); color: #fff; }
+        .tipo-info .btn-modal-confirm { background: var(--primary); color: #fff; }
 
         #loginScreen { margin-top: 60px; text-align: center; }
         #appScreen { display: none; }
@@ -464,7 +471,7 @@
     <div id="loginScreen" class="box">
         <h2 style="margin-bottom: 12px; font-size: 1.2rem;">Acesso Administrativo</h2>
         <div class="form-group">
-            <input type="password" id="pinInput" inputmode="numeric" placeholder="Digite o PIN de acesso">
+            <input type="password" id="pinInput" inputmode="numeric" placeholder="Digite o PIN de acesso" onkeydown="if(event.key==='Enter') verificarPin()">
         </div>
         <button class="action-btn btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
     </div>
@@ -475,7 +482,7 @@
             <h1>Painel de Rotas</h1>
         </header>
 
-        <!-- Barra de Abas -->
+        <!-- 3 Botões de Aba Separados -->
         <div class="tabs">
             <button class="tab-btn ativa" id="btnTabCadastro" onclick="trocarAba('cadastro')">
                 <span>➕ Cadastro</span>
@@ -546,17 +553,17 @@
     </div>
 </div>
 
-<!-- Pop-up Moderno de Conflito de Endereço -->
-<div id="modalConflito" class="modal-backdrop" onclick="if(event.target===this) fecharModalConflito()">
-    <div class="modal-card">
+<!-- Pop-up Modal Moderno Unificado -->
+<div id="modalPopup" class="modal-backdrop" onclick="if(event.target===this) fecharModalPopup(false)">
+    <div id="modalCard" class="modal-card tipo-info">
         <div class="modal-header">
-            <div class="modal-icon">⚠️</div>
-            <h3>Endereço Já Cadastrado</h3>
+            <div class="modal-icon" id="modalIcon">ℹ️</div>
+            <h3 id="modalTitulo">Aviso</h3>
         </div>
-        <div class="modal-body" id="textoModalConflito"></div>
-        <div class="modal-footer">
-            <button class="btn-modal-cancel" onclick="fecharModalConflito()">Cancelar</button>
-            <button class="btn-modal-confirm" id="btnConfirmarConflito" onclick="confirmarTransferenciaConflito()">Confirmar Alteração</button>
+        <div class="modal-body" id="modalCorpo"></div>
+        <div class="modal-footer" id="modalRodape">
+            <button class="btn-modal-cancel" id="modalBtnCancelar" onclick="fecharModalPopup(false)">Cancelar</button>
+            <button class="btn-modal-confirm" id="modalBtnConfirmar" onclick="fecharModalPopup(true)">Confirmar</button>
         </div>
     </div>
 </div>
@@ -566,15 +573,99 @@
 
 <script>
     const SENHA_ADMIN = "1234";
+    let resolverPopup = null;
 
-    function verificarPin() {
+    function abrirPopup({
+        tipo = 'info',
+        icone = 'ℹ️',
+        titulo = 'Aviso',
+        mensagem = '',
+        textoConfirmar = 'Confirmar',
+        textoCancelar = 'Cancelar',
+        somenteOk = false,
+        comInput = false,
+        valorInicial = '',
+        placeholderInput = ''
+    }) {
+        return new Promise((resolve) => {
+            resolverPopup = resolve;
+
+            const card = document.getElementById('modalCard');
+            card.className = `modal-card tipo-${tipo}`;
+
+            document.getElementById('modalIcon').innerText = icone;
+            document.getElementById('modalTitulo').innerText = titulo;
+
+            let htmlCorpo = `<div>${mensagem}</div>`;
+            if (comInput) {
+                htmlCorpo += `
+                    <div class="modal-input-wrap">
+                        <input type="text" id="modalCampoTexto" class="upper" value="${valorInicial.replace(/"/g, '&quot;')}" placeholder="${placeholderInput}">
+                    </div>
+                `;
+            }
+            document.getElementById('modalCorpo').innerHTML = htmlCorpo;
+
+            const btnCancel = document.getElementById('modalBtnCancelar');
+            const btnConfirm = document.getElementById('modalBtnConfirmar');
+
+            btnCancel.style.display = somenteOk ? 'none' : 'block';
+            btnCancel.innerText = textoCancelar;
+            btnConfirm.innerText = textoConfirmar;
+
+            if (comInput) {
+                const inputEl = document.getElementById('modalCampoTexto');
+                inputEl.addEventListener('input', function() {
+                    const s = this.selectionStart;
+                    const e = this.selectionEnd;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(s, e);
+                });
+                inputEl.addEventListener('keydown', (ev) => {
+                    if (ev.key === 'Enter') fecharModalPopup(true);
+                });
+                setTimeout(() => {
+                    inputEl.focus();
+                    inputEl.select();
+                }, 40);
+            }
+
+            document.getElementById('modalPopup').classList.add('aberto');
+        });
+    }
+
+    function fecharModalPopup(confirmado) {
+        const inputEl = document.getElementById('modalCampoTexto');
+        const valorInput = inputEl ? inputEl.value.toUpperCase().trim() : null;
+
+        document.getElementById('modalPopup').classList.remove('aberto');
+
+        if (resolverPopup) {
+            const fn = resolverPopup;
+            resolverPopup = null;
+            if (inputEl) {
+                fn(confirmado ? valorInput : null);
+            } else {
+                fn(confirmado);
+            }
+        }
+    }
+
+    async function verificarPin() {
         const pin = document.getElementById('pinInput').value;
         if (pin === SENHA_ADMIN) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
             sessionStorage.setItem('adminLogado', 'true');
         } else {
-            alert("PIN incorreto!");
+            await abrirPopup({
+                tipo: 'danger',
+                icone: '🔒',
+                titulo: 'PIN Incorreto',
+                mensagem: 'O PIN digitado não confere. Tente novamente.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
         }
     }
 
@@ -643,7 +734,6 @@
     let registros = [];
     let filaItens = [];
     let entregadoresExpandidos = new Set();
-    let conflitoPendente = null;
 
     function normalizar(texto) {
         return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
@@ -891,14 +981,21 @@
             }));
     }
 
-    function prepararSalvamento() {
+    async function prepararSalvamento() {
         const id = document.getElementById('editId').value;
         const entregador = document.getElementById('entregador').value.toUpperCase().trim();
         const rua = document.getElementById('rua').value.toUpperCase().trim();
         let numeracao = document.getElementById('numeracao').value.toUpperCase().trim();
 
         if (!entregador || !rua) {
-            alert("PREENCHA O NOME DO ENTREGADOR E O NOME DA RUA.");
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '📝',
+                titulo: 'Campos Obrigatórios',
+                mensagem: 'Preencha o <strong>Nome do Entregador</strong> e o <strong>Nome da Rua / Avenida</strong> antes de salvar.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
             return;
         }
 
@@ -911,64 +1008,46 @@
 
         const conflitos = buscarConflitosOutroMotorista(id, entregador, rua, numeracaoFinal);
 
-        if (conflitos.length > 0) {
-            conflitoPendente = {
-                id,
-                entregador,
-                rua,
-                numeracao: numeracaoFinal,
-                registroExistenteId: registroExistenteMesmoMotorista ? registroExistenteMesmoMotorista.id : null,
-                conflitos
-            };
-            abrirModalConflito(conflitoPendente);
-            return;
-        }
-
-        executarSalvamento({
+        const dadosSalvar = {
             id,
             entregador,
             rua,
             numeracao: numeracaoFinal,
             registroExistenteId: registroExistenteMesmoMotorista ? registroExistenteMesmoMotorista.id : null,
-            conflitos: []
-        });
-    }
+            conflitos
+        };
 
-    function abrirModalConflito(dados) {
-        const detalhesConflitos = dados.conflitos.map(c => {
-            const resumoAcao = c.acao.tipo === 'atualizar'
-                ? `<p>Será ajustado para: <strong>${c.acao.novaNumeracao}</strong></p>`
-                : `<p>Será removido de: <strong>${c.entregador}</strong></p>`;
+        if (conflitos.length > 0) {
+            const detalhesConflitos = conflitos.map(c => {
+                const resumoAcao = c.acao.tipo === 'atualizar'
+                    ? `<p>Será ajustado para: <strong>${c.acao.novaNumeracao}</strong></p>`
+                    : `<p>Será removido de: <strong>${c.entregador}</strong></p>`;
 
-            return `
-                <div class="modal-highlight-box">
-                    <p>Motorista atual: <strong>🚚 ${c.entregador}</strong></p>
-                    <p>Endereço: <strong>${c.rua}</strong></p>
-                    <p>Numeração atual: <strong>${c.numeracao}</strong></p>
-                    ${resumoAcao}
-                </div>
-            `;
-        }).join('');
+                return `
+                    <div class="modal-highlight-box">
+                        <p>Motorista atual: <strong>🚚 ${c.entregador}</strong></p>
+                        <p>Endereço: <strong>${c.rua}</strong></p>
+                        <p>Numeração atual: <strong>${c.numeracao}</strong></p>
+                        ${resumoAcao}
+                    </div>
+                `;
+            }).join('');
 
-        document.getElementById('textoModalConflito').innerHTML = `
-            O endereço <strong>${dados.rua}</strong> (<strong>${dados.numeracao}</strong>) já está cadastrado para outro motorista:
-            ${detalhesConflitos}
-            Deseja confirmar a alteração para <strong>${dados.entregador}</strong>?
-        `;
+            const confirmado = await abrirPopup({
+                tipo: 'warning',
+                icone: '⚠️',
+                titulo: 'Endereço Já Cadastrado',
+                mensagem: `O endereço <strong>${rua}</strong> (<strong>${numeracaoFinal}</strong>) já está cadastrado para outro motorista:
+                    ${detalhesConflitos}
+                    Deseja confirmar a alteração para <strong>${entregador}</strong>?`,
+                textoConfirmar: 'Confirmar Alteração',
+                textoCancelar: 'Cancelar'
+            });
 
-        document.getElementById('modalConflito').classList.add('aberto');
-    }
+            if (!confirmado) return;
+        }
 
-    function fecharModalConflito() {
-        conflitoPendente = null;
-        document.getElementById('modalConflito').classList.remove('aberto');
-    }
-
-    function confirmarTransferenciaConflito() {
-        if (!conflitoPendente) return;
-        const dados = conflitoPendente;
-        fecharModalConflito();
-        executarSalvamento(dados);
+        executarSalvamento(dadosSalvar);
     }
 
     function executarSalvamento({ id, entregador, rua, numeracao, registroExistenteId, conflitos }) {
@@ -1046,19 +1125,45 @@
         }
     }
 
-    function excluirRegistro(id, rua, entregador) {
-        if (confirm(`REMOVER ${entregador} DA ${rua}?`)) {
+    async function excluirRegistro(id, rua, entregador) {
+        const confirmado = await abrirPopup({
+            tipo: 'danger',
+            icone: '🗑️',
+            titulo: 'Remover Endereço',
+            mensagem: `Deseja remover <strong>${entregador}</strong> da <strong>${rua}</strong>?`,
+            textoConfirmar: 'Excluir',
+            textoCancelar: 'Cancelar'
+        });
+
+        if (confirmado) {
             rotasRef.child(id).remove();
         }
     }
 
-    function renomearEntregador(nomeAtual) {
-        const entrada = prompt(`DIGITE O NOVO NOME PARA "${nomeAtual}":`, nomeAtual);
-        if (entrada === null) return;
+    async function renomearEntregador(nomeAtual) {
+        const novoNome = await abrirPopup({
+            tipo: 'info',
+            icone: '✏️',
+            titulo: 'Renomear Entregador',
+            mensagem: `Digite o novo nome para <strong>${nomeAtual}</strong>:`,
+            textoConfirmar: 'Salvar Nome',
+            textoCancelar: 'Cancelar',
+            comInput: true,
+            valorInicial: nomeAtual,
+            placeholderInput: 'NOVO NOME DO ENTREGADOR'
+        });
 
-        const novoNome = entrada.toUpperCase().trim();
+        if (novoNome === null) return;
+
         if (!novoNome) {
-            alert("O NOME NÃO PODE FICAR VAZIO.");
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '⚠️',
+                titulo: 'Nome Inválido',
+                mensagem: 'O nome do entregador não pode ficar vazio.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
             return;
         }
         if (novoNome === nomeAtual) return;
@@ -1077,15 +1182,20 @@
         });
     }
 
-    function excluirEntregadorCompleto(nomeEntregador) {
+    async function excluirEntregadorCompleto(nomeEntregador) {
         const itensDoEntregador = registros.filter(r => r.entregador === nomeEntregador);
         const qtd = itensDoEntregador.length;
 
-        const confirmar = confirm(
-            `ATENÇÃO: DESEJA EXCLUIR O ENTREGADOR "${nomeEntregador}" E TODOS OS SEUS ${qtd} ${qtd === 1 ? 'ENDEREÇO CADASTRADO' : 'ENDEREÇOS CADASTRADOS'}?\n\nESSA AÇÃO NÃO PODE SER DESFEITA.`
-        );
+        const confirmado = await abrirPopup({
+            tipo: 'danger',
+            icone: '🗑️',
+            titulo: 'Excluir Entregador',
+            mensagem: `Deseja excluir <strong>${nomeEntregador}</strong> e todos os seus <strong>${qtd} ${qtd === 1 ? 'endereço cadastrado' : 'endereços cadastrados'}</strong>? Essa ação não pode ser desfeita.`,
+            textoConfirmar: 'Excluir Tudo',
+            textoCancelar: 'Cancelar'
+        });
 
-        if (!confirmar) return;
+        if (!confirmado) return;
 
         const remocoes = {};
         itensDoEntregador.forEach(item => {
@@ -1280,19 +1390,39 @@
         filaRef.child(id).remove();
     }
 
-    function limparBipados() {
+    async function limparBipados() {
         const bipados = filaItens.filter(f => f.bipado);
         if (bipados.length === 0) return;
-        if (confirm(`REMOVER ${bipados.length} ${bipados.length === 1 ? 'MOTORISTA BIPADO' : 'MOTORISTAS BIPADOS'} DA LISTA?`)) {
+
+        const confirmado = await abrirPopup({
+            tipo: 'warning',
+            icone: '🧹',
+            titulo: 'Limpar Bipados',
+            mensagem: `Remover <strong>${bipados.length} ${bipados.length === 1 ? 'motorista bipado' : 'motoristas bipados'}</strong> da fila?`,
+            textoConfirmar: 'Limpar',
+            textoCancelar: 'Cancelar'
+        });
+
+        if (confirmado) {
             const remocoes = {};
             bipados.forEach(item => { remocoes[item.id] = null; });
             filaRef.update(remocoes);
         }
     }
 
-    function zerarFilaCompleta() {
+    async function zerarFilaCompleta() {
         if (filaItens.length === 0) return;
-        if (confirm(`ZERAR TODA A FILA DE BIPAGEM (${filaItens.length} ${filaItens.length === 1 ? 'MOTORISTA' : 'MOTORISTAS'})?`)) {
+
+        const confirmado = await abrirPopup({
+            tipo: 'danger',
+            icone: '🗑️',
+            titulo: 'Zerar Fila de Bipagem',
+            mensagem: `Deseja zerar toda a fila de bipagem com <strong>${filaItens.length} ${filaItens.length === 1 ? 'motorista' : 'motoristas'}</strong>?`,
+            textoConfirmar: 'Zerar Fila',
+            textoCancelar: 'Cancelar'
+        });
+
+        if (confirmado) {
             filaRef.remove();
         }
     }
