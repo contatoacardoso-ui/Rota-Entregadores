@@ -22,10 +22,10 @@
         header { text-align: center; margin-bottom: 16px; }
         header h1 { font-size: 1.35rem; }
 
-        /* Navegação por Abas Padronizada e Alinhada */
+        /* Navegação por Abas Estável e Sem Sobreposição */
         .tabs {
-            display: flex;
-            align-items: stretch;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -34,24 +34,24 @@
             gap: 4px;
         }
         .tab-btn {
-            flex: 1;
             min-width: 0;
-            height: 40px;
-            padding: 0 8px;
+            min-height: 44px;
+            padding: 6px 8px;
             border: none;
             border-radius: 9px;
             background: transparent;
             color: var(--muted);
             font-weight: 700;
-            font-size: 0.82rem;
-            line-height: 1;
-            white-space: nowrap;
+            font-size: 0.78rem;
+            line-height: 1.2;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 3px;
+            text-align: center;
         }
         .tab-btn.ativa {
             background: var(--primary);
@@ -59,13 +59,12 @@
             box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
         }
         .tab-badge {
-            font-size: 0.7rem;
-            line-height: 1;
-            padding: 2px 6px;
+            font-size: 0.68rem;
+            line-height: 1.1;
+            padding: 2px 7px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.18);
             color: inherit;
-            flex-shrink: 0;
         }
         .tab-content {
             display: none;
@@ -477,13 +476,15 @@
         <!-- Barra de Abas -->
         <div class="tabs">
             <button class="tab-btn ativa" id="btnTabCadastro" onclick="trocarAba('cadastro')">
-                ➕ Cadastro
+                <span>➕ Cadastro</span>
             </button>
             <button class="tab-btn" id="btnTabLista" onclick="trocarAba('lista')">
-                🚚 Entregadores <span class="tab-badge" id="badgeTotalEntregadores">0</span>
+                <span>🚚 Entregadores</span>
+                <span class="tab-badge" id="badgeTotalEntregadores">0</span>
             </button>
             <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
-                📋 Fila Bipagem <span class="tab-badge" id="badgeFilaAtiva">0</span>
+                <span>📋 Fila Bipagem</span>
+                <span class="tab-badge" id="badgeFilaAtiva">0</span>
             </button>
         </div>
 
@@ -692,7 +693,7 @@
         renderizarFila();
     });
 
-    // --- FUNÇÕES DE CADASTRO, CONFLITO E REMOÇÃO / AJUSTE DE ENDEREÇO ---
+    // --- FUNÇÕES DE CADASTRO, MESCLAGEM NA MESMA RUA E CONFLITO ---
 
     function extrairFaixasENumeros(regraTexto) {
         const regra = normalizar(regraTexto);
@@ -718,6 +719,41 @@
         }
 
         return { todaRua: false, faixas, avulsos };
+    }
+
+    function mesclarNumeracaoMesmoMotorista(numeracaoExistente, numeracaoNova) {
+        const atual = (numeracaoExistente || "TODA A RUA").toUpperCase().trim();
+        const nova = (numeracaoNova || "TODA A RUA").toUpperCase().trim();
+
+        if (normalizar(atual).includes("TODA") || normalizar(nova).includes("TODA")) {
+            return "TODA A RUA";
+        }
+
+        const partes = [];
+        const vistas = new Set();
+
+        [atual, nova].forEach(bloco => {
+            bloco.split(",").forEach(trecho => {
+                const limpo = trecho.trim();
+                const chave = normalizar(limpo).replace(/\s+/g, " ");
+                if (chave && !vistas.has(chave)) {
+                    vistas.add(chave);
+                    partes.push(limpo);
+                }
+            });
+        });
+
+        return partes.join(", ") || "TODA A RUA";
+    }
+
+    function buscarRegistroMesmoMotoristaRua(editId, entregador, rua) {
+        const entNorm = normalizar(entregador);
+        const ruaNorm = normalizar(rua);
+
+        return registros.find(item => {
+            if (editId && item.id === editId) return false;
+            return normalizar(item.entregador) === entNorm && normalizar(item.rua) === ruaNorm;
+        });
     }
 
     function haSobreposicaoNumerica(regraA, regraB) {
@@ -761,22 +797,18 @@
         return false;
     }
 
-    // Calcula o que acontece com o registro do outro motorista quando o novo cadastro assume o endereço
     function calcularAjusteConflito(registroAntigo, numeracaoNova) {
         const antigo = extrairFaixasENumeros(registroAntigo.numeracao);
         const novo = extrairFaixasENumeros(numeracaoNova);
 
-        // Se o novo cadastro atende a rua toda ou não tem números específicos, remove o registro antigo por completo
         if (novo.todaRua || (novo.faixas.length === 0 && novo.avulsos.size === 0)) {
             return { tipo: 'remover', novaNumeracao: null };
         }
 
-        // Se o registro antigo era "TODA A RUA" ou sem números específicos e o novo é parcial, remove por completo para transferir
         if (antigo.todaRua || (antigo.faixas.length === 0 && antigo.avulsos.size === 0)) {
             return { tipo: 'remover', novaNumeracao: null };
         }
 
-        // Tenta subtrair intervalos/números cobertos pelo novo cadastro quando ambos têm numeração
         const faixasRestantes = [];
         for (const f of antigo.faixas) {
             let segmentos = [{ min: f.min, max: f.max }];
@@ -872,21 +904,34 @@
 
         if (!numeracao) numeracao = "TODA A RUA";
 
-        const conflitos = buscarConflitosOutroMotorista(id, entregador, rua, numeracao);
+        const registroExistenteMesmoMotorista = buscarRegistroMesmoMotoristaRua(id, entregador, rua);
+        const numeracaoFinal = registroExistenteMesmoMotorista
+            ? mesclarNumeracaoMesmoMotorista(registroExistenteMesmoMotorista.numeracao, numeracao)
+            : numeracao;
+
+        const conflitos = buscarConflitosOutroMotorista(id, entregador, rua, numeracaoFinal);
 
         if (conflitos.length > 0) {
             conflitoPendente = {
                 id,
                 entregador,
                 rua,
-                numeracao,
+                numeracao: numeracaoFinal,
+                registroExistenteId: registroExistenteMesmoMotorista ? registroExistenteMesmoMotorista.id : null,
                 conflitos
             };
             abrirModalConflito(conflitoPendente);
             return;
         }
 
-        executarSalvamento({ id, entregador, rua, numeracao, conflitos: [] });
+        executarSalvamento({
+            id,
+            entregador,
+            rua,
+            numeracao: numeracaoFinal,
+            registroExistenteId: registroExistenteMesmoMotorista ? registroExistenteMesmoMotorista.id : null,
+            conflitos: []
+        });
     }
 
     function abrirModalConflito(dados) {
@@ -926,11 +971,14 @@
         executarSalvamento(dados);
     }
 
-    function executarSalvamento({ id, entregador, rua, numeracao, conflitos }) {
+    function executarSalvamento({ id, entregador, rua, numeracao, registroExistenteId, conflitos }) {
         const payload = { entregador, rua, numeracao };
 
-        const operacaoPrincipal = id
-            ? rotasRef.child(id).update(payload)
+        const alvoId = id || registroExistenteId;
+        const foiAtualizacaoExistente = Boolean(alvoId);
+
+        const operacaoPrincipal = alvoId
+            ? rotasRef.child(alvoId).update(payload)
             : rotasRef.push(payload);
 
         operacaoPrincipal.then(() => {
@@ -956,7 +1004,11 @@
                 document.getElementById('rua').value = '';
                 document.getElementById('numeracao').value = '';
                 document.getElementById('rua').focus();
-                mostrarFeedback(`✓ RUA SALVA PARA ${entregador}`);
+                mostrarFeedback(
+                    foiAtualizacaoExistente
+                        ? `✓ NUMERAÇÃO ADICIONADA EM ${rua} PARA ${entregador}`
+                        : `✓ RUA SALVA PARA ${entregador}`
+                );
             }
         });
     }
