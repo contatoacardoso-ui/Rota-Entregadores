@@ -39,22 +39,29 @@
         header h1 { font-size: 1.35rem; }
         body.device-desktop header h1 { font-size: 1.55rem; }
 
-        /* 2 Botões de Aba Independentes */
+        /* Barra Superior: 2 Abas + Botão Engrenagem */
+        .tabs-row {
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
         .tabs {
+            flex: 1;
+            min-width: 0;
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            margin-bottom: 18px;
-            gap: 10px;
+            gap: 8px;
         }
         .tab-btn {
             height: 42px;
-            padding: 0 12px;
+            padding: 0 10px;
             border: 1px solid var(--border);
             border-radius: 10px;
             background: var(--card);
             color: var(--muted);
             font-weight: 700;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             line-height: 1;
             white-space: nowrap;
             cursor: pointer;
@@ -62,11 +69,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 5px;
+            min-width: 0;
         }
         body.device-desktop .tab-btn {
             height: 46px;
             font-size: 0.94rem;
+            padding: 0 14px;
+            gap: 6px;
         }
         .tab-btn.ativa {
             background: var(--primary);
@@ -75,10 +85,40 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
         }
         .tab-count {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 700;
             opacity: 0.92;
         }
+        .btn-config-gear {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
+            color: var(--text);
+            font-size: 1.15rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        body.device-desktop .btn-config-gear {
+            width: 46px;
+            height: 46px;
+            font-size: 1.25rem;
+        }
+        .btn-config-gear:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.08);
+        }
+        .btn-config-gear:active {
+            transform: scale(0.96);
+        }
+
         .tab-content {
             display: none;
             animation: fadeIn 0.18s ease;
@@ -441,7 +481,7 @@
             cursor: pointer;
         }
 
-        /* Pop-up Modal Moderno (Cadastro + Avisos/Confirmações) */
+        /* Pop-up Modal Moderno (Cadastro + Backup + Avisos/Confirmações) */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -551,6 +591,128 @@
         .modal-highlight-box strong {
             color: var(--text);
         }
+
+        /* Estilos do Modal de Backup */
+        .backup-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .backup-stat-card {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .backup-stat-card span {
+            display: block;
+            font-size: 0.74rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 700;
+        }
+        .backup-stat-card strong {
+            display: block;
+            font-size: 1.05rem;
+            color: var(--text);
+            margin-top: 2px;
+        }
+        .backup-section {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .backup-section h4 {
+            font-size: 0.9rem;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        .backup-section p {
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .btn-export-json {
+            width: 100%;
+            padding: 11px 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--success);
+            color: #06281e;
+            font-weight: 800;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .backup-import-mode {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .mode-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+        }
+        .mode-option input {
+            width: auto;
+            margin: 0;
+            accent-color: var(--primary);
+        }
+        .btn-import-json {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid rgba(59, 130, 246, 0.45);
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.16);
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .backup-status-msg {
+            display: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .backup-status-msg.ok {
+            display: block;
+            background: rgba(16, 185, 129, 0.16);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+        .backup-status-msg.erro {
+            display: block;
+            background: rgba(239, 68, 68, 0.16);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+
         .modal-footer {
             display: flex;
             gap: 10px;
@@ -602,16 +764,19 @@
             <h1>Painel de Rotas</h1>
         </header>
 
-        <!-- 2 Botões de Aba Separados -->
-        <div class="tabs">
-            <button class="tab-btn ativa" id="btnTabLista" onclick="trocarAba('lista')">
-                <span>🚚 Entregadores</span>
-                <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
-            </button>
-            <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
-                <span>📋 Fila Bipagem</span>
-                <span class="tab-count" id="badgeFilaAtiva">(0)</span>
-            </button>
+        <!-- 2 Botões de Aba + Engrenagem de Backup -->
+        <div class="tabs-row">
+            <div class="tabs">
+                <button class="tab-btn ativa" id="btnTabLista" onclick="trocarAba('lista')">
+                    <span>🚚 Entregadores</span>
+                    <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
+                </button>
+                <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
+                    <span>📋 Fila Bipagem</span>
+                    <span class="tab-count" id="badgeFilaAtiva">(0)</span>
+                </button>
+            </div>
+            <button class="btn-config-gear" onclick="abrirModalBackup()" title="Backup e Migração Firebase">⚙️</button>
         </div>
 
         <!-- ABA 1: ENTREGADORES E ROTAS CADASTRADAS -->
@@ -635,6 +800,60 @@
             </div>
 
             <div id="conteudoFila"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up Modal Moderno de Backup / Troca de Conta Firebase -->
+<div id="modalBackup" class="modal-backdrop" onclick="if(event.target===this) fecharModalBackup()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon">⚙️</div>
+                <h3>Backup &amp; Migração (Firebase)</h3>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalBackup()" title="Fechar">✕</button>
+        </div>
+
+        <div class="backup-stats">
+            <div class="backup-stat-card">
+                <span>Rotas Cadastradas</span>
+                <strong id="backupQtdRotas">0</strong>
+            </div>
+            <div class="backup-stat-card">
+                <span>Itens na Fila</span>
+                <strong id="backupQtdFila">0</strong>
+            </div>
+        </div>
+
+        <div class="backup-section">
+            <h4>📤 Exportar Backup (.JSON)</h4>
+            <p>Salva todas as rotas e a fila de bipagem em um arquivo JSON para guardar ou subir em outro banco Firebase.</p>
+            <button class="btn-export-json" onclick="exportarBackupJson()">⬇️ Baixar Backup JSON</button>
+        </div>
+
+        <div class="backup-section">
+            <h4>📥 Importar Backup (.JSON)</h4>
+            <p>Envie um arquivo JSON para o banco Firebase conectado atualmente nesta página.</p>
+
+            <div class="backup-import-mode">
+                <label class="mode-option">
+                    <input type="radio" name="modoImportacao" value="merge" checked>
+                    <span>Mesclar / Atualizar</span>
+                </label>
+                <label class="mode-option">
+                    <input type="radio" name="modoImportacao" value="replace">
+                    <span>Substituir Tudo</span>
+                </label>
+            </div>
+
+            <input type="file" id="inputArquivoBackup" accept=".json,application/json" style="display:none;" onchange="aoSelecionarArquivoBackup(event)">
+            <button class="btn-import-json" onclick="document.getElementById('inputArquivoBackup').click()">⬆️ Selecionar Arquivo JSON</button>
+            <div id="backupStatusMsg" class="backup-status-msg"></div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="fecharModalBackup()">Fechar</button>
         </div>
     </div>
 </div>
@@ -850,6 +1069,164 @@
         document.getElementById('feedbackMsg').style.display = 'none';
     }
 
+    // --- CONTROLE DO MODAL DE BACKUP ---
+    function atualizarResumoBackup() {
+        const elRotas = document.getElementById('backupQtdRotas');
+        const elFila = document.getElementById('backupQtdFila');
+        if (elRotas) elRotas.innerText = registros.length;
+        if (elFila) elFila.innerText = filaItens.length;
+    }
+
+    function setStatusBackup(texto, tipo = 'ok') {
+        const el = document.getElementById('backupStatusMsg');
+        if (!el) return;
+        el.className = `backup-status-msg ${tipo}`;
+        el.innerText = texto;
+    }
+
+    function abrirModalBackup() {
+        atualizarResumoBackup();
+        const statusEl = document.getElementById('backupStatusMsg');
+        if (statusEl) {
+            statusEl.className = 'backup-status-msg';
+            statusEl.innerText = '';
+        }
+        const fileEl = document.getElementById('inputArquivoBackup');
+        if (fileEl) fileEl.value = '';
+        document.getElementById('modalBackup').classList.add('aberto');
+    }
+
+    function fecharModalBackup() {
+        document.getElementById('modalBackup').classList.remove('aberto');
+    }
+
+    async function exportarBackupJson() {
+        try {
+            const [snapRotas, snapFila] = await Promise.all([
+                rotasRef.once('value'),
+                filaRef.once('value')
+            ]);
+
+            const payload = {
+                sistema: 'rota-entregadores-admin',
+                versao: 1,
+                exportadoEm: new Date().toISOString(),
+                bancoOrigem: firebaseConfig.databaseURL,
+                dados: {
+                    rotas: snapRotas.val() || {},
+                    fila_bipagem: snapFila.val() || {}
+                }
+            };
+
+            const jsonStr = JSON.stringify(payload, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+
+            const agora = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const nomeArquivo = `backup-rotas-${agora.getFullYear()}-${pad(agora.getMonth() + 1)}-${pad(agora.getDate())}_${pad(agora.getHours())}-${pad(agora.getMinutes())}.json`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = nomeArquivo;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+            const qtdRotas = Object.keys(payload.dados.rotas).length;
+            const qtdFila = Object.keys(payload.dados.fila_bipagem).length;
+            setStatusBackup(`✓ Exportado (${qtdRotas} rotas, ${qtdFila} fila): ${nomeArquivo}`, 'ok');
+        } catch (err) {
+            setStatusBackup(`✕ Erro ao exportar: ${err.message || err}`, 'erro');
+        }
+    }
+
+    function extrairEstruturaBackup(parsed) {
+        if (!parsed || typeof parsed !== 'object') return null;
+
+        if (parsed.dados && typeof parsed.dados === 'object') {
+            return {
+                rotas: parsed.dados.rotas && typeof parsed.dados.rotas === 'object' ? parsed.dados.rotas : {},
+                fila_bipagem: parsed.dados.fila_bipagem && typeof parsed.dados.fila_bipagem === 'object' ? parsed.dados.fila_bipagem : {}
+            };
+        }
+
+        if (parsed.rotas || parsed.fila_bipagem) {
+            return {
+                rotas: parsed.rotas && typeof parsed.rotas === 'object' ? parsed.rotas : {},
+                fila_bipagem: parsed.fila_bipagem && typeof parsed.fila_bipagem === 'object' ? parsed.fila_bipagem : {}
+            };
+        }
+
+        return null;
+    }
+
+    async function aoSelecionarArquivoBackup(event) {
+        const arquivo = event.target.files && event.target.files[0];
+        if (!arquivo) return;
+
+        try {
+            const texto = await arquivo.text();
+            const parsed = JSON.parse(texto);
+            const estrutura = extrairEstruturaBackup(parsed);
+
+            if (!estrutura) {
+                setStatusBackup('✕ Arquivo JSON inválido ou sem dados de rotas/fila.', 'erro');
+                event.target.value = '';
+                return;
+            }
+
+            const modoInput = document.querySelector('input[name="modoImportacao"]:checked');
+            const modo = modoInput ? modoInput.value : 'merge';
+
+            const qtdRotas = Object.keys(estrutura.rotas).length;
+            const qtdFila = Object.keys(estrutura.fila_bipagem).length;
+
+            const avisoModo = modo === 'replace'
+                ? '<strong>ATENÇÃO:</strong> Os dados atuais de <strong>rotas</strong> e <strong>fila_bipagem</strong> no banco conectado serão <strong>substituídos</strong> pelos do arquivo.'
+                : 'Os registros do arquivo serão <strong>mesclados/atualizados</strong> no banco conectado.';
+
+            const confirmado = await abrirPopup({
+                tipo: modo === 'replace' ? 'warning' : 'info',
+                icone: '📥',
+                titulo: 'Confirmar Importação',
+                mensagem: `Importar backup com <strong>${qtdRotas} rotas</strong> e <strong>${qtdFila} itens de fila</strong>?<br><br>${avisoModo}`,
+                textoConfirmar: modo === 'replace' ? 'Substituir e Importar' : 'Importar Dados',
+                textoCancelar: 'Cancelar'
+            });
+
+            if (!confirmado) {
+                event.target.value = '';
+                return;
+            }
+
+            if (modo === 'replace') {
+                await db.ref().update({
+                    rotas: Object.keys(estrutura.rotas).length > 0 ? estrutura.rotas : null,
+                    fila_bipagem: Object.keys(estrutura.fila_bipagem).length > 0 ? estrutura.fila_bipagem : null
+                });
+            } else {
+                const updates = {};
+                Object.entries(estrutura.rotas).forEach(([k, v]) => {
+                    if (v && typeof v === 'object') updates[`rotas/${k}`] = v;
+                });
+                Object.entries(estrutura.fila_bipagem).forEach(([k, v]) => {
+                    if (v && typeof v === 'object') updates[`fila_bipagem/${k}`] = v;
+                });
+                if (Object.keys(updates).length > 0) {
+                    await db.ref().update(updates);
+                }
+            }
+
+            setStatusBackup(`✓ Importado com sucesso (${qtdRotas} rotas, ${qtdFila} fila)!`, 'ok');
+        } catch (err) {
+            setStatusBackup(`✕ Falha ao ler/importar JSON: ${err.message || err}`, 'erro');
+        } finally {
+            event.target.value = '';
+        }
+    }
+
     async function verificarPin() {
         const pin = document.getElementById('pinInput').value;
         if (pin === SENHA_ADMIN) {
@@ -957,6 +1334,7 @@
         document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].sort().map(e => `<option value="${e}">`).join('');
         document.getElementById('listaRuas').innerHTML = [...ruasUnicas].sort().map(r => `<option value="${r}">`).join('');
 
+        atualizarResumoBackup();
         renderizarLista();
     });
 
@@ -976,6 +1354,7 @@
         }
         const qtdAguardando = filaItens.filter(f => !f.bipado).length;
         document.getElementById('badgeFilaAtiva').innerText = `(${qtdAguardando})`;
+        atualizarResumoBackup();
         renderizarFila();
     });
 
