@@ -692,6 +692,8 @@
         renderizarFila();
     });
 
+    // --- FUNÇÕES DE CADASTRO, CONFLITO E REMOÇÃO / AJUSTE DE ENDEREÇO ---
+
     function extrairFaixasENumeros(regraTexto) {
         const regra = normalizar(regraTexto);
         const faixas = [];
@@ -750,16 +752,111 @@
         return false;
     }
 
+    function numeroPertenceARegraNova(numero, regraNovaObj) {
+        if (regraNovaObj.todaRua) return true;
+        if (regraNovaObj.avulsos.has(numero)) return true;
+        for (const f of regraNovaObj.faixas) {
+            if (numero >= f.min && numero <= f.max) return true;
+        }
+        return false;
+    }
+
+    // Calcula o que acontece com o registro do outro motorista quando o novo cadastro assume o endereço
+    function calcularAjusteConflito(registroAntigo, numeracaoNova) {
+        const antigo = extrairFaixasENumeros(registroAntigo.numeracao);
+        const novo = extrairFaixasENumeros(numeracaoNova);
+
+        // Se o novo cadastro atende a rua toda ou não tem números específicos, remove o registro antigo por completo
+        if (novo.todaRua || (novo.faixas.length === 0 && novo.avulsos.size === 0)) {
+            return { tipo: 'remover', novaNumeracao: null };
+        }
+
+        // Se o registro antigo era "TODA A RUA" ou sem números específicos e o novo é parcial, remove por completo para transferir
+        if (antigo.todaRua || (antigo.faixas.length === 0 && antigo.avulsos.size === 0)) {
+            return { tipo: 'remover', novaNumeracao: null };
+        }
+
+        // Tenta subtrair intervalos/números cobertos pelo novo cadastro quando ambos têm numeração
+        const faixasRestantes = [];
+        for (const f of antigo.faixas) {
+            let segmentos = [{ min: f.min, max: f.max }];
+
+            for (const nF of novo.faixas) {
+                const proximo = [];
+                for (const seg of segmentos) {
+                    if (nF.max < seg.min || nF.min > seg.max) {
+                        proximo.push(seg);
+                    } else {
+                        if (nF.min > seg.min) {
+                            proximo.push({ min: seg.min, max: nF.min - 1 });
+                        }
+                        if (nF.max < seg.max) {
+                            proximo.push({ min: nF.max + 1, max: seg.max });
+                        }
+                    }
+                }
+                segmentos = proximo;
+            }
+
+            for (const av of novo.avulsos) {
+                const proximo = [];
+                for (const seg of segmentos) {
+                    if (av < seg.min || av > seg.max) {
+                        proximo.push(seg);
+                    } else {
+                        if (av > seg.min) {
+                            proximo.push({ min: seg.min, max: av - 1 });
+                        }
+                        if (av < seg.max) {
+                            proximo.push({ min: av + 1, max: seg.max });
+                        }
+                    }
+                }
+                segmentos = proximo;
+            }
+
+            faixasRestantes.push(...segmentos);
+        }
+
+        const avulsosRestantes = [...antigo.avulsos].filter(av => !numeroPertenceARegraNova(av, novo));
+
+        const partesFormatadas = [];
+        faixasRestantes.forEach(f => {
+            if (f.min === f.max) {
+                partesFormatadas.push(`${f.min}`);
+            } else {
+                partesFormatadas.push(`${f.min} AO ${f.max}`);
+            }
+        });
+        avulsosRestantes.sort((a, b) => a - b).forEach(n => {
+            partesFormatadas.push(`${n}`);
+        });
+
+        if (partesFormatadas.length === 0) {
+            return { tipo: 'remover', novaNumeracao: null };
+        }
+
+        return {
+            tipo: 'atualizar',
+            novaNumeracao: partesFormatadas.join(', ')
+        };
+    }
+
     function buscarConflitosOutroMotorista(editId, entregadorNovo, ruaNova, numeracaoNova) {
         const ruaNorm = normalizar(ruaNova);
         const entNovoNorm = normalizar(entregadorNovo);
 
-        return registros.filter(item => {
-            if (editId && item.id === editId) return false;
-            if (normalizar(item.entregador) === entNovoNorm) return false;
-            if (normalizar(item.rua) !== ruaNorm) return false;
-            return haSobreposicaoNumerica(item.numeracao, numeracaoNova);
-        });
+        return registros
+            .filter(item => {
+                if (editId && item.id === editId) return false;
+                if (normalizar(item.entregador) === entNovoNorm) return false;
+                if (normalizar(item.rua) !== ruaNorm) return false;
+                return haSobreposicaoNumerica(item.numeracao, numeracaoNova);
+            })
+            .map(item => ({
+                ...item,
+                acao: calcularAjusteConflito(item, numeracaoNova)
+            }));
     }
 
     function prepararSalvamento() {
@@ -793,18 +890,25 @@
     }
 
     function abrirModalConflito(dados) {
-        const detalhesConflitos = dados.conflitos.map(c => `
-            <div class="modal-highlight-box">
-                <p>Motorista atual: <strong>🚚 ${c.entregador}</strong></p>
-                <p>Endereço: <strong>${c.rua}</strong></p>
-                <p>Numeração: <strong>${c.numeracao}</strong></p>
-            </div>
-        `).join('');
+        const detalhesConflitos = dados.conflitos.map(c => {
+            const resumoAcao = c.acao.tipo === 'atualizar'
+                ? `<p>Será ajustado para: <strong>${c.acao.novaNumeracao}</strong></p>`
+                : `<p>Será removido de: <strong>${c.entregador}</strong></p>`;
+
+            return `
+                <div class="modal-highlight-box">
+                    <p>Motorista atual: <strong>🚚 ${c.entregador}</strong></p>
+                    <p>Endereço: <strong>${c.rua}</strong></p>
+                    <p>Numeração atual: <strong>${c.numeracao}</strong></p>
+                    ${resumoAcao}
+                </div>
+            `;
+        }).join('');
 
         document.getElementById('textoModalConflito').innerHTML = `
             O endereço <strong>${dados.rua}</strong> (<strong>${dados.numeracao}</strong>) já está cadastrado para outro motorista:
             ${detalhesConflitos}
-            Deseja confirmar a alteração para <strong>${dados.entregador}</strong>? Ao confirmar, o endereço será removido do motorista anterior.
+            Deseja confirmar a alteração para <strong>${dados.entregador}</strong>?
         `;
 
         document.getElementById('modalConflito').classList.add('aberto');
@@ -831,11 +935,15 @@
 
         operacaoPrincipal.then(() => {
             if (conflitos && conflitos.length > 0) {
-                const remocoes = {};
+                const alteracoes = {};
                 conflitos.forEach(c => {
-                    remocoes[c.id] = null;
+                    if (c.acao.tipo === 'atualizar') {
+                        alteracoes[`${c.id}/numeracao`] = c.acao.novaNumeracao;
+                    } else {
+                        alteracoes[c.id] = null;
+                    }
                 });
-                rotasRef.update(remocoes);
+                rotasRef.update(alteracoes);
             }
 
             entregadoresExpandidos.clear();
