@@ -22,9 +22,10 @@
         header { text-align: center; margin-bottom: 16px; }
         header h1 { font-size: 1.35rem; }
 
-        /* Navegação por Abas */
+        /* Navegação por Abas Padronizada e Alinhada */
         .tabs {
             display: flex;
+            align-items: stretch;
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -34,13 +35,17 @@
         }
         .tab-btn {
             flex: 1;
-            padding: 10px 6px;
+            min-width: 0;
+            height: 40px;
+            padding: 0 8px;
             border: none;
             border-radius: 9px;
             background: transparent;
             color: var(--muted);
-            font-weight: 600;
-            font-size: 0.84rem;
+            font-weight: 700;
+            font-size: 0.82rem;
+            line-height: 1;
+            white-space: nowrap;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
@@ -55,10 +60,12 @@
         }
         .tab-badge {
             font-size: 0.7rem;
-            padding: 1px 6px;
+            line-height: 1;
+            padding: 2px 6px;
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.16);
             color: inherit;
+            flex-shrink: 0;
         }
         .tab-content {
             display: none;
@@ -146,19 +153,21 @@
             animation: slideDown 0.18s ease;
         }
 
+        /* Botões compactos Renomear / Excluir */
         .entregador-bulk-actions {
             display: flex;
             gap: 8px;
-            padding: 10px 0;
+            padding: 8px 0;
             border-bottom: 1px solid var(--border);
             margin-bottom: 4px;
         }
         .btn-bulk {
             flex: 1;
-            padding: 8px 10px;
-            font-size: 0.78rem;
+            padding: 5px 8px;
+            font-size: 0.75rem;
+            line-height: 1.2;
             font-weight: 700;
-            border-radius: 7px;
+            border-radius: 6px;
             border: 1px solid transparent;
             cursor: pointer;
             transition: 0.15s;
@@ -321,6 +330,7 @@
             justify-content: flex-end;
             gap: 8px;
             margin-top: 12px;
+            flex-wrap: wrap;
         }
         .btn-limpar-bip {
             background: transparent;
@@ -330,6 +340,16 @@
             border-radius: 8px;
             font-size: 0.78rem;
             font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-zerar-fila {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
             cursor: pointer;
         }
 
@@ -511,7 +531,7 @@
         <!-- ABA 3: FILA DE BIPAGEM -->
         <div id="abaFila" class="tab-content">
             <div class="box">
-                <label>Adicionar Motorista na Fila (por ordem de chegada)</label>
+                <label>Adicionar Motorista na Fila</label>
                 <div class="fila-add-row">
                     <input type="text" id="inputFilaMotorista" class="upper" placeholder="NOME DO MOTORISTA" list="listaEntregadores" onkeydown="if(event.key==='Enter') adicionarNaFila()">
                     <button class="btn-add-fila" onclick="adicionarNaFila()">+ Entrar</button>
@@ -626,7 +646,6 @@
         return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
     }
 
-    // Escuta rotas em tempo real
     rotasRef.on('value', (snapshot) => {
         registros = [];
         const data = snapshot.val();
@@ -654,7 +673,6 @@
         renderizarLista();
     });
 
-    // Escuta fila de bipagem em tempo real
     filaRef.on('value', (snapshot) => {
         filaItens = [];
         const data = snapshot.val();
@@ -673,8 +691,6 @@
         document.getElementById('badgeFilaAtiva').innerText = qtdAguardando;
         renderizarFila();
     });
-
-    // --- FUNÇÕES DE CADASTRO E CONFLITO DE ENDEREÇO ---
 
     function extrairFaixasENumeros(regraTexto) {
         const regra = normalizar(regraTexto);
@@ -706,10 +722,8 @@
         const a = extrairFaixasENumeros(regraA);
         const b = extrairFaixasENumeros(regraB);
 
-        // Se qualquer um dos lados atende a rua inteira, há sobreposição no endereço
         if (a.todaRua || b.todaRua) return true;
 
-        // Se nenhum dos lados tem números extraíveis (ex: texto livre), considera conflito na mesma rua
         const aSemNum = a.faixas.length === 0 && a.avulsos.size === 0;
         const bSemNum = b.faixas.length === 0 && b.avulsos.size === 0;
         if (aSemNum && bSemNum) return true;
@@ -923,8 +937,6 @@
         });
     }
 
-    // --- BUSCA INTELIGENTE DE ENDEREÇO NA ABA ENTREGADORES ---
-
     function extrairBuscaEndereco(entrada) {
         const limpo = normalizar(entrada);
         const match = limpo.match(/^(.*?)(?:[\s,]+(?:N[º°O.]*\s*)?(\d+))$/);
@@ -998,27 +1010,22 @@
         if (filtroBruto.length > 0) {
             const { textoRua, numeroBuscado } = extrairBuscaEndereco(filtroBruto);
 
-            // Tenta match de endereço (rua + eventual número)
             let matchesEndereco = registros.filter(r => {
                 const bateRua = normalizar(r.rua).includes(textoRua);
                 if (!bateRua) return false;
                 return numeroAtendido(r.numeracao, numeroBuscado);
             });
 
-            // Se não bateu como rua, permite filtrar também por nome do motorista
             if (matchesEndereco.length === 0) {
                 matchesEndereco = registros.filter(r => normalizar(r.entregador).includes(filtroBruto));
             }
 
             itensExibidos = matchesEndereco;
 
-            // Agrupa para saber quantos motoristas atendem esse endereço
             const motoristasUnicos = new Set(itensExibidos.map(i => i.entregador));
             if (motoristasUnicos.size > 1) {
-                // Mais de um motorista faz a rua: expande todos os motoristas correspondentes
                 motoristasUnicos.forEach(m => expandirPorBusca.add(m));
             } else if (motoristasUnicos.size === 1) {
-                // Endereço específico de um único motorista: expande somente ele
                 expandirPorBusca.add([...motoristasUnicos][0]);
             }
         }
@@ -1074,8 +1081,8 @@
                     </div>
                     <div class="entregador-body">
                         <div class="entregador-bulk-actions">
-                            <button class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear Entregador</button>
-                            <button class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir Entregador</button>
+                            <button class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear</button>
+                            <button class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir</button>
                         </div>
                         ${linhasRuas}
                     </div>
@@ -1083,8 +1090,6 @@
             `;
         }).join('');
     }
-
-    // --- FUNÇÕES DA FILA DE BIPAGEM ---
 
     function adicionarNaFila() {
         const input = document.getElementById('inputFilaMotorista');
@@ -1122,6 +1127,13 @@
             const remocoes = {};
             bipados.forEach(item => { remocoes[item.id] = null; });
             filaRef.update(remocoes);
+        }
+    }
+
+    function zerarFilaCompleta() {
+        if (filaItens.length === 0) return;
+        if (confirm(`ZERAR TODA A FILA DE BIPAGEM (${filaItens.length} ${filaItens.length === 1 ? 'MOTORISTA' : 'MOTORISTAS'})?`)) {
+            filaRef.remove();
         }
     }
 
@@ -1176,13 +1188,14 @@
                     </div>
                 </div>
             `).join('');
-
-            html += `
-                <div class="fila-toolbar">
-                    <button class="btn-limpar-bip" onclick="limparBipados()">🧹 Limpar Bipados</button>
-                </div>
-            `;
         }
+
+        html += `
+            <div class="fila-toolbar">
+                ${bipados.length > 0 ? `<button class="btn-limpar-bip" onclick="limparBipados()">🧹 Limpar Bipados</button>` : ''}
+                <button class="btn-zerar-fila" onclick="zerarFilaCompleta()">🗑️ Zerar Fila</button>
+            </div>
+        `;
 
         container.innerHTML = html;
     }
