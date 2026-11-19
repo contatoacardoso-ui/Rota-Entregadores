@@ -330,9 +330,11 @@
             font-size: 0.95rem;
             font-weight: 700;
             color: var(--text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+            line-height: 1.3;
             min-width: 0;
         }
         .fila-actions {
@@ -1649,7 +1651,7 @@
                     <div class="fila-card aguardando">
                         <div class="fila-info">
                             <span class="fila-pos">#${idx + 1}</span>
-                            <span class="fila-nome" title="${item.motorista}">${item.motorista}</span>
+                            <span class="fila-nome">${item.motorista}</span>
                         </div>
                         <div class="fila-actions">
                             <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
@@ -1671,7 +1673,7 @@
                     <div class="fila-card bipado">
                         <div class="fila-info">
                             <span class="fila-pos">BIP</span>
-                            <span class="fila-nome" title="${item.motorista}">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></span>
+                            <span class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></span>
                         </div>
                         <div class="fila-actions">
                             <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
