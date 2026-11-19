@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Consulta de Rotas e Entregadores</title>
+    <title>Consulta de Rotas e Fila de Bipagem</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -18,9 +18,56 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
         .container { width: 100%; max-width: 480px; }
-        header { text-align: center; margin-bottom: 20px; padding-top: 10px; }
+        header { text-align: center; margin-bottom: 16px; padding-top: 8px; }
         header h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
         header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+        /* Navegação por Abas */
+        .tabs {
+            display: flex;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 16px;
+            gap: 4px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 11px 8px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .tab-btn.ativa {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+        }
+        .tab-badge {
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.16);
+            color: inherit;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.18s ease;
+        }
+        .tab-content.ativa {
+            display: block;
+        }
+
         .search-box { position: sticky; top: 10px; z-index: 10; background: var(--bg); padding-bottom: 12px; }
         input[type="text"] {
             width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
@@ -40,6 +87,87 @@
         .entregador-item:last-child { border-bottom: none; padding-bottom: 0; }
         .entregador-nome { font-weight: 700; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
         .badge { background: rgba(16, 185, 129, 0.15); color: var(--accent); font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; width: fit-content; font-weight: 600; }
+
+        /* Fila de Bipagem */
+        .fila-section-title {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            font-weight: 700;
+            margin: 12px 0 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .fila-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 15px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.18s ease;
+        }
+        .fila-card.aguardando {
+            border-left: 4px solid var(--primary);
+        }
+        .fila-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        .fila-pos {
+            background: rgba(59, 130, 246, 0.16);
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 0.84rem;
+            padding: 4px 9px;
+            border-radius: 7px;
+            flex-shrink: 0;
+        }
+        .fila-nome {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: var(--text);
+            word-break: break-word;
+        }
+        .fila-tag-aguardando {
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: rgba(16, 185, 129, 0.14);
+            padding: 3px 8px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .fila-card.bipado {
+            background: rgba(15, 23, 42, 0.55);
+            border-color: #263244;
+            opacity: 0.52;
+        }
+        .fila-card.bipado .fila-pos {
+            background: rgba(148, 163, 184, 0.12);
+            color: var(--muted);
+        }
+        .fila-card.bipado .fila-nome {
+            color: var(--muted);
+            text-decoration: line-through;
+            font-weight: 600;
+        }
+        .fila-status-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-left: 6px;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -47,16 +175,36 @@
 
 <div class="container">
     <header>
-        <h1>Consulta de Entregadores</h1>
-        <p>Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
+        <h1 id="tituloHeader">Consulta de Entregadores</h1>
+        <p id="subtituloHeader">Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
     </header>
 
-    <div class="search-box">
-        <input type="text" id="campoBusca" placeholder="Ex: Rua das Flores 250 ou Av. Brasil..." autocomplete="off">
+    <!-- Barra de Abas -->
+    <div class="tabs">
+        <button class="tab-btn ativa" id="btnTabConsulta" onclick="trocarAba('consulta')">
+            🔍 Consulta Endereços
+        </button>
+        <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
+            📋 Fila Bipagem <span class="tab-badge" id="badgeFilaMotoristas">0</span>
+        </button>
     </div>
 
-    <div id="resultados">
-        <div class="status">Conectando ao banco de dados...</div>
+    <!-- ABA 1: CONSULTA DE ENDEREÇOS -->
+    <div id="abaConsulta" class="tab-content ativa">
+        <div class="search-box">
+            <input type="text" id="campoBusca" placeholder="Ex: Rua das Flores 250 ou Av. Brasil..." autocomplete="off">
+        </div>
+
+        <div id="resultados">
+            <div class="status">Conectando ao banco de dados...</div>
+        </div>
+    </div>
+
+    <!-- ABA 2: FILA DE BIPAGEM -->
+    <div id="abaFila" class="tab-content">
+        <div id="conteudoFilaMotoristas">
+            <div class="status">Carregando fila de bipagem...</div>
+        </div>
     </div>
 </div>
 
@@ -79,6 +227,27 @@
     const db = firebase.database();
 
     let baseDados = [];
+    let filaMotoristas = [];
+
+    function trocarAba(aba) {
+        document.getElementById('btnTabConsulta').classList.remove('ativa');
+        document.getElementById('btnTabFila').classList.remove('ativa');
+        document.getElementById('abaConsulta').classList.remove('ativa');
+        document.getElementById('abaFila').classList.remove('ativa');
+
+        if (aba === 'consulta') {
+            document.getElementById('btnTabConsulta').classList.add('ativa');
+            document.getElementById('abaConsulta').classList.add('ativa');
+            document.getElementById('tituloHeader').innerText = "Consulta de Entregadores";
+            document.getElementById('subtituloHeader').innerText = "Digite a rua ou rua + número (ex: Rua das Flores 250)";
+        } else {
+            document.getElementById('btnTabFila').classList.add('ativa');
+            document.getElementById('abaFila').classList.add('ativa');
+            document.getElementById('tituloHeader').innerText = "Fila de Bipagem";
+            document.getElementById('subtituloHeader').innerText = "Acompanhe sua ordem de chegada e saída para bipagem";
+            renderizarFilaMotoristas();
+        }
+    }
 
     function normalizar(texto) {
         return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
@@ -149,6 +318,25 @@
         filtrarRuas();
     }, () => {
         document.getElementById('resultados').innerHTML = `<div class="status" style="color:#ef4444;">Erro de permissão no Firebase: verifique as Regras do Realtime Database.</div>`;
+    });
+
+    db.ref('fila_bipagem').on('value', (snapshot) => {
+        filaMotoristas = [];
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach(id => {
+                filaMotoristas.push({
+                    id,
+                    motorista: (data[id].motorista || "").toUpperCase().trim(),
+                    ordem: Number(data[id].ordem) || 0,
+                    bipado: Boolean(data[id].bipado),
+                    bipadoEm: Number(data[id].bipadoEm) || 0
+                });
+            });
+        }
+        const qtdAguardando = filaMotoristas.filter(f => !f.bipado).length;
+        document.getElementById('badgeFilaMotoristas').innerText = qtdAguardando;
+        renderizarFilaMotoristas();
     });
 
     const campoBusca = document.getElementById('campoBusca');
@@ -222,6 +410,55 @@
         });
 
         divResultados.innerHTML = html;
+    }
+
+    function renderizarFilaMotoristas() {
+        const container = document.getElementById('conteudoFilaMotoristas');
+        if (!container) return;
+
+        const aguardando = filaMotoristas
+            .filter(f => !f.bipado)
+            .sort((a, b) => a.ordem - b.ordem);
+
+        const bipados = filaMotoristas
+            .filter(f => f.bipado)
+            .sort((a, b) => a.bipadoEm - b.bipadoEm);
+
+        if (aguardando.length === 0 && bipados.length === 0) {
+            container.innerHTML = '<div class="status">Nenhum motorista na fila de bipagem no momento.</div>';
+            return;
+        }
+
+        let html = '';
+
+        if (aguardando.length > 0) {
+            html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
+            html += aguardando.map((item, idx) => `
+                <div class="fila-card aguardando">
+                    <div class="fila-info">
+                        <span class="fila-pos">#${idx + 1}</span>
+                        <span class="fila-nome">${item.motorista}</span>
+                    </div>
+                    <span class="fila-tag-aguardando">NA FILA</span>
+                </div>
+            `).join('');
+        } else {
+            html += `<div class="status" style="margin-top:16px; margin-bottom:16px;">Nenhum motorista aguardando na fila no momento.</div>`;
+        }
+
+        if (bipados.length > 0) {
+            html += `<div class="fila-section-title" style="margin-top:20px;"><span>Enviados para Bipagem</span><span>${bipados.length}</span></div>`;
+            html += bipados.map(item => `
+                <div class="fila-card bipado">
+                    <div class="fila-info">
+                        <span class="fila-pos">BIP</span>
+                        <span class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        container.innerHTML = html;
     }
 </script>
 </body>
