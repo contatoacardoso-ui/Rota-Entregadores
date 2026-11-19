@@ -39,29 +39,22 @@
         header h1 { font-size: 1.35rem; }
         body.device-desktop header h1 { font-size: 1.55rem; }
 
-        /* 3 Botões de Aba Independentes */
+        /* 2 Botões de Aba Independentes */
         .tabs {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             margin-bottom: 18px;
-            gap: 8px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-        }
-        .tabs::-webkit-scrollbar {
-            display: none;
+            gap: 10px;
         }
         .tab-btn {
-            min-width: max-content;
-            height: 40px;
+            height: 42px;
             padding: 0 12px;
             border: 1px solid var(--border);
             border-radius: 10px;
             background: var(--card);
             color: var(--muted);
             font-weight: 700;
-            font-size: clamp(0.75rem, 3.1vw, 0.86rem);
+            font-size: 0.88rem;
             line-height: 1;
             white-space: nowrap;
             cursor: pointer;
@@ -69,11 +62,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 6px;
         }
         body.device-desktop .tab-btn {
-            height: 44px;
-            font-size: 0.9rem;
+            height: 46px;
+            font-size: 0.94rem;
         }
         .tab-btn.ativa {
             background: var(--primary);
@@ -82,7 +75,7 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
         }
         .tab-count {
-            font-size: 0.78rem;
+            font-size: 0.8rem;
             font-weight: 700;
             opacity: 0.92;
         }
@@ -100,14 +93,40 @@
 
         .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: var(--box-padding); margin-bottom: 16px; }
 
-        /* Grade do formulário no computador */
-        body.device-desktop .cadastro-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0 16px;
+        /* Barra Superior da Aba Entregadores (Busca + Botão Novo Cadastro) */
+        .entregadores-topbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            align-items: stretch;
         }
-        body.device-desktop .cadastro-grid .form-group-full {
-            grid-column: 1 / -1;
+        .entregadores-topbar input {
+            flex: 1;
+            min-width: 0;
+        }
+        .btn-novo-cadastro {
+            padding: 0 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.86rem;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+            transition: filter 0.15s;
+        }
+        .btn-novo-cadastro:active {
+            filter: brightness(0.92);
+        }
+        body.device-desktop .btn-novo-cadastro {
+            padding: 0 18px;
+            font-size: 0.92rem;
         }
 
         .form-group { margin-bottom: 12px; }
@@ -122,27 +141,19 @@
         input.upper { text-transform: uppercase; }
         input.upper::placeholder { text-transform: none; }
         input:focus { border-color: var(--primary); }
-        .btn-row { display: flex; gap: 10px; margin-top: 14px; }
-        body.device-desktop .btn-row {
-            justify-content: flex-end;
-        }
-        body.device-desktop .btn-row button.action-btn {
-            flex: 0 1 220px;
-        }
         button.action-btn {
             flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600;
             font-size: 0.95rem; cursor: pointer; transition: 0.2s; color: #fff;
         }
         .btn-save { background: var(--primary); }
-        .btn-cancel { background: var(--border); display: none; }
         .feedback-msg {
             display: none;
-            margin-top: 12px;
-            padding: 10px;
+            margin-top: 10px;
+            padding: 9px 10px;
             border-radius: 8px;
             background: rgba(16, 185, 129, 0.15);
             color: var(--success);
-            font-size: 0.85rem;
+            font-size: 0.83rem;
             font-weight: 600;
             text-align: center;
         }
@@ -347,7 +358,7 @@
             cursor: pointer;
         }
 
-        /* Motorista já enviado para bipagem (ao final, apagado e riscado) */
+        /* Motorista já enviado para bipagem */
         .fila-card.bipado {
             background: rgba(15, 23, 42, 0.55);
             border-color: #263244;
@@ -407,7 +418,7 @@
             cursor: pointer;
         }
 
-        /* Pop-up Modal Moderno Unificado */
+        /* Pop-up Modal Moderno (Cadastro + Avisos/Confirmações) */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -423,17 +434,22 @@
             display: flex;
             animation: fadeIn 0.16s ease;
         }
+        #modalPopup {
+            z-index: 1010;
+        }
         .modal-card {
             width: 100%;
-            max-width: 430px;
+            max-width: 440px;
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+            max-height: 92vh;
+            overflow-y: auto;
         }
         body.device-desktop .modal-card {
-            max-width: 480px;
+            max-width: 500px;
             padding: 24px;
         }
         .modal-card.tipo-warning { border-color: var(--warning); }
@@ -443,8 +459,14 @@
         .modal-header {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+        }
+        .modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .modal-icon {
             width: 36px;
@@ -464,6 +486,20 @@
         .tipo-warning .modal-header h3 { color: var(--warning); }
         .tipo-danger .modal-header h3 { color: var(--danger); }
         .tipo-info .modal-header h3 { color: var(--primary); }
+
+        .btn-modal-x {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         .modal-body {
             font-size: 0.9rem;
@@ -495,6 +531,7 @@
         .modal-footer {
             display: flex;
             gap: 10px;
+            margin-top: 14px;
         }
         .btn-modal-cancel {
             flex: 1;
@@ -542,12 +579,9 @@
             <h1>Painel de Rotas</h1>
         </header>
 
-        <!-- 3 Botões de Aba Separados -->
+        <!-- 2 Botões de Aba Separados -->
         <div class="tabs">
-            <button class="tab-btn ativa" id="btnTabCadastro" onclick="trocarAba('cadastro')">
-                <span>➕ Cadastro</span>
-            </button>
-            <button class="tab-btn" id="btnTabLista" onclick="trocarAba('lista')">
+            <button class="tab-btn ativa" id="btnTabLista" onclick="trocarAba('lista')">
                 <span>🚚 Entregadores</span>
                 <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
             </button>
@@ -557,50 +591,17 @@
             </button>
         </div>
 
-        <!-- ABA 1: CADASTRO / EDIÇÃO -->
-        <div id="abaCadastro" class="tab-content ativa">
-            <div class="box">
-                <h2 id="formTitle" style="font-size: 1rem; margin-bottom: 12px; color: var(--primary);">Novo Cadastro</h2>
-                <input type="hidden" id="editId">
-
-                <div class="cadastro-grid">
-                    <div class="form-group">
-                        <label>Nome do Entregador *</label>
-                        <input type="text" id="entregador" class="upper" placeholder="Ex: CARLOS SILVA" list="listaEntregadores">
-                        <datalist id="listaEntregadores"></datalist>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Nome da Rua / Avenida *</label>
-                        <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas">
-                        <datalist id="listaRuas"></datalist>
-                    </div>
-
-                    <div class="form-group form-group-full">
-                        <label>Numeração Atendida (Deixe vazio para "TODA A RUA")</label>
-                        <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90">
-                    </div>
-                </div>
-
-                <div class="btn-row">
-                    <button class="action-btn btn-save" id="btnSalvar" onclick="prepararSalvamento()">Salvar Cadastro</button>
-                    <button class="action-btn btn-cancel" id="btnCancelar" onclick="cancelarEdicao()">Cancelar</button>
-                </div>
-
-                <div id="feedbackMsg" class="feedback-msg"></div>
-            </div>
-        </div>
-
-        <!-- ABA 2: ENTREGADORES E ROTAS CADASTRADAS -->
-        <div id="abaLista" class="tab-content">
-            <div class="form-group">
-                <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Buscar rua ou endereço (ex: RUA BRASIL ou RUA BRASIL 150)..." oninput="aoFiltrar()">
+        <!-- ABA 1: ENTREGADORES E ROTAS CADASTRADAS -->
+        <div id="abaLista" class="tab-content ativa">
+            <div class="entregadores-topbar">
+                <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Buscar rua ou entregador..." oninput="aoFiltrar()">
+                <button class="btn-novo-cadastro" onclick="abrirModalCadastro()">➕ Cadastrar</button>
             </div>
 
             <div id="listaRegistros"></div>
         </div>
 
-        <!-- ABA 3: FILA DE BIPAGEM -->
+        <!-- ABA 2: FILA DE BIPAGEM -->
         <div id="abaFila" class="tab-content">
             <div class="box">
                 <label>Adicionar Motorista na Fila</label>
@@ -615,12 +616,53 @@
     </div>
 </div>
 
-<!-- Pop-up Modal Moderno Unificado -->
+<!-- Pop-up Modal Moderno de Cadastro / Edição -->
+<div id="modalCadastro" class="modal-backdrop" onclick="if(event.target===this) fecharModalCadastro()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon" id="cadastroModalIcon">➕</div>
+                <h3 id="formTitle">Novo Cadastro</h3>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalCadastro()" title="Fechar">✕</button>
+        </div>
+
+        <input type="hidden" id="editId">
+
+        <div class="form-group">
+            <label>Nome do Entregador *</label>
+            <input type="text" id="entregador" class="upper" placeholder="Ex: CARLOS SILVA" list="listaEntregadores">
+            <datalist id="listaEntregadores"></datalist>
+        </div>
+
+        <div class="form-group">
+            <label>Nome da Rua / Avenida *</label>
+            <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas">
+            <datalist id="listaRuas"></datalist>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 4px;">
+            <label>Numeração Atendida (Deixe vazio para "TODA A RUA")</label>
+            <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90" onkeydown="if(event.key==='Enter') prepararSalvamento()">
+        </div>
+
+        <div id="feedbackMsg" class="feedback-msg"></div>
+
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="fecharModalCadastro()">Fechar</button>
+            <button class="btn-modal-confirm" id="btnSalvar" onclick="prepararSalvamento()">Salvar Cadastro</button>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up Modal Moderno de Avisos e Confirmações -->
 <div id="modalPopup" class="modal-backdrop" onclick="if(event.target===this) fecharModalPopup(false)">
     <div id="modalCard" class="modal-card tipo-info">
         <div class="modal-header">
-            <div class="modal-icon" id="modalIcon">ℹ️</div>
-            <h3 id="modalTitulo">Aviso</h3>
+            <div class="modal-header-left">
+                <div class="modal-icon" id="modalIcon">ℹ️</div>
+                <h3 id="modalTitulo">Aviso</h3>
+            </div>
         </div>
         <div class="modal-body" id="modalCorpo"></div>
         <div class="modal-footer" id="modalRodape">
@@ -741,6 +783,50 @@
         }
     }
 
+    // --- CONTROLE DO MODAL DE CADASTRO ---
+    function abrirModalCadastro(itemEdicao = null) {
+        document.getElementById('feedbackMsg').style.display = 'none';
+
+        if (itemEdicao) {
+            document.getElementById('editId').value = itemEdicao.id;
+            document.getElementById('entregador').value = itemEdicao.entregador;
+            document.getElementById('rua').value = itemEdicao.rua;
+            document.getElementById('numeracao').value = itemEdicao.numeracao === "TODA A RUA" ? "" : itemEdicao.numeracao;
+
+            document.getElementById('cadastroModalIcon').innerText = "✏️";
+            document.getElementById('formTitle').innerText = "Editando Cadastro";
+            document.getElementById('btnSalvar').innerText = "Atualizar";
+        } else {
+            document.getElementById('editId').value = '';
+            document.getElementById('entregador').value = '';
+            document.getElementById('rua').value = '';
+            document.getElementById('numeracao').value = '';
+
+            document.getElementById('cadastroModalIcon').innerText = "➕";
+            document.getElementById('formTitle').innerText = "Novo Cadastro";
+            document.getElementById('btnSalvar').innerText = "Salvar Cadastro";
+        }
+
+        document.getElementById('modalCadastro').classList.add('aberto');
+
+        setTimeout(() => {
+            if (itemEdicao) {
+                document.getElementById('numeracao').focus();
+            } else {
+                document.getElementById('entregador').focus();
+            }
+        }, 50);
+    }
+
+    function fecharModalCadastro() {
+        document.getElementById('modalCadastro').classList.remove('aberto');
+        document.getElementById('editId').value = '';
+        document.getElementById('entregador').value = '';
+        document.getElementById('rua').value = '';
+        document.getElementById('numeracao').value = '';
+        document.getElementById('feedbackMsg').style.display = 'none';
+    }
+
     async function verificarPin() {
         const pin = document.getElementById('pinInput').value;
         if (pin === SENHA_ADMIN) {
@@ -765,18 +851,13 @@
     }
 
     function trocarAba(aba) {
-        document.getElementById('btnTabCadastro').classList.remove('ativa');
         document.getElementById('btnTabLista').classList.remove('ativa');
         document.getElementById('btnTabFila').classList.remove('ativa');
 
-        document.getElementById('abaCadastro').classList.remove('ativa');
         document.getElementById('abaLista').classList.remove('ativa');
         document.getElementById('abaFila').classList.remove('ativa');
 
-        if (aba === 'cadastro') {
-            document.getElementById('btnTabCadastro').classList.add('ativa');
-            document.getElementById('abaCadastro').classList.add('ativa');
-        } else if (aba === 'lista') {
+        if (aba === 'lista') {
             document.getElementById('btnTabLista').classList.add('ativa');
             document.getElementById('abaLista').classList.add('ativa');
             renderizarLista();
@@ -1167,8 +1248,7 @@
             entregadoresExpandidos.add(entregador);
 
             if (id) {
-                cancelarEdicao();
-                trocarAba('lista');
+                fecharModalCadastro();
             } else {
                 document.getElementById('rua').value = '';
                 document.getElementById('numeracao').value = '';
@@ -1185,34 +1265,7 @@
     function editarRegistro(id) {
         const item = registros.find(r => r.id === id);
         if (!item) return;
-
-        document.getElementById('editId').value = item.id;
-        document.getElementById('entregador').value = item.entregador;
-        document.getElementById('rua').value = item.rua;
-        document.getElementById('numeracao').value = item.numeracao === "TODA A RUA" ? "" : item.numeracao;
-
-        document.getElementById('formTitle').innerText = "Editando Cadastro";
-        document.getElementById('btnSalvar').innerText = "Atualizar";
-        document.getElementById('btnCancelar').style.display = "block";
-
-        trocarAba('cadastro');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelarEdicao() {
-        const estavaEditando = document.getElementById('editId').value !== '';
-        document.getElementById('editId').value = '';
-        document.getElementById('entregador').value = '';
-        document.getElementById('rua').value = '';
-        document.getElementById('numeracao').value = '';
-
-        document.getElementById('formTitle').innerText = "Novo Cadastro";
-        document.getElementById('btnSalvar').innerText = "Salvar Cadastro";
-        document.getElementById('btnCancelar').style.display = "none";
-
-        if (estavaEditando) {
-            trocarAba('lista');
-        }
+        abrirModalCadastro(item);
     }
 
     async function excluirRegistro(id, rua, entregador) {
@@ -1360,7 +1413,7 @@
         const container = document.getElementById('listaRegistros');
 
         if (registros.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado.</p>';
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado. Toque em <strong>➕ Cadastrar</strong> para adicionar.</p>';
             return;
         }
 
