@@ -330,7 +330,10 @@
             font-size: 0.95rem;
             font-weight: 700;
             color: var(--text);
-            word-break: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
         }
         .fila-actions {
             display: flex;
@@ -343,9 +346,23 @@
             border: 1px solid rgba(16, 185, 129, 0.35);
             padding: 7px 11px;
             border-radius: 7px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            line-height: 1;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-edit-fila {
+            background: rgba(245, 158, 11, 0.16);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 7px 9px;
+            border-radius: 7px;
             font-size: 0.78rem;
             font-weight: 700;
+            line-height: 1;
             cursor: pointer;
+            white-space: nowrap;
         }
         .btn-rm-fila {
             background: rgba(239, 68, 68, 0.14);
@@ -355,7 +372,9 @@
             border-radius: 7px;
             font-size: 0.78rem;
             font-weight: 700;
+            line-height: 1;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         /* Motorista já enviado para bipagem */
@@ -379,6 +398,7 @@
             color: var(--muted);
             text-transform: uppercase;
             margin-left: 6px;
+            white-space: nowrap;
         }
         .btn-desfazer-bip {
             background: transparent;
@@ -389,6 +409,7 @@
             font-size: 0.74rem;
             font-weight: 600;
             cursor: pointer;
+            white-space: nowrap;
         }
         .fila-toolbar {
             display: flex;
@@ -1522,6 +1543,37 @@
         });
     }
 
+    async function editarMotoristaFila(id, nomeAtual) {
+        const novoNome = await abrirPopup({
+            tipo: 'info',
+            icone: '✏️',
+            titulo: 'Editar Motorista',
+            mensagem: `Digite o novo nome para <strong>${nomeAtual}</strong>:`,
+            textoConfirmar: 'Salvar Nome',
+            textoCancelar: 'Cancelar',
+            comInput: true,
+            valorInicial: nomeAtual,
+            placeholderInput: 'NOME DO MOTORISTA'
+        });
+
+        if (novoNome === null) return;
+
+        if (!novoNome) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '⚠️',
+                titulo: 'Nome Inválido',
+                mensagem: 'O nome do motorista não pode ficar vazio.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+        if (novoNome === nomeAtual) return;
+
+        filaRef.child(id).update({ motorista: novoNome });
+    }
+
     function marcarBipagem(id, estadoBipado) {
         filaRef.child(id).update({
             bipado: estadoBipado,
@@ -1591,36 +1643,44 @@
 
         if (aguardando.length > 0) {
             html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
-            html += aguardando.map((item, idx) => `
-                <div class="fila-card aguardando">
-                    <div class="fila-info">
-                        <span class="fila-pos">#${idx + 1}</span>
-                        <span class="fila-nome">${item.motorista}</span>
+            html += aguardando.map((item, idx) => {
+                const nomeEscapado = item.motorista.replace(/'/g, "\\'");
+                return `
+                    <div class="fila-card aguardando">
+                        <div class="fila-info">
+                            <span class="fila-pos">#${idx + 1}</span>
+                            <span class="fila-nome" title="${item.motorista}">${item.motorista}</span>
+                        </div>
+                        <div class="fila-actions">
+                            <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
+                            <button class="btn-bipar" onclick="marcarBipagem('${item.id}', true)" title="Marcar como bipado">✓</button>
+                            <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover da fila">✕</button>
+                        </div>
                     </div>
-                    <div class="fila-actions">
-                        <button class="btn-bipar" onclick="marcarBipagem('${item.id}', true)">✓ Foi p/ Bipagem</button>
-                        <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover da fila">✕</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         } else {
             html += `<p style="text-align:center; color:var(--muted); margin:14px 0; font-size:0.88rem;">Todos os motoristas da fila já foram para bipagem.</p>`;
         }
 
         if (bipados.length > 0) {
             html += `<div class="fila-section-title" style="margin-top:20px;"><span>Enviados para Bipagem</span><span>${bipados.length}</span></div>`;
-            html += bipados.map(item => `
-                <div class="fila-card bipado">
-                    <div class="fila-info">
-                        <span class="fila-pos">BIP</span>
-                        <span class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></span>
+            html += bipados.map(item => {
+                const nomeEscapado = item.motorista.replace(/'/g, "\\'");
+                return `
+                    <div class="fila-card bipado">
+                        <div class="fila-info">
+                            <span class="fila-pos">BIP</span>
+                            <span class="fila-nome" title="${item.motorista}">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></span>
+                        </div>
+                        <div class="fila-actions">
+                            <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
+                            <button class="btn-desfazer-bip" onclick="marcarBipagem('${item.id}', false)">↩ Voltar</button>
+                            <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover">✕</button>
+                        </div>
                     </div>
-                    <div class="fila-actions">
-                        <button class="btn-desfazer-bip" onclick="marcarBipagem('${item.id}', false)">↩ Voltar</button>
-                        <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover">✕</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         html += `
