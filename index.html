@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rotas & Bipagem">
     <title>Consulta de Rotas e Fila de Bipagem</title>
     <style>
         :root {
             --bg: #0f172a;
             --card: #1e293b;
             --primary: #3b82f6;
+            --danger: #ef4444;
             --text: #f8fafc;
             --muted: #94a3b8;
             --border: #334155;
@@ -18,9 +23,49 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
         .container { width: 100%; max-width: 480px; }
-        header { text-align: center; margin-bottom: 16px; padding-top: 8px; }
-        header h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
-        header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-top: 6px;
+        }
+        .header-text { text-align: left; flex: 1; min-width: 0; }
+        header h1 { font-size: 1.32rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+
+        .btn-install {
+            flex-shrink: 0;
+            padding: 9px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            background: rgba(16, 185, 129, 0.16);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.14);
+        }
+        .btn-install:hover {
+            background: rgba(16, 185, 129, 0.24);
+        }
+        .btn-install:active {
+            transform: scale(0.97);
+        }
+        .btn-install.instalado {
+            border-color: var(--border);
+            background: var(--card);
+            color: var(--muted);
+            box-shadow: none;
+            cursor: default;
+        }
 
         /* Navegação por Abas */
         .tabs {
@@ -168,6 +213,80 @@
             margin-left: 6px;
         }
 
+        /* Modal de Instruções de Instalação */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.78);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-backdrop.aberto {
+            display: flex;
+            animation: fadeIn 0.16s ease;
+        }
+        .modal-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card);
+            border: 1px solid var(--primary);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .modal-header h3 {
+            font-size: 1.02rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .btn-modal-x {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .modal-body {
+            font-size: 0.88rem;
+            color: var(--text);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .modal-body ol {
+            padding-left: 18px;
+            margin-top: 8px;
+            color: var(--muted);
+        }
+        .modal-body li {
+            margin-bottom: 6px;
+        }
+        .modal-body strong {
+            color: var(--text);
+        }
+        .btn-modal-ok {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -175,8 +294,13 @@
 
 <div class="container">
     <header>
-        <h1 id="tituloHeader">Consulta de Entregadores</h1>
-        <p id="subtituloHeader">Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
+        <div class="header-text">
+            <h1 id="tituloHeader">Consulta de Entregadores</h1>
+            <p id="subtituloHeader">Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
+        </div>
+        <button class="btn-install" id="btnInstalarApp" onclick="acaoBotaoInstalar()" title="Instalar aplicativo no celular">
+            📲 Instalar App
+        </button>
     </header>
 
     <!-- Barra de Abas -->
@@ -208,10 +332,156 @@
     </div>
 </div>
 
+<!-- Modal de Ajuda para Instalação -->
+<div id="modalInstalacao" class="modal-backdrop" onclick="if(event.target===this) fecharModalInstalacao()">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>📲 Instalar no Celular</h3>
+            <button class="btn-modal-x" onclick="fecharModalInstalacao()">✕</button>
+        </div>
+        <div class="modal-body" id="textoModalInstalacao">
+            Para instalar este aplicativo na tela inicial do celular:
+            <ol>
+                <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages)[span_1](start_span)[span_1](end_span).</li>
+                <li>Toque no menu do navegador (<strong>⋮</strong> no Chrome ou <strong>Compartilhar</strong> no Safari).</li>
+                <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.</li>
+            </ol>
+        </div>
+        <button class="btn-modal-ok" onclick="fecharModalInstalacao()">Entendi</button>
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
+    // --- CONFIGURAÇÃO PWA (MANIFEST + SERVICE WORKER + BOTÃO INSTALAR) ---
+    let eventoInstalacaoPendente = null;
+
+    function configurarPWA() {
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#0f172a"/><rect x="16" y="16" width="160" height="160" rx="30" fill="#1e293b" stroke="#3b82f6" stroke-width="6"/><text x="96" y="116" text-anchor="middle" font-size="82" font-family="sans-serif">🚚</text></svg>`;
+        const iconUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgIcon)}`;
+
+        const appleLink = document.createElement('link');
+        appleLink.rel = 'apple-touch-icon';
+        appleLink.href = iconUrl;
+        document.head.appendChild(appleLink);
+
+        const manifestObj = {
+            name: "Consulta de Rotas e Fila de Bipagem",
+            short_name: "Rotas & Bipagem",
+            start_url: window.location.href,
+            display: "standalone",
+            background_color: "#0f172a",
+            theme_color: "#0f172a",
+            orientation: "portrait",
+            icons: [
+                {
+                    src: iconUrl,
+                    sizes: "192x192",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = manifestUrl;
+        document.head.appendChild(manifestLink);
+
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            const swCode = `
+                self.addEventListener('install', (event) => {
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(self.clients.claim());
+                });
+                self.addEventListener('fetch', (event) => {
+                    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+                });
+            `;
+            const swBlob = new Blob([swCode], { type: "application/javascript" });
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+
+        atualizarEstadoBotaoInstalacao();
+    }
+
+    function jaEstaInstalado() {
+        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    }
+
+    function atualizarEstadoBotaoInstalacao() {
+        const btn = document.getElementById('btnInstalarApp');
+        if (!btn) return;
+        if (jaEstaInstalado()) {
+            btn.classList.add('instalado');
+            btn.innerText = '✓ Instalado';
+        } else {
+            btn.classList.remove('instalado');
+            btn.innerText = '📲 Instalar App';
+        }
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        eventoInstalacaoPendente = e;
+        atualizarEstadoBotaoInstalacao();
+    });
+
+    window.addEventListener('appinstalled', () => {
+        eventoInstalacaoPendente = null;
+        atualizarEstadoBotaoInstalacao();
+    });
+
+    async function acaoBotaoInstalar() {
+        if (jaEstaInstalado()) return;
+
+        if (eventoInstalacaoPendente) {
+            eventoInstalacaoPendente.prompt();
+            const escolha = await eventoInstalacaoPendente.userChoice;
+            eventoInstalacaoPendente = null;
+            if (escolha && escolha.outcome === 'accepted') {
+                atualizarEstadoBotaoInstalacao();
+            }
+            return;
+        }
+
+        const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const modalBody = document.getElementById('textoModalInstalacao');
+        if (isIos) {
+            modalBody.innerHTML = `
+                No iPhone/iPad (Safari):
+                <ol>
+                    <li>Certifique-se de abrir a página em <strong>HTTPS</strong>.</li>
+                    <li>Toque no ícone de <strong>Compartilhar</strong> (quadrado com seta para cima).</li>
+                    <li>Role e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
+                </ol>
+            `;
+        } else {
+            modalBody.innerHTML = `
+                Para instalar este aplicativo na tela inicial do celular:
+                <ol>
+                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages)[span_2](start_span)[span_2](end_span).</li>
+                    <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
+                    <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+                </ol>
+            `;
+        }
+        document.getElementById('modalInstalacao').classList.add('aberto');
+    }
+
+    function fecharModalInstalacao() {
+        document.getElementById('modalInstalacao').classList.remove('aberto');
+    }
+
+    configurarPWA();
+
     const firebaseConfig = {
         apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
         authDomain: "rota-entregadores.firebaseapp.com",
@@ -253,10 +523,8 @@
         return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
     }
 
-    // Separa texto da rua e eventual número buscado pelo usuário
     function extrairRuaENumero(entrada) {
         const limpo = normalizar(entrada);
-        // Captura número isolado no final ou após vírgula/espaço (ex: "RUA A 120", "RUA A, 120", "RUA A N 120")
         const match = limpo.match(/^(.*?)(?:[\s,]+(?:N[º°O.]*\s*)?(\d+))$/);
         if (match && match[1].trim().length >= 2) {
             return {
@@ -270,14 +538,12 @@
         };
     }
 
-    // Verifica se o número buscado pertence à regra cadastrada para o entregador
     function numeroAtendido(regraNumeracao, numeroBuscado) {
         if (numeroBuscado === null) return true;
         const regra = normalizar(regraNumeracao);
 
         if (!regra || regra.includes("TODA")) return true;
 
-        // Verifica intervalos como "100 AO 500", "100 A 500", "100 - 500", "100 ATE 500"
         const regexFaixa = /(\d+)\s*(?:AO|A|ATE|-)\s*(\d+)/g;
         let m;
         let temFaixa = false;
@@ -292,7 +558,6 @@
             }
         }
 
-        // Se não bateu na faixa, verifica números avulsos listados (ex: "12, 45, 90")
         const semFaixas = regra.replace(/(\d+)\s*(?:AO|A|ATE|-)\s*(\d+)/g, "");
         const avulsos = semFaixas.match(/\d+/g);
         if (avulsos) {
@@ -301,7 +566,6 @@
             }
         }
 
-        // Se a regra não continha nenhum número legível (ex: texto livre como "LADO PAR"), mantém visível por segurança
         if (!temFaixa && !avulsos) return true;
 
         return false;
@@ -357,7 +621,6 @@
             return;
         }
 
-        // Primeiro filtra pelo nome da rua
         const porRua = baseDados.filter(item => normalizar(item.rua).includes(textoRua));
 
         if (porRua.length === 0) {
@@ -365,7 +628,6 @@
             return;
         }
 
-        // Depois aplica o filtro inteligente pelo número (se foi digitado)
         let filtrados = porRua.filter(item => numeroAtendido(item.numeracao, numeroBuscado));
         let avisoNumero = '';
 
@@ -373,7 +635,6 @@
             if (filtrados.length > 0) {
                 avisoNumero = `<div class="filtro-info">Filtrando atendimentos para o Nº ${numeroBuscado}</div>`;
             } else {
-                // Caso a rua exista mas o número não bata com nenhuma faixa, exibe todos da rua com aviso
                 filtrados = porRua;
                 avisoNumero = `<div class="filtro-info">Nº ${numeroBuscado} fora das faixas específicas — exibindo todos da rua:</div>`;
             }
