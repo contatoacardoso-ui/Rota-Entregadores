@@ -169,7 +169,7 @@
             font-size: 0.92rem;
         }
 
-        .form-group { margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; position: relative; }
         label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
         input {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
@@ -181,6 +181,110 @@
         input.upper { text-transform: uppercase; }
         input.upper::placeholder { text-transform: none; }
         input:focus { border-color: var(--primary); }
+
+        /* Campo Entregador com Lista Expansível Integrada */
+        .combobox-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .combobox-wrap input {
+            padding-right: 40px;
+        }
+        .btn-toggle-combo {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--card);
+            color: var(--muted);
+            font-size: 0.78rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .btn-toggle-combo:hover,
+        .btn-toggle-combo.aberto {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.12);
+        }
+        .btn-toggle-combo.aberto {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        .combobox-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: #0f172a;
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            max-height: 195px;
+            overflow-y: auto;
+            z-index: 1050;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65);
+        }
+        .combobox-dropdown.aberto {
+            display: block;
+            animation: fadeIn 0.14s ease;
+        }
+        .combobox-header {
+            padding: 7px 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+            background: rgba(30, 41, 59, 0.85);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+        .combobox-option {
+            padding: 10px 12px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.45);
+            transition: background 0.12s;
+        }
+        .combobox-option:last-child {
+            border-bottom: none;
+        }
+        .combobox-option:hover,
+        .combobox-option.destaque {
+            background: rgba(59, 130, 246, 0.16);
+            color: var(--primary);
+        }
+        .combobox-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            background: rgba(30, 41, 59, 0.9);
+            padding: 2px 7px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+        .combobox-empty {
+            padding: 11px 12px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
         button.action-btn {
             flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600;
             font-size: 0.95rem; cursor: pointer; transition: 0.2s; color: #fff;
@@ -249,23 +353,35 @@
             animation: slideDown 0.18s ease;
         }
 
-        /* Botões compactos Renomear / Excluir */
+        /* Botões de Ação dentro do Entregador (+ Nova Rua, Renomear, Excluir) */
         .entregador-bulk-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
             padding: 8px 0;
             border-bottom: 1px solid var(--border);
             margin-bottom: 4px;
+            align-items: center;
         }
-        body.device-desktop .entregador-bulk-actions {
-            justify-content: flex-end;
+        .btn-add-rua-ent {
+            flex: 1 1 100%;
+            padding: 7px 10px;
+            font-size: 0.78rem;
+            line-height: 1.2;
+            font-weight: 700;
+            border-radius: 7px;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.14);
+            color: var(--success);
+            cursor: pointer;
+            transition: 0.15s;
         }
-        body.device-desktop .btn-bulk {
-            flex: 0 1 130px;
+        .btn-add-rua-ent:hover {
+            background: rgba(16, 185, 129, 0.22);
         }
         .btn-bulk {
             flex: 1;
-            padding: 5px 8px;
+            padding: 6px 8px;
             font-size: 0.75rem;
             line-height: 1.2;
             font-weight: 700;
@@ -273,6 +389,16 @@
             border: 1px solid transparent;
             cursor: pointer;
             transition: 0.15s;
+        }
+        body.device-desktop .entregador-bulk-actions {
+            justify-content: space-between;
+        }
+        body.device-desktop .btn-add-rua-ent {
+            flex: 0 1 auto;
+            padding: 6px 12px;
+        }
+        body.device-desktop .btn-bulk {
+            flex: 0 1 125px;
         }
         .btn-rename-ent {
             background: rgba(59, 130, 246, 0.15);
@@ -498,7 +624,7 @@
             animation: fadeIn 0.16s ease;
         }
         #modalPopup {
-            z-index: 1010;
+            z-index: 1060;
         }
         .modal-card {
             width: 100%;
@@ -871,21 +997,26 @@
 
         <input type="hidden" id="editId">
 
-        <div class="form-group">
-            <label>Nome do Entregador *</label>
-            <input type="text" id="entregador" class="upper" placeholder="Ex: CARLOS SILVA" list="listaEntregadores">
-            <datalist id="listaEntregadores"></datalist>
+        <div class="form-group" id="grupoEntregadorCombo">
+            <label>Nome do Entregador * <span style="font-size:0.74rem; color:var(--primary);">(digite novo ou escolha na lista)</span></label>
+            <div class="combobox-wrap">
+                <input type="text" id="entregador" class="upper" placeholder="Digite novo nome ou toque para ver cadastrados" autocomplete="off" onfocus="abrirListaEntregadoresCombo()" oninput="aoDigitarEntregadorCombo()">
+                <button type="button" class="btn-toggle-combo" id="btnToggleCombo" onclick="alternarListaEntregadoresCombo(event)" title="Mostrar/ocultar entregadores cadastrados">▼</button>
+            </div>
+            <div class="combobox-dropdown" id="dropdownEntregadores"></div>
         </div>
+
+        <datalist id="listaEntregadores"></datalist>
 
         <div class="form-group">
             <label>Nome da Rua / Avenida *</label>
-            <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas">
+            <input type="text" id="rua" class="upper" placeholder="Ex: RUA DAS ACÁCIAS" list="listaRuas" onfocus="fecharListaEntregadoresCombo()">
             <datalist id="listaRuas"></datalist>
         </div>
 
         <div class="form-group" style="margin-bottom: 4px;">
             <label>Numeração Atendida (Deixe vazio para "TODA A RUA")</label>
-            <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90" onkeydown="if(event.key==='Enter') prepararSalvamento()">
+            <input type="text" id="numeracao" class="upper" placeholder="Ex: 100 AO 450 | ou | 12, 34, 90" onfocus="fecharListaEntregadoresCombo()" onkeydown="if(event.key==='Enter') prepararSalvamento()">
         </div>
 
         <div id="feedbackMsg" class="feedback-msg"></div>
@@ -1025,45 +1156,172 @@
         }
     }
 
-    // --- CONTROLE DO MODAL DE CADASTRO ---
-    function abrirModalCadastro(itemEdicao = null) {
-        document.getElementById('feedbackMsg').style.display = 'none';
+    // --- LISTA EXPANSÍVEL DE ENTREGADORES NO CAMPO DE CADASTRO ---
+    function obterListaEntregadoresComContagem() {
+        const mapa = new Map();
+        registros.forEach(r => {
+            if (!r.entregador) return;
+            mapa.set(r.entregador, (mapa.get(r.entregador) || 0) + 1);
+        });
+        return [...mapa.entries()]
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([nome, qtd]) => ({ nome, qtd }));
+    }
 
-        if (itemEdicao) {
+    function renderizarOpcoesEntregadoresCombo(filtroTexto = '') {
+        const dropdown = document.getElementById('dropdownEntregadores');
+        if (!dropdown) return;
+
+        const termo = normalizar(filtroTexto);
+        const lista = obterListaEntregadoresComContagem().filter(item =>
+            !termo || normalizar(item.nome).includes(termo)
+        );
+
+        let html = `<div class="combobox-header">Entregadores cadastrados (toque para adicionar nova rua)</div>`;
+
+        if (lista.length === 0) {
+            html += `<div class="combobox-empty">Nenhum entregador encontrado. Digite para cadastrar como novo.</div>`;
+        } else {
+            html += lista.map(item => {
+                const nomeEscapado = item.nome.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const atual = document.getElementById('entregador').value.toUpperCase().trim();
+                const destaque = atual && normalizar(atual) === normalizar(item.nome) ? 'destaque' : '';
+                return `
+                    <div class="combobox-option ${destaque}" onmousedown="event.preventDefault(); selecionarEntregadorCombo('${nomeEscapado}')">
+                        <span>🚚 ${item.nome}</span>
+                        <span class="combobox-badge">${item.qtd} ${item.qtd === 1 ? 'rua' : 'ruas'}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        dropdown.innerHTML = html;
+    }
+
+    function abrirListaEntregadoresCombo() {
+        const inputEnt = document.getElementById('entregador');
+        if (inputEnt.readOnly) return;
+        renderizarOpcoesEntregadoresCombo(inputEnt.value);
+        document.getElementById('dropdownEntregadores').classList.add('aberto');
+        document.getElementById('btnToggleCombo').classList.add('aberto');
+    }
+
+    function fecharListaEntregadoresCombo() {
+        const dropdown = document.getElementById('dropdownEntregadores');
+        const btn = document.getElementById('btnToggleCombo');
+        if (dropdown) dropdown.classList.remove('aberto');
+        if (btn) btn.classList.remove('aberto');
+    }
+
+    function alternarListaEntregadoresCombo(event) {
+        event.stopPropagation();
+        const inputEnt = document.getElementById('entregador');
+        if (inputEnt.readOnly) return;
+        const dropdown = document.getElementById('dropdownEntregadores');
+        if (dropdown.classList.contains('aberto')) {
+            fecharListaEntregadoresCombo();
+        } else {
+            inputEnt.focus();
+            abrirListaEntregadoresCombo();
+        }
+    }
+
+    function aoDigitarEntregadorCombo() {
+        const inputEnt = document.getElementById('entregador');
+        if (inputEnt.readOnly) return;
+        renderizarOpcoesEntregadoresCombo(inputEnt.value);
+        document.getElementById('dropdownEntregadores').classList.add('aberto');
+        document.getElementById('btnToggleCombo').classList.add('aberto');
+    }
+
+    function selecionarEntregadorCombo(nomeEntregador) {
+        const inputEnt = document.getElementById('entregador');
+        inputEnt.value = nomeEntregador;
+        fecharListaEntregadoresCombo();
+        document.getElementById('rua').focus();
+    }
+
+    document.addEventListener('click', (e) => {
+        const grupo = document.getElementById('grupoEntregadorCombo');
+        if (grupo && !grupo.contains(e.target)) {
+            fecharListaEntregadoresCombo();
+        }
+    });
+
+    // --- CONTROLE DO MODAL DE CADASTRO ---
+    // opcoes: { itemEdicao, entregadorPredefinido, adicionarNovaRua }
+    function abrirModalCadastro(opcoes = null) {
+        document.getElementById('feedbackMsg').style.display = 'none';
+        fecharListaEntregadoresCombo();
+
+        const inputEnt = document.getElementById('entregador');
+        const btnToggle = document.getElementById('btnToggleCombo');
+
+        if (opcoes && opcoes.itemEdicao) {
+            const itemEdicao = opcoes.itemEdicao;
             document.getElementById('editId').value = itemEdicao.id;
-            document.getElementById('entregador').value = itemEdicao.entregador;
+            inputEnt.value = itemEdicao.entregador;
+            inputEnt.readOnly = false;
+            btnToggle.style.display = 'flex';
             document.getElementById('rua').value = itemEdicao.rua;
             document.getElementById('numeracao').value = itemEdicao.numeracao === "TODA A RUA" ? "" : itemEdicao.numeracao;
 
             document.getElementById('cadastroModalIcon').innerText = "✏️";
             document.getElementById('formTitle').innerText = "Editando Cadastro";
             document.getElementById('btnSalvar').innerText = "Atualizar";
-        } else {
+
+            document.getElementById('modalCadastro').classList.add('aberto');
+            setTimeout(() => document.getElementById('numeracao').focus(), 50);
+            return;
+        }
+
+        if (opcoes && opcoes.entregadorPredefinido) {
             document.getElementById('editId').value = '';
-            document.getElementById('entregador').value = '';
+            inputEnt.value = opcoes.entregadorPredefinido.toUpperCase().trim();
+            inputEnt.readOnly = true;
+            btnToggle.style.display = 'none';
             document.getElementById('rua').value = '';
             document.getElementById('numeracao').value = '';
 
-            document.getElementById('cadastroModalIcon').innerText = "➕";
-            document.getElementById('formTitle').innerText = "Novo Cadastro";
-            document.getElementById('btnSalvar').innerText = "Salvar Cadastro";
+            document.getElementById('cadastroModalIcon').innerText = "🛣️";
+            document.getElementById('formTitle').innerText = `Nova Rua — ${inputEnt.value}`;
+            document.getElementById('btnSalvar').innerText = "Adicionar Rua";
+
+            document.getElementById('modalCadastro').classList.add('aberto');
+            setTimeout(() => document.getElementById('rua').focus(), 50);
+            return;
         }
 
-        document.getElementById('modalCadastro').classList.add('aberto');
+        document.getElementById('editId').value = '';
+        inputEnt.value = '';
+        inputEnt.readOnly = false;
+        btnToggle.style.display = 'flex';
+        document.getElementById('rua').value = '';
+        document.getElementById('numeracao').value = '';
 
+        document.getElementById('cadastroModalIcon').innerText = "➕";
+        document.getElementById('formTitle').innerText = "Cadastro / Nova Rua";
+        document.getElementById('btnSalvar').innerText = "Salvar Cadastro";
+
+        document.getElementById('modalCadastro').classList.add('aberto');
         setTimeout(() => {
-            if (itemEdicao) {
-                document.getElementById('numeracao').focus();
-            } else {
-                document.getElementById('entregador').focus();
-            }
-        }, 50);
+            inputEnt.focus();
+            abrirListaEntregadoresCombo();
+        }, 60);
+    }
+
+    function abrirModalNovaRuaParaEntregador(nomeEntregador) {
+        abrirModalCadastro({ entregadorPredefinido: nomeEntregador, adicionarNovaRua: true });
     }
 
     function fecharModalCadastro() {
+        fecharListaEntregadoresCombo();
         document.getElementById('modalCadastro').classList.remove('aberto');
         document.getElementById('editId').value = '';
-        document.getElementById('entregador').value = '';
+        const inputEnt = document.getElementById('entregador');
+        inputEnt.value = '';
+        inputEnt.readOnly = false;
+        document.getElementById('btnToggleCombo').style.display = 'flex';
         document.getElementById('rua').value = '';
         document.getElementById('numeracao').value = '';
         document.getElementById('feedbackMsg').style.display = 'none';
@@ -1334,6 +1592,7 @@
         document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].sort().map(e => `<option value="${e}">`).join('');
         document.getElementById('listaRuas').innerHTML = [...ruasUnicas].sort().map(r => `<option value="${r}">`).join('');
 
+        renderizarOpcoesEntregadoresCombo(document.getElementById('entregador').value);
         atualizarResumoBackup();
         renderizarLista();
     });
@@ -1667,7 +1926,7 @@
     function editarRegistro(id) {
         const item = registros.find(r => r.id === id);
         if (!item) return;
-        abrirModalCadastro(item);
+        abrirModalCadastro({ itemEdicao: item });
     }
 
     async function excluirRegistro(id, rua, entregador) {
@@ -1896,8 +2155,9 @@
                     </div>
                     <div class="entregador-body">
                         <div class="entregador-bulk-actions">
-                            <button class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear</button>
-                            <button class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir</button>
+                            <button type="button" class="btn-add-rua-ent" onclick="abrirModalNovaRuaParaEntregador('${nomeEscapado}')">➕ Nova Rua</button>
+                            <button type="button" class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear</button>
+                            <button type="button" class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir</button>
                         </div>
                         ${linhasRuas}
                     </div>
