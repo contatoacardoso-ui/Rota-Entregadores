@@ -22,50 +22,10 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: 16px; }
-        .container { width: 100%; max-width: 480px; }
-
-        header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 16px;
-            padding-top: 6px;
-        }
-        .header-text { text-align: left; flex: 1; min-width: 0; }
-        header h1 { font-size: 1.32rem; font-weight: 700; color: var(--text); line-height: 1.2; }
-        header p { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
-
-        .btn-install {
-            flex-shrink: 0;
-            padding: 9px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(16, 185, 129, 0.45);
-            background: rgba(16, 185, 129, 0.16);
-            color: var(--accent);
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-            transition: all 0.2s;
-            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.14);
-        }
-        .btn-install:hover {
-            background: rgba(16, 185, 129, 0.24);
-        }
-        .btn-install:active {
-            transform: scale(0.97);
-        }
-        .btn-install.instalado {
-            border-color: var(--border);
-            background: var(--card);
-            color: var(--muted);
-            box-shadow: none;
-            cursor: default;
-        }
+        .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; min-height: calc(100vh - 32px); }
+        header { text-align: center; margin-bottom: 16px; padding-top: 8px; }
+        header h1 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+        header p { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
 
         /* Navegação por Abas */
         .tabs {
@@ -213,6 +173,36 @@
             margin-left: 6px;
         }
 
+        /* Rodapé Discreto de Instalação */
+        .install-footer {
+            margin-top: auto;
+            padding-top: 28px;
+            padding-bottom: 6px;
+            text-align: center;
+        }
+        .btn-install-discreto {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-install-discreto:hover {
+            border-color: var(--primary);
+            color: var(--text);
+            background: rgba(30, 41, 59, 0.7);
+        }
+        .btn-install-discreto:active {
+            transform: scale(0.97);
+        }
+
         /* Modal de Instruções de Instalação */
         .modal-backdrop {
             display: none;
@@ -294,13 +284,8 @@
 
 <div class="container">
     <header>
-        <div class="header-text">
-            <h1 id="tituloHeader">Consulta de Entregadores</h1>
-            <p id="subtituloHeader">Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
-        </div>
-        <button class="btn-install" id="btnInstalarApp" onclick="acaoBotaoInstalar()" title="Instalar aplicativo no celular">
-            📲 Instalar App
-        </button>
+        <h1 id="tituloHeader">Consulta de Entregadores</h1>
+        <p id="subtituloHeader">Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
     </header>
 
     <!-- Barra de Abas -->
@@ -330,6 +315,13 @@
             <div class="status">Carregando fila de bipagem...</div>
         </div>
     </div>
+
+    <!-- Rodapé Discreto para Instalação -->
+    <footer class="install-footer" id="installFooter">
+        <button class="btn-install-discreto" id="btnInstalarApp" onclick="acaoBotaoInstalar()">
+            📲 Instalar aplicativo na tela inicial
+        </button>
+    </footer>
 </div>
 
 <!-- Modal de Ajuda para Instalação -->
@@ -342,7 +334,7 @@
         <div class="modal-body" id="textoModalInstalacao">
             Para instalar este aplicativo na tela inicial do celular:
             <ol>
-                <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages)[span_1](start_span)[span_1](end_span).</li>
+                <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
                 <li>Toque no menu do navegador (<strong>⋮</strong> no Chrome ou <strong>Compartilhar</strong> no Safari).</li>
                 <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.</li>
             </ol>
@@ -355,7 +347,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
-    // --- CONFIGURAÇÃO PWA (MANIFEST + SERVICE WORKER + BOTÃO INSTALAR) ---
+    // --- CONFIGURAÇÃO PWA (MANIFEST + SERVICE WORKER + BOTÃO DISCRETO NO RODAPÉ) ---
     let eventoInstalacaoPendente = null;
 
     function configurarPWA() {
@@ -417,15 +409,9 @@
     }
 
     function atualizarEstadoBotaoInstalacao() {
-        const btn = document.getElementById('btnInstalarApp');
-        if (!btn) return;
-        if (jaEstaInstalado()) {
-            btn.classList.add('instalado');
-            btn.innerText = '✓ Instalado';
-        } else {
-            btn.classList.remove('instalado');
-            btn.innerText = '📲 Instalar App';
-        }
+        const footer = document.getElementById('installFooter');
+        if (!footer) return;
+        footer.style.display = jaEstaInstalado() ? 'none' : 'block';
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -467,7 +453,7 @@
             modalBody.innerHTML = `
                 Para instalar este aplicativo na tela inicial do celular:
                 <ol>
-                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages)[span_2](start_span)[span_2](end_span).</li>
+                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
                     <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
                     <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
                 </ol>
