@@ -93,6 +93,19 @@
         .badge { background: rgba(16, 185, 129, 0.15); color: var(--accent); font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; width: fit-content; font-weight: 600; }
 
         /* Fila de Bipagem */
+        .fila-legenda {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            border-radius: 10px;
+            padding: 9px 12px;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-bottom: 10px;
+            line-height: 1.35;
+        }
+        .fila-legenda strong {
+            color: var(--highlight);
+        }
         .fila-section-title {
             font-size: 0.78rem;
             text-transform: uppercase;
@@ -107,7 +120,7 @@
         .fila-card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 13px 15px;
             margin-bottom: 8px;
             display: flex;
@@ -122,11 +135,11 @@
         .fila-card.aguardando.prioridade {
             border-color: var(--highlight);
             border-left: 4px solid var(--highlight);
-            background: rgba(245, 158, 11, 0.09);
+            background: rgba(245, 158, 11, 0.1);
         }
         .fila-info {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
             flex: 1;
             min-width: 0;
@@ -139,16 +152,22 @@
             padding: 4px 9px;
             border-radius: 7px;
             flex-shrink: 0;
+            margin-top: 1px;
         }
         .fila-card.aguardando.prioridade .fila-pos {
-            background: rgba(245, 158, 11, 0.2);
+            background: rgba(245, 158, 11, 0.22);
             color: var(--highlight);
         }
+        .fila-nome-wrap {
+            flex: 1;
+            min-width: 0;
+        }
         .fila-nome {
-            font-size: 0.96rem;
+            font-size: 0.98rem;
             font-weight: 700;
             color: var(--text);
-            word-break: break-word;
+            word-break: normal;
+            overflow-wrap: break-word;
             line-height: 1.3;
         }
         .fila-prio-selo {
@@ -157,28 +176,28 @@
             font-weight: 800;
             color: #0f172a;
             background: var(--highlight);
-            padding: 2px 6px;
+            padding: 2px 7px;
             border-radius: 5px;
-            margin-left: 6px;
-            vertical-align: middle;
+            margin-top: 5px;
         }
         .fila-tag-aguardando {
-            font-size: 0.74rem;
-            font-weight: 700;
+            font-size: 0.72rem;
+            font-weight: 800;
             color: var(--accent);
             background: rgba(16, 185, 129, 0.14);
-            padding: 3px 8px;
+            padding: 4px 8px;
             border-radius: 6px;
             flex-shrink: 0;
+            white-space: nowrap;
         }
         .fila-card.aguardando.prioridade .fila-tag-aguardando {
-            color: var(--highlight);
-            background: rgba(245, 158, 11, 0.16);
+            color: #0f172a;
+            background: var(--highlight);
         }
         .fila-card.bipado {
             background: rgba(15, 23, 42, 0.55);
             border-color: #263244;
-            opacity: 0.52;
+            opacity: 0.55;
         }
         .fila-card.bipado .fila-pos {
             background: rgba(148, 163, 184, 0.12);
@@ -699,15 +718,19 @@
         let html = '';
 
         if (aguardando.length > 0) {
+            html += `<div class="fila-legenda">ℹ️ A fila segue a ordem de chamada: motoristas com <strong>⭐ PRIORIDADE</strong> ficam na frente.</div>`;
             html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
             html += aguardando.map((item, idx) => {
-                const seloPrio = item.prioridade ? `<span class="fila-prio-selo">⭐ PRIORIDADE</span>` : '';
+                const seloPrio = item.prioridade ? `<div><span class="fila-prio-selo">⭐ PRIORIDADE</span></div>` : '';
                 const textoStatus = item.prioridade ? 'PRIORIDADE' : 'NA FILA';
                 return `
                     <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
                         <div class="fila-info">
                             <span class="fila-pos">#${idx + 1}</span>
-                            <span class="fila-nome">${item.motorista}${seloPrio}</span>
+                            <div class="fila-nome-wrap">
+                                <div class="fila-nome">${item.motorista}</div>
+                                ${seloPrio}
+                            </div>
                         </div>
                         <span class="fila-tag-aguardando">${textoStatus}</span>
                     </div>
@@ -723,7 +746,9 @@
                 <div class="fila-card bipado">
                     <div class="fila-info">
                         <span class="fila-pos">BIP</span>
-                        <span class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></span>
+                        <div class="fila-nome-wrap">
+                            <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
+                        </div>
                     </div>
                 </div>
             `).join('');
