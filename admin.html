@@ -499,6 +499,11 @@
         .fila-card.aguardando {
             border-left: 4px solid var(--primary);
         }
+        .fila-card.aguardando.prioridade {
+            border-color: var(--warning);
+            border-left: 4px solid var(--warning);
+            background: rgba(245, 158, 11, 0.08);
+        }
         .fila-info {
             display: flex;
             align-items: center;
@@ -514,6 +519,10 @@
             padding: 4px 8px;
             border-radius: 7px;
             flex-shrink: 0;
+        }
+        .fila-card.aguardando.prioridade .fila-pos {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
         }
         .fila-nome {
             font-size: 0.95rem;
@@ -538,10 +547,38 @@
             margin-left: 6px;
             vertical-align: middle;
         }
+        .fila-prio-tag {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #0f172a;
+            background: var(--warning);
+            padding: 1px 6px;
+            border-radius: 5px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
         .fila-actions {
             display: flex;
             gap: 6px;
             flex-shrink: 0;
+        }
+        .btn-prio-fila {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            padding: 7px 9px;
+            border-radius: 7px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            line-height: 1;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-prio-fila.ativo {
+            background: var(--warning);
+            color: #0f172a;
+            border-color: var(--warning);
         }
         .btn-bipar {
             background: rgba(16, 185, 129, 0.16);
@@ -1230,7 +1267,6 @@
 
 <script>
     // --- CONFIGURAÇÃO DE VALIDADE DIÁRIA DO QR CODE ---
-    // Altere SEGREDO_QR_DIARIO para um valor próprio da sua operação
     const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
     const ARQUIVO_FILA_MOTORISTA = "fila-motorista.html";
 
@@ -1448,7 +1484,6 @@
         }
     }
 
-    // --- LISTA EXPANSÍVEL DE ENTREGADORES NO CAMPO DE CADASTRO ---
     function obterListaEntregadoresComContagem() {
         const mapa = new Map();
         registros.forEach(r => {
@@ -1897,7 +1932,8 @@
                     ordem: Number(data[id].ordem) || 0,
                     bipado: Boolean(data[id].bipado),
                     bipadoEm: Number(data[id].bipadoEm) || 0,
-                    origem: data[id].origem || 'admin'
+                    origem: data[id].origem || 'admin',
+                    prioridade: Boolean(data[id].prioridade)
                 });
             });
         }
@@ -2468,10 +2504,17 @@
             ordem: maxOrdem + 1,
             bipado: false,
             bipadoEm: 0,
-            origem: 'admin'
+            origem: 'admin',
+            prioridade: false
         }).then(() => {
             input.value = '';
             input.focus();
+        });
+    }
+
+    function alternarPrioridadeFila(id, estadoAtual) {
+        filaRef.child(id).update({
+            prioridade: !estadoAtual
         });
     }
 
@@ -2560,7 +2603,10 @@
 
         const aguardando = filaItens
             .filter(f => !f.bipado)
-            .sort((a, b) => a.ordem - b.ordem);
+            .sort((a, b) => {
+                if (a.prioridade !== b.prioridade) return a.prioridade ? -1 : 1;
+                return a.ordem - b.ordem;
+            });
 
         const bipados = filaItens
             .filter(f => f.bipado)
@@ -2578,13 +2624,15 @@
             html += aguardando.map((item, idx) => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
                 const tagQr = item.origem === 'qrcode' ? `<span class="fila-origem-tag">QR</span>` : '';
+                const tagPrio = item.prioridade ? `<span class="fila-prio-tag">PRIORIDADE</span>` : '';
                 return `
-                    <div class="fila-card aguardando">
+                    <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
                         <div class="fila-info">
                             <span class="fila-pos">#${idx + 1}</span>
-                            <span class="fila-nome">${item.motorista}${tagQr}</span>
+                            <span class="fila-nome">${item.motorista}${tagPrio}${tagQr}</span>
                         </div>
                         <div class="fila-actions">
+                            <button class="btn-prio-fila ${item.prioridade ? 'ativo' : ''}" onclick="alternarPrioridadeFila('${item.id}', ${Boolean(item.prioridade)})" title="Marcar/desmarcar prioridade">${item.prioridade ? '★ Prio' : '☆ Prio'}</button>
                             <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
                             <button class="btn-bipar" onclick="marcarBipagem('${item.id}', true)" title="Marcar como bipado">✓</button>
                             <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover da fila">✕</button>
