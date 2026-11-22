@@ -524,15 +524,15 @@
     }
 
     function verificarAbaInicial() {
-        const hashLimpo = (window.location.hash || '').replace(/^#/, '').toLowerCase();
-        const paramAba = (new URLSearchParams(window.location.search).get('aba') || '').toLowerCase();
-        if (hashLimpo === 'fila' || paramAba === 'fila') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('aba') === 'fila') {
             trocarAba('fila');
+        } else {
+            trocarAba('consulta');
         }
     }
 
     verificarAbaInicial();
-    window.addEventListener('hashchange', verificarAbaInicial);
 
     function normalizar(texto) {
         return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
