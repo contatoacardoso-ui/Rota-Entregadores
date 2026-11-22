@@ -156,7 +156,7 @@
     <div class="msg-ok" id="msgSucesso"></div>
 
     <div class="link-fila-wrap" id="areaLinkFila">
-        <a class="link-acompanhar-fila" id="linkListaIndex" href="index.html#fila">
+        <a class="link-acompanhar-fila" id="linkListaIndex" href="index.html?aba=fila">
             📋 Acompanhar Fila de Bipagem
         </a>
     </div>
@@ -172,7 +172,7 @@
 
 <script>
     const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
-    const ARQUIVO_INDEX_FILA = "index.html#fila";
+    const ARQUIVO_INDEX_FILA = "index.html?aba=fila";
 
     function construirUrlListaIndex() {
         const baseAtual = window.location.href.split('#')[0].split('?')[0];
