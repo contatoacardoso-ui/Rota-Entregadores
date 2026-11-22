@@ -482,7 +482,7 @@
             align-items: center;
         }
 
-        /* Card da fila: nome em cima e botões embaixo */
+        /* Card da fila: nome em cima e botões reunidos embaixo */
         .fila-card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -491,7 +491,7 @@
             margin-bottom: 10px;
             display: flex;
             flex-direction: column;
-            gap: 11px;
+            gap: 10px;
             transition: opacity 0.2s, border-color 0.2s;
         }
         body.device-desktop .fila-card {
@@ -567,20 +567,20 @@
             border-radius: 5px;
         }
         .fila-actions {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            width: 100%;
-            padding-top: 9px;
+            gap: 6px;
+            width: fit-content;
+            padding-top: 8px;
             border-top: 1px dashed rgba(148, 163, 184, 0.22);
         }
         .btn-prio-fila {
             background: rgba(245, 158, 11, 0.12);
             color: var(--warning);
             border: 1px solid rgba(245, 158, 11, 0.35);
-            padding: 8px 12px;
+            padding: 7px 11px;
             border-radius: 8px;
-            font-size: 0.78rem;
+            font-size: 0.92rem;
             font-weight: 800;
             line-height: 1;
             cursor: pointer;
@@ -595,7 +595,7 @@
             background: rgba(245, 158, 11, 0.16);
             color: var(--warning);
             border: 1px solid rgba(245, 158, 11, 0.35);
-            padding: 8px 11px;
+            padding: 7px 11px;
             border-radius: 8px;
             font-size: 0.82rem;
             font-weight: 700;
@@ -607,7 +607,7 @@
             background: rgba(16, 185, 129, 0.16);
             color: var(--success);
             border: 1px solid rgba(16, 185, 129, 0.35);
-            padding: 8px 12px;
+            padding: 7px 12px;
             border-radius: 8px;
             font-size: 0.86rem;
             font-weight: 800;
@@ -616,11 +616,10 @@
             white-space: nowrap;
         }
         .btn-rm-fila {
-            margin-left: auto;
             background: rgba(239, 68, 68, 0.14);
             color: var(--danger);
             border: 1px solid rgba(239, 68, 68, 0.25);
-            padding: 8px 11px;
+            padding: 7px 11px;
             border-radius: 8px;
             font-size: 0.8rem;
             font-weight: 700;
@@ -1085,7 +1084,6 @@
             <button class="btn-config-gear" onclick="abrirModalBackup()" title="Backup e Migração Firebase">⚙️</button>
         </div>
 
-        <!-- ABA 1: ENTREGADORES E ROTAS CADASTRADAS -->
         <div id="abaLista" class="tab-content ativa">
             <div class="entregadores-topbar">
                 <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Buscar rua ou entregador..." oninput="aoFiltrar()">
@@ -1095,7 +1093,6 @@
             <div id="listaRegistros"></div>
         </div>
 
-        <!-- ABA 2: FILA DE BIPAGEM -->
         <div id="abaFila" class="tab-content">
             <div class="box">
                 <div class="fila-top-bar">
@@ -1147,7 +1144,6 @@
     </div>
 </div>
 
-<!-- Estrutura para impressão -->
 <div id="areaImpressaoQr">
     <h2>FILA DE BIPAGEM — MOTORISTAS</h2>
     <p class="sub" id="qrPrintDataLabel"></p>
@@ -2644,7 +2640,7 @@
                             </div>
                         </div>
                         <div class="fila-actions">
-                            <button class="btn-prio-fila ${item.prioridade ? 'ativo' : ''}" onclick="alternarPrioridadeFila('${item.id}', ${Boolean(item.prioridade)})" title="Marcar/desmarcar prioridade">${item.prioridade ? '★ Prioridade' : '☆ Prioridade'}</button>
+                            <button class="btn-prio-fila ${item.prioridade ? 'ativo' : ''}" onclick="alternarPrioridadeFila('${item.id}', ${Boolean(item.prioridade)})" title="Marcar/desmarcar prioridade">${item.prioridade ? '★' : '☆'}</button>
                             <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
                             <button class="btn-bipar" onclick="marcarBipagem('${item.id}', true)" title="Marcar como bipado">✓</button>
                             <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover da fila">✕</button>
