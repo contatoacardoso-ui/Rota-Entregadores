@@ -530,6 +530,12 @@
             flex: 1;
             min-width: 0;
         }
+        .fila-nome-linha {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
         .fila-nome {
             font-size: 1rem;
             font-weight: 700;
@@ -540,6 +546,8 @@
             word-break: normal;
             overflow-wrap: break-word;
             line-height: 1.3;
+            flex: 1;
+            min-width: 0;
         }
         .fila-tags-row {
             display: flex;
@@ -556,6 +564,8 @@
             border: 1px solid rgba(16, 185, 129, 0.3);
             padding: 2px 7px;
             border-radius: 5px;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
         .fila-prio-tag {
             display: inline-block;
@@ -2628,15 +2638,18 @@
             html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
             html += aguardando.map((item, idx) => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
-                const tagPrio = item.prioridade ? `<span class="fila-prio-tag">⭐ PRIORIDADE</span>` : '';
+                const tagPrio = item.prioridade ? `<div class="fila-tags-row"><span class="fila-prio-tag">⭐ PRIORIDADE</span></div>` : '';
                 const tagQr = item.origem === 'qrcode' ? `<span class="fila-origem-tag">QR</span>` : '';
                 return `
                     <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
                         <div class="fila-info">
                             <span class="fila-pos">#${idx + 1}</span>
                             <div class="fila-nome-wrap">
-                                <div class="fila-nome">${item.motorista}</div>
-                                ${(tagPrio || tagQr) ? `<div class="fila-tags-row">${tagPrio}${tagQr}</div>` : ''}
+                                <div class="fila-nome-linha">
+                                    <div class="fila-nome">${item.motorista}</div>
+                                    ${tagQr}
+                                </div>
+                                ${tagPrio}
                             </div>
                         </div>
                         <div class="fila-actions">
