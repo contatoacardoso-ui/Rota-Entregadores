@@ -107,6 +107,32 @@
             font-weight: 700;
             text-align: center;
         }
+        .link-fila-wrap {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .link-acompanhar-fila {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 9px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            color: var(--text);
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .link-acompanhar-fila:hover {
+            background: rgba(59, 130, 246, 0.22);
+            border-color: var(--primary);
+        }
         .bloqueado {
             text-align: center;
             border-color: rgba(239, 68, 68, 0.5);
@@ -128,6 +154,12 @@
 
     <button type="button" class="btn-entrar" id="btnEnviarFila" onclick="enviarParaFila()">Entrar na Fila</button>
     <div class="msg-ok" id="msgSucesso"></div>
+
+    <div class="link-fila-wrap" id="areaLinkFila">
+        <a class="link-acompanhar-fila" id="linkListaIndex" href="index.html#fila">
+            📋 Acompanhar Fila de Bipagem
+        </a>
+    </div>
 </div>
 
 <div class="card bloqueado" id="telaExpirada" style="display:none;">
@@ -139,8 +171,16 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
-    // Mesmo segredo usado no admin.html
     const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
+    const ARQUIVO_INDEX_FILA = "index.html#fila";
+
+    function construirUrlListaIndex() {
+        const baseAtual = window.location.href.split('#')[0].split('?')[0];
+        const pastaBase = baseAtual.substring(0, baseAtual.lastIndexOf('/') + 1);
+        return `${pastaBase}${ARQUIVO_INDEX_FILA}`;
+    }
+
+    document.getElementById('linkListaIndex').href = construirUrlListaIndex();
 
     const firebaseConfig = {
         apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
@@ -248,6 +288,7 @@
             });
 
             inputNome.value = '';
+            msg.style.color = 'var(--success)';
             msg.innerText = `✓ ${nome} entrou na fila de bipagem de hoje (${formatarDataBr(hojeIso)})!`;
             msg.style.display = 'block';
         } catch (err) {
