@@ -20,7 +20,6 @@
             --box-padding: 16px;
         }
 
-        /* Adaptação automática por tipo de dispositivo */
         body.device-desktop {
             --container-max: 780px;
             --page-padding: 28px;
@@ -39,7 +38,6 @@
         header h1 { font-size: 1.35rem; }
         body.device-desktop header h1 { font-size: 1.55rem; }
 
-        /* Barra Superior: 2 Abas + Botão Engrenagem */
         .tabs-row {
             display: flex;
             align-items: stretch;
@@ -133,7 +131,6 @@
 
         .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: var(--box-padding); margin-bottom: 16px; }
 
-        /* Barra Superior da Aba Entregadores (Busca + Botão Novo Cadastro) */
         .entregadores-topbar {
             display: flex;
             gap: 8px;
@@ -182,7 +179,6 @@
         input.upper::placeholder { text-transform: none; }
         input:focus { border-color: var(--primary); }
 
-        /* Campo Entregador com Lista Expansível Integrada */
         .combobox-wrap {
             position: relative;
             display: flex;
@@ -302,7 +298,6 @@
             text-align: center;
         }
 
-        /* Card Expansível (Accordion) por Entregador */
         .entregador-group {
             background: var(--card); border: 1px solid var(--border); border-radius: 12px;
             margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s;
@@ -353,7 +348,6 @@
             animation: slideDown 0.18s ease;
         }
 
-        /* Botões de Ação dentro do Entregador (+ Nova Rua, Renomear, Excluir) */
         .entregador-bulk-actions {
             display: flex;
             flex-wrap: wrap;
@@ -428,7 +422,36 @@
         .btn-edit { background: var(--warning); color: #000; }
         .btn-del { background: var(--danger); color: #fff; }
 
-        /* Fila de Bipagem */
+        /* Fila de Bipagem + QR Code Diário */
+        .fila-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .fila-top-bar label {
+            margin-bottom: 0;
+        }
+        .btn-qr-dia {
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            background: rgba(16, 185, 129, 0.14);
+            color: var(--success);
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: 0.15s;
+        }
+        .btn-qr-dia:hover {
+            background: rgba(16, 185, 129, 0.22);
+        }
         .fila-add-row {
             display: flex;
             gap: 8px;
@@ -503,6 +526,18 @@
             line-height: 1.3;
             min-width: 0;
         }
+        .fila-origem-tag {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 1px 6px;
+            border-radius: 5px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
         .fila-actions {
             display: flex;
             gap: 6px;
@@ -545,7 +580,6 @@
             white-space: nowrap;
         }
 
-        /* Motorista já enviado para bipagem */
         .fila-card.bipado {
             background: rgba(15, 23, 42, 0.55);
             border-color: #263244;
@@ -607,7 +641,109 @@
             cursor: pointer;
         }
 
-        /* Pop-up Modal Moderno (Cadastro + Backup + Avisos/Confirmações) */
+        /* Modal QR Code Diário */
+        .qr-box-preview {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 12px 0;
+            color: #0f172a;
+        }
+        .qr-data-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .qr-url-preview {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 0.75rem;
+            color: var(--muted);
+            word-break: break-all;
+            margin-bottom: 12px;
+        }
+        .qr-acoes-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .btn-qr-print {
+            padding: 11px 12px;
+            border: none;
+            border-radius: 8px;
+            background: var(--success);
+            color: #06281e;
+            font-weight: 800;
+            font-size: 0.86rem;
+            cursor: pointer;
+        }
+        .btn-qr-copy {
+            padding: 11px 12px;
+            border: 1px solid rgba(59, 130, 246, 0.45);
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.16);
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 0.86rem;
+            cursor: pointer;
+        }
+
+        /* Área exclusiva para impressão do QR Code do Galpão */
+        #areaImpressaoQr {
+            display: none;
+        }
+        @media print {
+            body > *:not(#areaImpressaoQr) {
+                display: none !important;
+            }
+            #areaImpressaoQr {
+                display: flex !important;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                min-height: 95vh;
+                background: #ffffff;
+                color: #0f172a;
+                padding: 24px;
+                text-align: center;
+            }
+            #areaImpressaoQr h2 {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+            #areaImpressaoQr p.sub {
+                font-size: 16px;
+                font-weight: 700;
+                margin-bottom: 18px;
+            }
+            #areaImpressaoQr .qr-print-frame {
+                border: 2px solid #0f172a;
+                border-radius: 14px;
+                padding: 18px;
+                background: #ffffff;
+                margin-bottom: 16px;
+            }
+            #areaImpressaoQr p.aviso {
+                font-size: 13px;
+                color: #334155;
+                max-width: 380px;
+            }
+        }
+
+        /* Modais */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -718,7 +854,6 @@
             color: var(--text);
         }
 
-        /* Estilos do Modal de Backup */
         .backup-stats {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -875,7 +1010,6 @@
 <body>
 
 <div class="container">
-    <!-- Tela de Bloqueio Simples -->
     <div id="loginScreen" class="box">
         <h2 style="margin-bottom: 12px; font-size: 1.2rem;">Acesso Administrativo</h2>
         <div class="form-group">
@@ -884,13 +1018,11 @@
         <button class="action-btn btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
     </div>
 
-    <!-- Tela Principal Admin -->
     <div id="appScreen">
         <header>
             <h1>Painel de Rotas</h1>
         </header>
 
-        <!-- 2 Botões de Aba + Engrenagem de Backup -->
         <div class="tabs-row">
             <div class="tabs">
                 <button class="tab-btn ativa" id="btnTabLista" onclick="trocarAba('lista')">
@@ -918,7 +1050,10 @@
         <!-- ABA 2: FILA DE BIPAGEM -->
         <div id="abaFila" class="tab-content">
             <div class="box">
-                <label>Adicionar Motorista na Fila</label>
+                <div class="fila-top-bar">
+                    <label>Adicionar Motorista na Fila</label>
+                    <button type="button" class="btn-qr-dia" onclick="abrirModalQrDiario()">📱 QR Code do Dia</button>
+                </div>
                 <div class="fila-add-row">
                     <input type="text" id="inputFilaMotorista" class="upper" placeholder="NOME DO MOTORISTA" list="listaEntregadores" onkeydown="if(event.key==='Enter') adicionarNaFila()">
                     <button class="btn-add-fila" onclick="adicionarNaFila()">+ Entrar</button>
@@ -930,7 +1065,51 @@
     </div>
 </div>
 
-<!-- Pop-up Modal Moderno de Backup / Troca de Conta Firebase -->
+<!-- Modal QR Code Diário -->
+<div id="modalQrDiario" class="modal-backdrop" onclick="if(event.target===this) fecharModalQrDiario()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon">📱</div>
+                <h3>QR Code da Fila (Diário)</h3>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalQrDiario()" title="Fechar">✕</button>
+        </div>
+
+        <div style="text-align:center;">
+            <span class="qr-data-badge" id="qrBadgeData">Válido apenas hoje</span>
+            <p style="font-size:0.82rem; color:var(--muted);">
+                Imprima e deixe no galpão. O código muda automaticamente todo dia e bloqueia QR Codes de dias anteriores.
+            </p>
+        </div>
+
+        <div class="qr-box-preview" id="qrContainerModal"></div>
+
+        <div class="qr-url-preview" id="qrUrlTexto"></div>
+
+        <div class="qr-acoes-row">
+            <button type="button" class="btn-qr-print" onclick="imprimirQrDiario()">🖨️ Imprimir QR</button>
+            <button type="button" class="btn-qr-copy" onclick="copiarLinkQrDiario()">📋 Copiar Link</button>
+        </div>
+        <div id="qrStatusFeedback" class="feedback-msg"></div>
+
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="fecharModalQrDiario()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Estrutura para impressão -->
+<div id="areaImpressaoQr">
+    <h2>FILA DE BIPAGEM — MOTORISTAS</h2>
+    <p class="sub" id="qrPrintDataLabel"></p>
+    <div class="qr-print-frame" id="qrContainerPrint"></div>
+    <p class="aviso">
+        Escaneie com a câmera do celular para incluir seu nome na fila de bipagem de hoje. QR Code válido exclusivamente na data impressa.
+    </p>
+</div>
+
+<!-- Modal Backup -->
 <div id="modalBackup" class="modal-backdrop" onclick="if(event.target===this) fecharModalBackup()">
     <div class="modal-card tipo-info">
         <div class="modal-header">
@@ -984,7 +1163,7 @@
     </div>
 </div>
 
-<!-- Pop-up Modal Moderno de Cadastro / Edição -->
+<!-- Modal Cadastro / Edição -->
 <div id="modalCadastro" class="modal-backdrop" onclick="if(event.target===this) fecharModalCadastro()">
     <div class="modal-card tipo-info">
         <div class="modal-header">
@@ -1028,7 +1207,7 @@
     </div>
 </div>
 
-<!-- Pop-up Modal Moderno de Avisos e Confirmações -->
+<!-- Modal Avisos e Confirmações -->
 <div id="modalPopup" class="modal-backdrop" onclick="if(event.target===this) fecharModalPopup(false)">
     <div id="modalCard" class="modal-card tipo-info">
         <div class="modal-header">
@@ -1047,9 +1226,122 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
-    // --- RECONHECIMENTO AUTOMÁTICO DO DISPOSITIVO (MOBILE VS. COMPUTADOR) ---
+    // --- CONFIGURAÇÃO DE VALIDADE DIÁRIA DO QR CODE ---
+    // Altere SEGREDO_QR_DIARIO para um valor próprio da sua operação
+    const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
+    const ARQUIVO_FILA_MOTORISTA = "fila-motorista.html";
+
+    function obterDataHojeIso() {
+        const agora = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${agora.getFullYear()}-${pad(agora.getMonth() + 1)}-${pad(agora.getDate())}`;
+    }
+
+    function formatarDataBr(isoDate) {
+        const partes = (isoDate || '').split('-');
+        if (partes.length !== 3) return isoDate;
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function gerarTokenDia(dataIso) {
+        const base = `${dataIso}|${SEGREDO_QR_DIARIO}`;
+        let h1 = 0x811c9dc5;
+        let h2 = 0x01000193;
+        for (let i = 0; i < base.length; i++) {
+            const c = base.charCodeAt(i);
+            h1 ^= c;
+            h1 = Math.imul(h1, 0x01000193);
+            h2 ^= (c + i);
+            h2 = Math.imul(h2, 0x85ebca6b);
+        }
+        return ((h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0')).slice(0, 12);
+    }
+
+    function construirUrlQrDia(dataIso = obterDataHojeIso()) {
+        const baseAtual = window.location.href.split('#')[0].split('?')[0];
+        const pastaBase = baseAtual.substring(0, baseAtual.lastIndexOf('/') + 1);
+        const token = gerarTokenDia(dataIso);
+        return `${pastaBase}${ARQUIVO_FILA_MOTORISTA}?dia=${encodeURIComponent(dataIso)}&tk=${encodeURIComponent(token)}`;
+    }
+
+    function abrirModalQrDiario() {
+        const hojeIso = obterDataHojeIso();
+        const hojeBr = formatarDataBr(hojeIso);
+        const urlQr = construirUrlQrDia(hojeIso);
+
+        document.getElementById('qrBadgeData').innerText = `📅 Válido apenas hoje: ${hojeBr}`;
+        document.getElementById('qrUrlTexto').innerText = urlQr;
+
+        const statusEl = document.getElementById('qrStatusFeedback');
+        statusEl.style.display = 'none';
+
+        const containerModal = document.getElementById('qrContainerModal');
+        const containerPrint = document.getElementById('qrContainerPrint');
+        containerModal.innerHTML = '';
+        containerPrint.innerHTML = '';
+
+        document.getElementById('qrPrintDataLabel').innerText = `Data válida: ${hojeBr}`;
+
+        if (typeof QRCode !== 'undefined') {
+            new QRCode(containerModal, {
+                text: urlQr,
+                width: 210,
+                height: 210,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+
+            new QRCode(containerPrint, {
+                text: urlQr,
+                width: 250,
+                height: 250,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        } else {
+            containerModal.innerHTML = `<p style="font-size:0.8rem; color:#0f172a;">Biblioteca QR indisponível no momento.</p>`;
+        }
+
+        document.getElementById('modalQrDiario').classList.add('aberto');
+    }
+
+    function fecharModalQrDiario() {
+        document.getElementById('modalQrDiario').classList.remove('aberto');
+    }
+
+    function imprimirQrDiario() {
+        window.print();
+    }
+
+    async function copiarLinkQrDiario() {
+        const urlQr = construirUrlQrDia(obterDataHojeIso());
+        const statusEl = document.getElementById('qrStatusFeedback');
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(urlQr);
+            } else {
+                const temp = document.createElement('textarea');
+                temp.value = urlQr;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+            }
+            statusEl.innerText = '✓ Link do QR Code de hoje copiado!';
+            statusEl.style.display = 'block';
+            setTimeout(() => { statusEl.style.display = 'none'; }, 2400);
+        } catch (err) {
+            statusEl.innerText = 'Não foi possível copiar automaticamente.';
+            statusEl.style.display = 'block';
+        }
+    }
+
+    // --- RECONHECIMENTO AUTOMÁTICO DO DISPOSITIVO ---
     function detectarTipoDispositivo() {
         const uaDataMobile = navigator.userAgentData && typeof navigator.userAgentData.mobile === 'boolean'
             ? navigator.userAgentData.mobile
@@ -1248,8 +1540,6 @@
         }
     });
 
-    // --- CONTROLE DO MODAL DE CADASTRO ---
-    // opcoes: { itemEdicao, entregadorPredefinido, adicionarNovaRua }
     function abrirModalCadastro(opcoes = null) {
         document.getElementById('feedbackMsg').style.display = 'none';
         fecharListaEntregadoresCombo();
@@ -1327,7 +1617,6 @@
         document.getElementById('feedbackMsg').style.display = 'none';
     }
 
-    // --- CONTROLE DO MODAL DE BACKUP ---
     function atualizarResumoBackup() {
         const elRotas = document.getElementById('backupQtdRotas');
         const elFila = document.getElementById('backupQtdFila');
@@ -1607,7 +1896,8 @@
                     motorista: (data[id].motorista || "").toUpperCase().trim(),
                     ordem: Number(data[id].ordem) || 0,
                     bipado: Boolean(data[id].bipado),
-                    bipadoEm: Number(data[id].bipadoEm) || 0
+                    bipadoEm: Number(data[id].bipadoEm) || 0,
+                    origem: data[id].origem || 'admin'
                 });
             });
         }
@@ -2177,7 +2467,8 @@
             motorista: nome,
             ordem: maxOrdem + 1,
             bipado: false,
-            bipadoEm: 0
+            bipadoEm: 0,
+            origem: 'admin'
         }).then(() => {
             input.value = '';
             input.focus();
@@ -2286,11 +2577,12 @@
             html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
             html += aguardando.map((item, idx) => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
+                const tagQr = item.origem === 'qrcode' ? `<span class="fila-origem-tag">QR</span>` : '';
                 return `
                     <div class="fila-card aguardando">
                         <div class="fila-info">
                             <span class="fila-pos">#${idx + 1}</span>
-                            <span class="fila-nome">${item.motorista}</span>
+                            <span class="fila-nome">${item.motorista}${tagQr}</span>
                         </div>
                         <div class="fila-actions">
                             <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
