@@ -135,6 +135,25 @@
 
         .box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: var(--box-padding); margin-bottom: 16px; }
 
+        .remember-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            font-size: 0.86rem;
+            color: var(--muted);
+            cursor: pointer;
+            user-select: none;
+        }
+        .remember-row input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            margin: 0;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
         .entregadores-topbar {
             display: flex;
             gap: 8px;
@@ -1117,6 +1136,10 @@
         <div class="form-group">
             <input type="password" id="pinInput" inputmode="numeric" placeholder="Digite o PIN de acesso" onkeydown="if(event.key==='Enter') verificarPin()">
         </div>
+        <label class="remember-row" for="salvarSenhaCheck">
+            <input type="checkbox" id="salvarSenhaCheck">
+            <span>Salvar senha neste dispositivo</span>
+        </label>
         <button class="action-btn btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
     </div>
 
@@ -1616,6 +1639,8 @@
     window.addEventListener('orientationchange', detectarTipoDispositivo);
 
     const SENHA_ADMIN = "1234";
+    const CHAVE_PIN_SALVO = "adminPinSalvo";
+    const CHAVE_ABA_ATIVA = "abaAdminAtiva";
     let resolverPopup = null;
 
     function abrirPopup({
@@ -2019,13 +2044,44 @@
         }
     }
 
+    function obterAbaSalva() {
+        const salva = sessionStorage.getItem(CHAVE_ABA_ATIVA);
+        return salva === 'fila' ? 'fila' : 'lista';
+    }
+
+    function inicializarLogin() {
+        const pinSalvo = localStorage.getItem(CHAVE_PIN_SALVO);
+        const pinInput = document.getElementById('pinInput');
+        const checkSalvar = document.getElementById('salvarSenhaCheck');
+
+        if (pinSalvo) {
+            pinInput.value = pinSalvo;
+            checkSalvar.checked = true;
+        }
+
+        if (sessionStorage.getItem('adminLogado') === 'true') {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            trocarAba(obterAbaSalva(), false);
+        }
+    }
+
     async function verificarPin() {
-        const pin = document.getElementById('pinInput').value;
+        const pin = document.getElementById('pinInput').value.trim();
+        const salvarSenha = document.getElementById('salvarSenhaCheck').checked;
+
         if (pin === SENHA_ADMIN) {
+            if (salvarSenha) {
+                localStorage.setItem(CHAVE_PIN_SALVO, pin);
+            } else {
+                localStorage.removeItem(CHAVE_PIN_SALVO);
+            }
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'block';
             sessionStorage.setItem('adminLogado', 'true');
+            trocarAba(obterAbaSalva(), false);
         } else {
+            localStorage.removeItem(CHAVE_PIN_SALVO);
             await abrirPopup({
                 tipo: 'danger',
                 icone: '🔒',
@@ -2037,28 +2093,31 @@
         }
     }
 
-    if (sessionStorage.getItem('adminLogado') === 'true') {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appScreen').style.display = 'block';
-    }
+    function trocarAba(aba, persistir = true) {
+        const abaValida = aba === 'fila' ? 'fila' : 'lista';
 
-    function trocarAba(aba) {
+        if (persistir) {
+            sessionStorage.setItem(CHAVE_ABA_ATIVA, abaValida);
+        }
+
         document.getElementById('btnTabLista').classList.remove('ativa');
         document.getElementById('btnTabFila').classList.remove('ativa');
 
         document.getElementById('abaLista').classList.remove('ativa');
         document.getElementById('abaFila').classList.remove('ativa');
 
-        if (aba === 'lista') {
+        if (abaValida === 'lista') {
             document.getElementById('btnTabLista').classList.add('ativa');
             document.getElementById('abaLista').classList.add('ativa');
             renderizarLista();
-        } else if (aba === 'fila') {
+        } else {
             document.getElementById('btnTabFila').classList.add('ativa');
             document.getElementById('abaFila').classList.add('ativa');
             renderizarFila();
         }
     }
+
+    inicializarLogin();
 
     function mostrarFeedback(texto) {
         const el = document.getElementById('feedbackMsg');
