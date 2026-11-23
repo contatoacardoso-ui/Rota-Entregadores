@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Painel de Rotas">
     <title>Admin - Gestão de Rotas</title>
     <style>
         :root {
@@ -33,7 +37,7 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: var(--page-padding); }
-        .container { width: 100%; max-width: var(--container-max); transition: max-width 0.2s ease, padding 0.2s ease; }
+        .container { width: 100%; max-width: var(--container-max); display: flex; flex-direction: column; min-height: calc(100vh - (var(--page-padding) * 2)); transition: max-width 0.2s ease, padding 0.2s ease; }
         header { text-align: center; margin-bottom: 16px; }
         header h1 { font-size: 1.35rem; }
         body.device-desktop header h1 { font-size: 1.55rem; }
@@ -699,6 +703,36 @@
             cursor: pointer;
         }
 
+        /* Rodapé discreto para instalar na tela inicial */
+        .install-footer {
+            margin-top: auto;
+            padding-top: 26px;
+            padding-bottom: 6px;
+            text-align: center;
+        }
+        .btn-install-discreto {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-install-discreto:hover {
+            border-color: var(--primary);
+            color: var(--text);
+            background: rgba(30, 41, 59, 0.7);
+        }
+        .btn-install-discreto:active {
+            transform: scale(0.97);
+        }
+
         /* Modal QR Code Diário */
         .qr-box-preview {
             background: #ffffff;
@@ -888,6 +922,17 @@
             color: var(--text);
             line-height: 1.45;
             margin-bottom: 16px;
+        }
+        .modal-body ol {
+            padding-left: 18px;
+            margin-top: 8px;
+            color: var(--muted);
+        }
+        .modal-body li {
+            margin-bottom: 6px;
+        }
+        .modal-body strong {
+            color: var(--text);
         }
         .modal-input-wrap {
             margin-top: 12px;
@@ -1118,6 +1163,36 @@
             <div id="conteudoFila"></div>
         </div>
     </div>
+
+    <footer class="install-footer" id="installFooter">
+        <button type="button" class="btn-install-discreto" id="btnInstalarApp" onclick="acaoBotaoInstalar()">
+            📲 Instalar aplicativo na tela inicial
+        </button>
+    </footer>
+</div>
+
+<!-- Modal Instruções de Instalação -->
+<div id="modalInstalacao" class="modal-backdrop" onclick="if(event.target===this) fecharModalInstalacao()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon">📲</div>
+                <h3>Instalar no Celular</h3>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalInstalacao()" title="Fechar">✕</button>
+        </div>
+        <div class="modal-body" id="textoModalInstalacao">
+            Para instalar este aplicativo na tela inicial do celular:
+            <ol>
+                <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
+                <li>Toque no menu do navegador (<strong>⋮</strong> no Chrome ou <strong>Compartilhar</strong> no Safari).</li>
+                <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.</li>
+            </ol>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-modal-confirm" onclick="fecharModalInstalacao()">Entendi</button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal QR Code Diário -->
@@ -1283,6 +1358,126 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
+    let eventoInstalacaoPendente = null;
+
+    function configurarPWA() {
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#0f172a"/><rect x="16" y="16" width="160" height="160" rx="30" fill="#1e293b" stroke="#3b82f6" stroke-width="6"/><text x="96" y="116" text-anchor="middle" font-size="82" font-family="sans-serif">🚚</text></svg>`;
+        const iconUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgIcon)}`;
+
+        const appleLink = document.createElement('link');
+        appleLink.rel = 'apple-touch-icon';
+        appleLink.href = iconUrl;
+        document.head.appendChild(appleLink);
+
+        const manifestObj = {
+            name: "Admin - Painel de Rotas",
+            short_name: "Painel Rotas",
+            start_url: window.location.href,
+            display: "standalone",
+            background_color: "#0f172a",
+            theme_color: "#0f172a",
+            orientation: "portrait",
+            icons: [
+                {
+                    src: iconUrl,
+                    sizes: "192x192",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = manifestUrl;
+        document.head.appendChild(manifestLink);
+
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            const swCode = `
+                self.addEventListener('install', (event) => {
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(self.clients.claim());
+                });
+                self.addEventListener('fetch', (event) => {
+                    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+                });
+            `;
+            const swBlob = new Blob([swCode], { type: "application/javascript" });
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+
+        atualizarEstadoBotaoInstalacao();
+    }
+
+    function jaEstaInstalado() {
+        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    }
+
+    function atualizarEstadoBotaoInstalacao() {
+        const footer = document.getElementById('installFooter');
+        if (!footer) return;
+        footer.style.display = jaEstaInstalado() ? 'none' : 'block';
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        eventoInstalacaoPendente = e;
+        atualizarEstadoBotaoInstalacao();
+    });
+
+    window.addEventListener('appinstalled', () => {
+        eventoInstalacaoPendente = null;
+        atualizarEstadoBotaoInstalacao();
+    });
+
+    async function acaoBotaoInstalar() {
+        if (jaEstaInstalado()) return;
+
+        if (eventoInstalacaoPendente) {
+            eventoInstalacaoPendente.prompt();
+            const escolha = await eventoInstalacaoPendente.userChoice;
+            eventoInstalacaoPendente = null;
+            if (escolha && escolha.outcome === 'accepted') {
+                atualizarEstadoBotaoInstalacao();
+            }
+            return;
+        }
+
+        const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const modalBody = document.getElementById('textoModalInstalacao');
+        if (isIos) {
+            modalBody.innerHTML = `
+                No iPhone/iPad (Safari):
+                <ol>
+                    <li>Certifique-se de abrir a página em <strong>HTTPS</strong>.</li>
+                    <li>Toque no ícone de <strong>Compartilhar</strong> (quadrado com seta para cima).</li>
+                    <li>Role e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
+                </ol>
+            `;
+        } else {
+            modalBody.innerHTML = `
+                Para instalar este aplicativo na tela inicial do celular:
+                <ol>
+                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
+                    <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
+                    <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+                </ol>
+            `;
+        }
+        document.getElementById('modalInstalacao').classList.add('aberto');
+    }
+
+    function fecharModalInstalacao() {
+        document.getElementById('modalInstalacao').classList.remove('aberto');
+    }
+
+    configurarPWA();
+
     const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
     const ARQUIVO_FILA_MOTORISTA = "fila-motorista.html";
 
