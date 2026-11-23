@@ -1168,7 +1168,7 @@
                 <button class="btn-novo-cadastro" onclick="abrirModalCadastro()">➕ Cadastrar</button>
             </div>
 
-            <div id="listaRegistros"></div>
+            <div id="listaRegistros"><p style="text-align:center; color:var(--muted); margin-top:24px;">Carregando entregadores...</p></div>
         </div>
 
         <div id="abaFila" class="tab-content">
@@ -1183,7 +1183,7 @@
                 </div>
             </div>
 
-            <div id="conteudoFila"></div>
+            <div id="conteudoFila"><p style="text-align:center; color:var(--muted); margin-top:24px;">Carregando fila de bipagem...</p></div>
         </div>
     </div>
 
@@ -1381,6 +1381,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
+        authDomain: "rota-entregadores.firebaseapp.com",
+        databaseURL: "https://rota-entregadores-default-rtdb.firebaseio.com",
+        projectId: "rota-entregadores",
+        storageBucket: "rota-entregadores.firebasestorage.app",
+        messagingSenderId: "1094577907467",
+        appId: "1:1094577907467:web:8472471b28b1ffa459640e",
+        measurementId: "G-V71JKBYEZY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const rotasRef = db.ref('rotas');
+    const filaRef = db.ref('fila_bipagem');
+
+    let registros = [];
+    let filaItens = [];
+    let entregadoresExpandidos = new Set();
+    let erroBancoRotas = false;
+    let erroBancoFila = false;
+
     let eventoInstalacaoPendente = null;
 
     function configurarPWA() {
@@ -1719,6 +1741,10 @@
         }
     }
 
+    function normalizar(texto) {
+        return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
+    }
+
     function obterListaEntregadoresComContagem() {
         const mapa = new Map();
         registros.forEach(r => {
@@ -2049,6 +2075,14 @@
         return salva === 'fila' ? 'fila' : 'lista';
     }
 
+    function mostrarPainelLogado() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'block';
+        trocarAba(obterAbaSalva(), false);
+        renderizarLista();
+        renderizarFila();
+    }
+
     function inicializarLogin() {
         const pinSalvo = localStorage.getItem(CHAVE_PIN_SALVO);
         const pinInput = document.getElementById('pinInput');
@@ -2060,9 +2094,7 @@
         }
 
         if (sessionStorage.getItem('adminLogado') === 'true') {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-            trocarAba(obterAbaSalva(), false);
+            mostrarPainelLogado();
         }
     }
 
@@ -2076,10 +2108,8 @@
             } else {
                 localStorage.removeItem(CHAVE_PIN_SALVO);
             }
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
             sessionStorage.setItem('adminLogado', 'true');
-            trocarAba(obterAbaSalva(), false);
+            mostrarPainelLogado();
         } else {
             localStorage.removeItem(CHAVE_PIN_SALVO);
             await abrirPopup({
@@ -2117,8 +2147,6 @@
         }
     }
 
-    inicializarLogin();
-
     function mostrarFeedback(texto) {
         const el = document.getElementById('feedbackMsg');
         el.innerText = texto;
@@ -2137,47 +2165,28 @@
         });
     });
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
-        authDomain: "rota-entregadores.firebaseapp.com",
-        databaseURL: "https://rota-entregadores-default-rtdb.firebaseio.com",
-        projectId: "rota-entregadores",
-        storageBucket: "rota-entregadores.firebasestorage.app",
-        messagingSenderId: "1094577907467",
-        appId: "1:1094577907467:web:8472471b28b1ffa459640e",
-        measurementId: "G-V71JKBYEZY"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const rotasRef = db.ref('rotas');
-    const filaRef = db.ref('fila_bipagem');
-
-    let registros = [];
-    let filaItens = [];
-    let entregadoresExpandidos = new Set();
-
-    function normalizar(texto) {
-        return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
-    }
-
     rotasRef.on('value', (snapshot) => {
+        erroBancoRotas = false;
         registros = [];
         const data = snapshot.val();
         const entregadoresUnicos = new Set();
         const ruasUnicas = new Set();
 
-        if (data) {
+        if (data && typeof data === 'object') {
             Object.keys(data).forEach(id => {
+                const raw = data[id];
+                if (!raw || typeof raw !== 'object') return;
                 const item = {
                     id,
-                    entregador: (data[id].entregador || "").toUpperCase().trim(),
-                    rua: (data[id].rua || "").toUpperCase().trim(),
-                    numeracao: (data[id].numeracao || "TODA A RUA").toUpperCase().trim()
+                    entregador: String(raw.entregador || "").toUpperCase().trim(),
+                    rua: String(raw.rua || "").toUpperCase().trim(),
+                    numeracao: String(raw.numeracao || "TODA A RUA").toUpperCase().trim()
                 };
-                registros.push(item);
-                if (item.entregador) entregadoresUnicos.add(item.entregador);
-                if (item.rua) ruasUnicas.add(item.rua);
+                if (item.entregador || item.rua) {
+                    registros.push(item);
+                    if (item.entregador) entregadoresUnicos.add(item.entregador);
+                    if (item.rua) ruasUnicas.add(item.rua);
+                }
             });
         }
 
@@ -2188,21 +2197,28 @@
         renderizarOpcoesEntregadoresCombo(document.getElementById('entregador').value);
         atualizarResumoBackup();
         renderizarLista();
+    }, (err) => {
+        erroBancoRotas = true;
+        console.error('Erro ao ler rotas:', err);
+        renderizarLista();
     });
 
     filaRef.on('value', (snapshot) => {
+        erroBancoFila = false;
         filaItens = [];
         const data = snapshot.val();
-        if (data) {
+        if (data && typeof data === 'object') {
             Object.keys(data).forEach(id => {
+                const raw = data[id];
+                if (!raw || typeof raw !== 'object') return;
                 filaItens.push({
                     id,
-                    motorista: (data[id].motorista || "").toUpperCase().trim(),
-                    ordem: Number(data[id].ordem) || 0,
-                    bipado: Boolean(data[id].bipado),
-                    bipadoEm: Number(data[id].bipadoEm) || 0,
-                    origem: data[id].origem || 'admin',
-                    prioridade: Boolean(data[id].prioridade)
+                    motorista: String(raw.motorista || "").toUpperCase().trim(),
+                    ordem: Number(raw.ordem) || 0,
+                    bipado: Boolean(raw.bipado),
+                    bipadoEm: Number(raw.bipadoEm) || 0,
+                    origem: raw.origem || 'admin',
+                    prioridade: Boolean(raw.prioridade)
                 });
             });
         }
@@ -2210,7 +2226,13 @@
         document.getElementById('badgeFilaAtiva').innerText = `(${qtdAguardando})`;
         atualizarResumoBackup();
         renderizarFila();
+    }, (err) => {
+        erroBancoFila = true;
+        console.error('Erro ao ler fila_bipagem:', err);
+        renderizarFila();
     });
+
+    inicializarLogin();
 
     function extrairFaixasENumeros(regraTexto) {
         const regra = normalizar(regraTexto);
@@ -2661,12 +2683,18 @@
     }
 
     function aoFiltrar() {
-        renderizarLista(true);
+        renderizarLista();
     }
 
-    function renderizarLista(modoBuscaAtiva = false) {
+    function renderizarLista() {
         const filtroBruto = document.getElementById('filtroAdmin').value.toUpperCase().trim();
         const container = document.getElementById('listaRegistros');
+        if (!container) return;
+
+        if (erroBancoRotas) {
+            container.innerHTML = '<p style="text-align:center; color:var(--danger); margin-top:24px;">Erro de acesso ao banco Firebase em <strong>rotas</strong>. Verifique as Regras do Realtime Database.</p>';
+            return;
+        }
 
         if (registros.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado. Toque em <strong>➕ Cadastrar</strong> para adicionar.</p>';
@@ -2869,6 +2897,11 @@
     function renderizarFila() {
         const container = document.getElementById('conteudoFila');
         if (!container) return;
+
+        if (erroBancoFila) {
+            container.innerHTML = '<p style="text-align:center; color:var(--danger); margin-top:24px;">Erro de acesso ao banco Firebase em <strong>fila_bipagem</strong>. Verifique as Regras do Realtime Database.</p>';
+            return;
+        }
 
         const aguardando = filaItens
             .filter(f => !f.bipado)
