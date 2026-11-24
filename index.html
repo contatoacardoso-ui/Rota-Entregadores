@@ -347,15 +347,15 @@
 <div id="modalInstalacao" class="modal-backdrop" onclick="if(event.target===this) fecharModalInstalacao()">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>📲 Instalar no Celular</h3>
+            <h3>📲 Instalar como Aplicativo</h3>
             <button class="btn-modal-x" onclick="fecharModalInstalacao()">✕</button>
         </div>
         <div class="modal-body" id="textoModalInstalacao">
-            Para instalar este aplicativo na tela inicial do celular:
+            Para instalar como aplicativo (sem barra do navegador):
             <ol>
-                <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
-                <li>Toque no menu do navegador (<strong>⋮</strong> no Chrome ou <strong>Compartilhar</strong> no Safari).</li>
-                <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.</li>
+                <li>Remova o atalho antigo da tela inicial, se já existir um para este endereço.</li>
+                <li>No menu do Chrome (<strong>⋮</strong>), toque em <strong>"Instalar aplicativo"</strong> (ou <strong>"Adicionar à tela inicial"</strong>).</li>
+                <li>Se continuar criando atalho de página, abra o menu <strong>⋮</strong> > <strong>Configurações do site</strong> > <strong>Apagar e redefinir</strong> e recarregue.</li>
             </ol>
         </div>
         <button class="btn-modal-ok" onclick="fecharModalInstalacao()">Entendi</button>
@@ -370,7 +370,9 @@
     let eventoInstalacaoPendente = null;
 
     function jaEstaInstalado() {
-        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+            || (window.matchMedia && window.matchMedia('(display-mode: minimal-ui)').matches)
+            || window.navigator.standalone === true;
     }
 
     function atualizarEstadoBotaoInstalacao() {
@@ -420,11 +422,11 @@
             `;
         } else {
             modalBody.innerHTML = `
-                Se o Chrome não abriu a janela de instalação direto, pode haver um registro antigo de PWA ou atalho na mesma pasta. Para instalar:
+                Para instalar como aplicativo (em vez de atalho de página web):
                 <ol>
+                    <li>Se já houver um atalho antigo desse site na tela inicial, <strong>exclua-o</strong> primeiro.</li>
                     <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
-                    <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
-                    <li>Se não aparecer, remova o atalho antigo do app na tela inicial ou limpe os dados do site em <strong>Configurações do site</strong> e recarregue.</li>
+                    <li>Escolha <strong>"Instalar aplicativo"</strong> (se aparecer apenas "Adicionar à tela inicial", vá em <strong>Configurações do site</strong> > <strong>Apagar e redefinir</strong> e recarregue a página).</li>
                 </ol>
             `;
         }
@@ -532,36 +534,27 @@
         }
 
         const manifestObj = {
-            id: startUrl,
+            id: startUrl + "#app",
             name: "Consulta de Rotas e Fila de Bipagem",
             short_name: "Rotas & Bipagem",
             start_url: startUrl,
             scope: pastaBase,
             display: "standalone",
+            display_override: ["standalone", "minimal-ui"],
             background_color: "#0f172a",
             theme_color: "#0f172a",
             orientation: "portrait",
             icons
         };
 
-        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestDataUri = "data:application/manifest+json;charset=utf-8," + encodeURIComponent(JSON.stringify(manifestObj));
         const manifestLink = document.createElement('link');
         manifestLink.rel = 'manifest';
-        manifestLink.href = manifestUrl;
+        manifestLink.href = manifestDataUri;
         document.head.appendChild(manifestLink);
 
         const ehPaginaIndex = !window.location.pathname.toLowerCase().includes('admin');
         if ('serviceWorker' in navigator && ehPaginaIndex && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
-            try {
-                const registros = await navigator.serviceWorker.getRegistrations();
-                for (const reg of registros) {
-                    if (reg.scope && !reg.scope.endsWith('/index/') && reg.scope !== pastaBase) {
-                        await reg.unregister().catch(() => {});
-                    }
-                }
-            } catch (err) {}
-
             const swCode = `
                 self.addEventListener('install', (event) => {
                     self.skipWaiting();
