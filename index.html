@@ -420,11 +420,11 @@
             `;
         } else {
             modalBody.innerHTML = `
-                O Chrome não exibiu o prompt automático agora (comum se já foi fechado antes ou se o app já está salvo no aparelho). Para instalar manualmente:
+                Se o Chrome não abriu a janela de instalação direto, pode haver um registro antigo de PWA ou atalho na mesma pasta. Para instalar:
                 <ol>
-                    <li>Verifique se a página está aberta em <strong>HTTPS</strong>.</li>
                     <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
                     <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+                    <li>Se não aparecer, remova o atalho antigo do app na tela inicial ou limpe os dados do site em <strong>Configurações do site</strong> e recarregue.</li>
                 </ol>
             `;
         }
@@ -446,7 +446,6 @@
         ctx.save();
         ctx.scale(s, s);
 
-        // Fundo arredondado
         const r = 96;
         ctx.beginPath();
         ctx.moveTo(r, 0);
@@ -466,13 +465,11 @@
         ctx.strokeStyle = '#3b82f6';
         ctx.stroke();
 
-        // Caminhão centralizado (sem engrenagem)
         ctx.fillStyle = '#3b82f6';
         ctx.beginPath();
         ctx.roundRect(62, 176, 232, 146, 20);
         ctx.fill();
 
-        // Cabine do caminhão
         ctx.fillStyle = '#60a5fa';
         ctx.beginPath();
         ctx.moveTo(302, 204);
@@ -483,13 +480,11 @@
         ctx.closePath();
         ctx.fill();
 
-        // Janela da cabine
         ctx.fillStyle = '#0f172a';
         ctx.beginPath();
         ctx.roundRect(322, 224, 70, 46, 8);
         ctx.fill();
 
-        // Rodas do caminhão
         ctx.fillStyle = '#e2e8f0';
         ctx.beginPath();
         ctx.arc(146, 332, 44, 0, Math.PI * 2);
@@ -506,7 +501,15 @@
         return canvas.toDataURL('image/png');
     }
 
-    function configurarPWA() {
+    function obterUrlBaseIndex() {
+        const urlSemHashBusca = window.location.href.split('#')[0].split('?')[0];
+        if (urlSemHashBusca.endsWith('/')) {
+            return urlSemHashBusca + 'index.html';
+        }
+        return urlSemHashBusca;
+    }
+
+    async function configurarPWA() {
         const icon192 = gerarIconePngCaminhao(192);
         const icon512 = gerarIconePngCaminhao(512);
 
@@ -517,7 +520,8 @@
             document.head.appendChild(appleLink);
         }
 
-        const urlLimpa = window.location.href.split('#')[0].split('?')[0];
+        const startUrl = obterUrlBaseIndex();
+        const pastaBase = startUrl.substring(0, startUrl.lastIndexOf('/') + 1);
         const icons = [];
         if (icon192) {
             icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any" });
@@ -528,10 +532,11 @@
         }
 
         const manifestObj = {
+            id: startUrl,
             name: "Consulta de Rotas e Fila de Bipagem",
             short_name: "Rotas & Bipagem",
-            start_url: urlLimpa,
-            scope: urlLimpa.substring(0, urlLimpa.lastIndexOf('/') + 1),
+            start_url: startUrl,
+            scope: pastaBase,
             display: "standalone",
             background_color: "#0f172a",
             theme_color: "#0f172a",
@@ -546,7 +551,17 @@
         manifestLink.href = manifestUrl;
         document.head.appendChild(manifestLink);
 
-        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        const ehPaginaIndex = !window.location.pathname.toLowerCase().includes('admin');
+        if ('serviceWorker' in navigator && ehPaginaIndex && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            try {
+                const registros = await navigator.serviceWorker.getRegistrations();
+                for (const reg of registros) {
+                    if (reg.scope && !reg.scope.endsWith('/index/') && reg.scope !== pastaBase) {
+                        await reg.unregister().catch(() => {});
+                    }
+                }
+            } catch (err) {}
+
             const swCode = `
                 self.addEventListener('install', (event) => {
                     self.skipWaiting();
@@ -561,7 +576,7 @@
             `;
             const swBlob = new Blob([swCode], { type: "application/javascript" });
             const swUrl = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swUrl, { scope: manifestObj.scope }).catch(() => {});
+            navigator.serviceWorker.register(swUrl, { scope: pastaBase }).catch(() => {});
         }
 
         atualizarEstadoBotaoInstalacao();
