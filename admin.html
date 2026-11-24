@@ -519,7 +519,7 @@
         }
         .fila-topo-linha {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
             gap: 10px;
             width: 100%;
@@ -527,7 +527,7 @@
         }
         .fila-info {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
             flex: 1;
             min-width: 0;
@@ -540,7 +540,6 @@
             padding: 4px 9px;
             border-radius: 7px;
             flex-shrink: 0;
-            margin-top: 1px;
         }
         .fila-card.aguardando.prioridade .fila-pos {
             background: rgba(245, 158, 11, 0.22);
@@ -571,45 +570,37 @@
             border-radius: 5px;
             margin-top: 5px;
         }
-        .fila-lado-direito {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-            flex-shrink: 0;
-        }
         .fila-hora-solta {
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             font-weight: 700;
             color: var(--muted);
             line-height: 1.2;
             white-space: nowrap;
-        }
-        .fila-tag-na-fila {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--success);
-            background: rgba(16, 185, 129, 0.14);
-            padding: 3px 8px;
-            border-radius: 6px;
-            line-height: 1.2;
-            white-space: nowrap;
+            flex-shrink: 0;
         }
         .fila-actions {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(148, 163, 184, 0.24);
+        }
+        .fila-actions > button {
+            flex: 1 1 0;
+            min-width: 0;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            width: fit-content;
-            padding-top: 8px;
-            border-top: 1px dashed rgba(148, 163, 184, 0.22);
+            justify-content: center;
         }
         .btn-prio-fila {
             background: rgba(245, 158, 11, 0.12);
             color: var(--warning);
             border: 1px solid rgba(245, 158, 11, 0.35);
-            padding: 7px 11px;
+            padding: 8px 8px;
             border-radius: 8px;
-            font-size: 0.92rem;
+            font-size: 0.95rem;
             font-weight: 800;
             line-height: 1;
             cursor: pointer;
@@ -624,9 +615,9 @@
             background: rgba(245, 158, 11, 0.16);
             color: var(--warning);
             border: 1px solid rgba(245, 158, 11, 0.35);
-            padding: 7px 11px;
+            padding: 8px 8px;
             border-radius: 8px;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             font-weight: 700;
             line-height: 1;
             cursor: pointer;
@@ -636,9 +627,9 @@
             background: rgba(16, 185, 129, 0.16);
             color: var(--success);
             border: 1px solid rgba(16, 185, 129, 0.35);
-            padding: 7px 12px;
+            padding: 8px 8px;
             border-radius: 8px;
-            font-size: 0.86rem;
+            font-size: 0.9rem;
             font-weight: 800;
             line-height: 1;
             cursor: pointer;
@@ -648,9 +639,9 @@
             background: rgba(239, 68, 68, 0.14);
             color: var(--danger);
             border: 1px solid rgba(239, 68, 68, 0.25);
-            padding: 7px 11px;
+            padding: 8px 8px;
             border-radius: 8px;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 700;
             line-height: 1;
             cursor: pointer;
@@ -683,9 +674,9 @@
             background: transparent;
             color: var(--muted);
             border: 1px solid var(--border);
-            padding: 7px 11px;
+            padding: 8px 8px;
             border-radius: 8px;
-            font-size: 0.76rem;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
@@ -2934,10 +2925,7 @@
                                     ${tagPrio}
                                 </div>
                             </div>
-                            <div class="fila-lado-direito">
-                                <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
-                                <span class="fila-tag-na-fila">NA FILA</span>
-                            </div>
+                            <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
                         </div>
                         <div class="fila-actions">
                             <button class="btn-prio-fila ${item.prioridade ? 'ativo' : ''}" onclick="alternarPrioridadeFila('${item.id}', ${Boolean(item.prioridade)})" title="Marcar/desmarcar prioridade">${item.prioridade ? '★' : '☆'}</button>
@@ -2966,9 +2954,7 @@
                                     <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
                                 </div>
                             </div>
-                            <div class="fila-lado-direito">
-                                <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
-                            </div>
+                            <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
                         </div>
                         <div class="fila-actions">
                             <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
