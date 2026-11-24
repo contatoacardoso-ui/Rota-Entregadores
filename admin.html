@@ -662,14 +662,6 @@
             text-decoration: line-through;
             font-weight: 600;
         }
-        .fila-status-tag {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--muted);
-            text-transform: uppercase;
-            margin-left: 6px;
-            white-space: nowrap;
-        }
         .btn-desfazer-bip {
             background: transparent;
             color: var(--muted);
@@ -2944,17 +2936,17 @@
             html += `<div class="fila-section-title" style="margin-top:20px;"><span>Enviados para Bipagem</span><span>${bipados.length}</span></div>`;
             html += bipados.map(item => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
-                const horaInclusao = formatarHoraInclusao(item.criadoEm);
+                const horaBipado = formatarHoraInclusao(item.bipadoEm);
                 return `
                     <div class="fila-card bipado">
                         <div class="fila-topo-linha">
                             <div class="fila-info">
                                 <span class="fila-pos">BIP</span>
                                 <div class="fila-nome-wrap">
-                                    <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
+                                    <div class="fila-nome">${item.motorista}</div>
                                 </div>
                             </div>
-                            <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
+                            <span class="fila-hora-solta">🕒 ${horaBipado}</span>
                         </div>
                         <div class="fila-actions">
                             <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
