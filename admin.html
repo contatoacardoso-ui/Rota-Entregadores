@@ -572,11 +572,25 @@
             flex: 1;
             min-width: 0;
         }
-        .fila-tags-row {
+        .fila-meta-row {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
             gap: 6px;
             margin-top: 5px;
+        }
+        .fila-hora-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid var(--border);
+            padding: 2px 7px;
+            border-radius: 5px;
+            white-space: nowrap;
         }
         .fila-origem-tag {
             display: inline-block;
@@ -1402,6 +1416,7 @@
     let entregadoresExpandidos = new Set();
     let erroBancoRotas = false;
     let erroBancoFila = false;
+    let limpandoViradaDia = false;
 
     let eventoInstalacaoPendente = null;
 
@@ -1530,6 +1545,34 @@
         const agora = new Date();
         const pad = (n) => String(n).padStart(2, '0');
         return `${agora.getFullYear()}-${pad(agora.getMonth() + 1)}-${pad(agora.getDate())}`;
+    }
+
+    function timestampParaDataIso(ts) {
+        if (!ts || Number(ts) <= 0) return "";
+        const d = new Date(Number(ts));
+        if (Number.isNaN(d.getTime())) return "";
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    function extrairTimestampFirebasePush(pushId) {
+        if (!pushId || typeof pushId !== 'string') return 0;
+        const PUSH_CHARS = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+        let ts = 0;
+        for (let i = 0; i < 8; i++) {
+            const idx = PUSH_CHARS.indexOf(pushId.charAt(i));
+            if (idx === -1) return 0;
+            ts = ts * 64 + idx;
+        }
+        return ts > 1577836800000 && ts < 4102444800000 ? ts : 0;
+    }
+
+    function formatarHoraInclusao(ts) {
+        if (!ts || Number(ts) <= 0) return "--:--";
+        const d = new Date(Number(ts));
+        if (Number.isNaN(d.getTime())) return "--:--";
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
     function formatarDataBr(isoDate) {
@@ -2203,25 +2246,60 @@
         renderizarLista();
     });
 
+    function limparFilaDiasAnterioresSeNecessario(itens) {
+        if (limpandoViradaDia || !Array.isArray(itens) || itens.length === 0) return false;
+        const hojeIso = obterDataHojeIso();
+        const antigos = itens.filter(item => {
+            const diaItem = item.dataDia || timestampParaDataIso(item.criadoEm) || timestampParaDataIso(item.bipadoEm);
+            return Boolean(diaItem && diaItem !== hojeIso);
+        });
+
+        if (antigos.length === 0) return false;
+
+        limpandoViradaDia = true;
+        const remocoes = {};
+        antigos.forEach(item => {
+            remocoes[item.id] = null;
+        });
+
+        filaRef.update(remocoes)
+            .catch(err => console.error('Erro ao zerar fila na virada do dia:', err))
+            .finally(() => {
+                limpandoViradaDia = false;
+            });
+
+        return true;
+    }
+
     filaRef.on('value', (snapshot) => {
         erroBancoFila = false;
-        filaItens = [];
+        const parsedItens = [];
         const data = snapshot.val();
         if (data && typeof data === 'object') {
             Object.keys(data).forEach(id => {
                 const raw = data[id];
                 if (!raw || typeof raw !== 'object') return;
-                filaItens.push({
+                const tsCriacao = Number(raw.criadoEm) || extrairTimestampFirebasePush(id) || 0;
+                const diaRegistro = String(raw.dataDia || "").trim() || timestampParaDataIso(tsCriacao);
+                parsedItens.push({
                     id,
                     motorista: String(raw.motorista || "").toUpperCase().trim(),
                     ordem: Number(raw.ordem) || 0,
                     bipado: Boolean(raw.bipado),
                     bipadoEm: Number(raw.bipadoEm) || 0,
+                    criadoEm: tsCriacao,
+                    dataDia: diaRegistro,
                     origem: raw.origem || 'admin',
                     prioridade: Boolean(raw.prioridade)
                 });
             });
         }
+
+        if (limparFilaDiasAnterioresSeNecessario(parsedItens)) {
+            return;
+        }
+
+        filaItens = parsedItens;
         const qtdAguardando = filaItens.filter(f => !f.bipado).length;
         document.getElementById('badgeFilaAtiva').innerText = `(${qtdAguardando})`;
         atualizarResumoBackup();
@@ -2231,6 +2309,12 @@
         console.error('Erro ao ler fila_bipagem:', err);
         renderizarFila();
     });
+
+    setInterval(() => {
+        if (filaItens.length > 0) {
+            limparFilaDiasAnterioresSeNecessario(filaItens);
+        }
+    }, 60000);
 
     inicializarLogin();
 
@@ -2794,6 +2878,7 @@
         const nome = input.value.toUpperCase().trim();
         if (!nome) return;
 
+        const agoraTs = Date.now();
         const maxOrdem = filaItens.reduce((maior, item) => Math.max(maior, item.ordem || 0), 0);
 
         filaRef.push({
@@ -2801,6 +2886,8 @@
             ordem: maxOrdem + 1,
             bipado: false,
             bipadoEm: 0,
+            criadoEm: agoraTs,
+            dataDia: obterDataHojeIso(),
             origem: 'admin',
             prioridade: false
         }).then(() => {
@@ -2915,7 +3002,7 @@
             .sort((a, b) => a.bipadoEm - b.bipadoEm);
 
         if (aguardando.length === 0 && bipados.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum motorista na fila de bipagem.</p>';
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum motorista na fila de bipagem hoje.</p>';
             return;
         }
 
@@ -2925,7 +3012,8 @@
             html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
             html += aguardando.map((item, idx) => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
-                const tagPrio = item.prioridade ? `<div class="fila-tags-row"><span class="fila-prio-tag">⭐ PRIORIDADE</span></div>` : '';
+                const horaInclusao = formatarHoraInclusao(item.criadoEm);
+                const tagPrio = item.prioridade ? `<span class="fila-prio-tag">⭐ PRIORIDADE</span>` : '';
                 const tagQr = item.origem === 'qrcode' ? `<span class="fila-origem-tag">QR</span>` : '';
                 return `
                     <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
@@ -2936,7 +3024,10 @@
                                     <div class="fila-nome">${item.motorista}</div>
                                     ${tagQr}
                                 </div>
-                                ${tagPrio}
+                                <div class="fila-meta-row">
+                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                                    ${tagPrio}
+                                </div>
                             </div>
                         </div>
                         <div class="fila-actions">
@@ -2956,12 +3047,16 @@
             html += `<div class="fila-section-title" style="margin-top:20px;"><span>Enviados para Bipagem</span><span>${bipados.length}</span></div>`;
             html += bipados.map(item => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
+                const horaInclusao = formatarHoraInclusao(item.criadoEm);
                 return `
                     <div class="fila-card bipado">
                         <div class="fila-info">
                             <span class="fila-pos">BIP</span>
                             <div class="fila-nome-wrap">
                                 <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
+                                <div class="fila-meta-row">
+                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                                </div>
                             </div>
                         </div>
                         <div class="fila-actions">
