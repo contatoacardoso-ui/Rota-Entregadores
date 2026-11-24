@@ -307,32 +307,32 @@
 
 <div class="container">
     <header>
-        <h1 id="tituloHeader">Consulta de Entregadores</h1>
-        <p id="subtituloHeader">Digite a rua ou rua + número (ex: Rua das Flores 250)</p>
+        <h1 id="tituloHeader">Fila de Bipagem</h1>
+        <p id="subtituloHeader">Acompanhe sua ordem de bipagem</p>
     </header>
 
     <div class="tabs">
-        <button class="tab-btn ativa" id="btnTabConsulta" onclick="trocarAba('consulta')">
-            🔍 Consulta Endereços
-        </button>
-        <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
+        <button class="tab-btn ativa" id="btnTabFila" onclick="trocarAba('fila')">
             📋 Fila Bipagem <span class="tab-badge" id="badgeFilaMotoristas">0</span>
+        </button>
+        <button class="tab-btn" id="btnTabConsulta" onclick="trocarAba('consulta')">
+            🔍 Rotas
         </button>
     </div>
 
-    <div id="abaConsulta" class="tab-content ativa">
+    <div id="abaFila" class="tab-content ativa">
+        <div id="conteudoFilaMotoristas">
+            <div class="status">Carregando fila de bipagem...</div>
+        </div>
+    </div>
+
+    <div id="abaConsulta" class="tab-content">
         <div class="search-box">
             <input type="text" id="campoBusca" placeholder="Ex: Rua das Flores 250 ou Av. Brasil..." autocomplete="off">
         </div>
 
         <div id="resultados">
             <div class="status">Conectando ao banco de dados...</div>
-        </div>
-    </div>
-
-    <div id="abaFila" class="tab-content">
-        <div id="conteudoFilaMotoristas">
-            <div class="status">Carregando fila de bipagem...</div>
         </div>
     </div>
 
@@ -524,7 +524,7 @@
     }
 
     function trocarAba(aba, persistir = true) {
-        const abaValida = aba === 'fila' ? 'fila' : 'consulta';
+        const abaValida = aba === 'consulta' ? 'consulta' : 'fila';
 
         if (persistir) {
             try {
@@ -562,7 +562,7 @@
             return;
         }
 
-        let abaSalva = 'consulta';
+        let abaSalva = 'fila';
         try {
             const valor = sessionStorage.getItem(CHAVE_ABA_CONSULTA);
             if (valor === 'fila' || valor === 'consulta') {
