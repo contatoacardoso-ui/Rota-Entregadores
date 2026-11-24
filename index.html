@@ -365,6 +365,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
+    const CHAVE_ABA_CONSULTA = "abaConsultaAtiva";
     let eventoInstalacaoPendente = null;
 
     function configurarPWA() {
@@ -522,13 +523,21 @@
         return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    function trocarAba(aba) {
+    function trocarAba(aba, persistir = true) {
+        const abaValida = aba === 'fila' ? 'fila' : 'consulta';
+
+        if (persistir) {
+            try {
+                sessionStorage.setItem(CHAVE_ABA_CONSULTA, abaValida);
+            } catch (err) {}
+        }
+
         document.getElementById('btnTabConsulta').classList.remove('ativa');
         document.getElementById('btnTabFila').classList.remove('ativa');
         document.getElementById('abaConsulta').classList.remove('ativa');
         document.getElementById('abaFila').classList.remove('ativa');
 
-        if (aba === 'consulta') {
+        if (abaValida === 'consulta') {
             document.getElementById('btnTabConsulta').classList.add('ativa');
             document.getElementById('abaConsulta').classList.add('ativa');
             document.getElementById('tituloHeader').innerText = "Consulta de Entregadores";
@@ -545,10 +554,23 @@
     function verificarAbaInicial() {
         const params = new URLSearchParams(window.location.search);
         if (params.get('aba') === 'fila') {
-            trocarAba('fila');
-        } else {
-            trocarAba('consulta');
+            trocarAba('fila', true);
+            return;
         }
+        if (params.get('aba') === 'consulta') {
+            trocarAba('consulta', true);
+            return;
+        }
+
+        let abaSalva = 'consulta';
+        try {
+            const valor = sessionStorage.getItem(CHAVE_ABA_CONSULTA);
+            if (valor === 'fila' || valor === 'consulta') {
+                abaSalva = valor;
+            }
+        } catch (err) {}
+
+        trocarAba(abaSalva, false);
     }
 
     verificarAbaInicial();
