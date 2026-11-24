@@ -446,25 +446,32 @@
         .btn-del { background: var(--danger); color: #fff; }
 
         /* Fila de Bipagem + QR Code Diário */
-        .fila-top-bar {
+        .fila-qr-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 10px;
             flex-wrap: wrap;
         }
-        .fila-top-bar label {
-            margin-bottom: 0;
+        .fila-qr-info p {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .fila-qr-info span {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin-top: 2px;
         }
         .btn-qr-dia {
-            padding: 7px 12px;
+            padding: 8px 13px;
             border-radius: 8px;
             border: 1px solid rgba(16, 185, 129, 0.45);
             background: rgba(16, 185, 129, 0.14);
             color: var(--success);
             font-weight: 700;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -474,24 +481,6 @@
         }
         .btn-qr-dia:hover {
             background: rgba(16, 185, 129, 0.22);
-        }
-        .fila-add-row {
-            display: flex;
-            gap: 8px;
-        }
-        .fila-add-row input {
-            flex: 1;
-        }
-        .btn-add-fila {
-            padding: 0 16px;
-            border: none;
-            border-radius: 8px;
-            background: var(--primary);
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            white-space: nowrap;
         }
         .fila-section-title {
             font-size: 0.78rem;
@@ -505,7 +494,7 @@
             align-items: center;
         }
 
-        /* Card da fila: nome em cima e botões reunidos embaixo */
+        /* Card da fila */
         .fila-card {
             background: var(--card);
             border: 1px solid var(--border);
@@ -528,11 +517,19 @@
             border-left: 4px solid var(--warning);
             background: rgba(245, 158, 11, 0.08);
         }
+        .fila-topo-linha {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            min-width: 0;
+        }
         .fila-info {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            width: 100%;
+            flex: 1;
             min-width: 0;
         }
         .fila-pos {
@@ -553,12 +550,6 @@
             flex: 1;
             min-width: 0;
         }
-        .fila-nome-linha {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 8px;
-        }
         .fila-nome {
             font-size: 1rem;
             font-weight: 700;
@@ -569,40 +560,6 @@
             word-break: normal;
             overflow-wrap: break-word;
             line-height: 1.3;
-            flex: 1;
-            min-width: 0;
-        }
-        .fila-meta-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px;
-            margin-top: 5px;
-        }
-        .fila-hora-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--muted);
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid var(--border);
-            padding: 2px 7px;
-            border-radius: 5px;
-            white-space: nowrap;
-        }
-        .fila-origem-tag {
-            display: inline-block;
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: var(--success);
-            background: rgba(16, 185, 129, 0.14);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 2px 7px;
-            border-radius: 5px;
-            flex-shrink: 0;
-            white-space: nowrap;
         }
         .fila-prio-tag {
             display: inline-block;
@@ -612,6 +569,31 @@
             background: var(--warning);
             padding: 2px 7px;
             border-radius: 5px;
+            margin-top: 5px;
+        }
+        .fila-lado-direito {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .fila-hora-solta {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .fila-tag-na-fila {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.14);
+            padding: 3px 8px;
+            border-radius: 6px;
+            line-height: 1.2;
+            white-space: nowrap;
         }
         .fila-actions {
             display: inline-flex;
@@ -1187,13 +1169,12 @@
 
         <div id="abaFila" class="tab-content">
             <div class="box">
-                <div class="fila-top-bar">
-                    <label>Adicionar Motorista na Fila</label>
+                <div class="fila-qr-bar">
+                    <div class="fila-qr-info">
+                        <p>Entrada na fila via QR Code</p>
+                        <span>Os motoristas entram escaneando o QR Code diário</span>
+                    </div>
                     <button type="button" class="btn-qr-dia" onclick="abrirModalQrDiario()">📱 QR Code do Dia</button>
-                </div>
-                <div class="fila-add-row">
-                    <input type="text" id="inputFilaMotorista" class="upper" placeholder="NOME DO MOTORISTA" list="listaEntregadores" onkeydown="if(event.key==='Enter') adicionarNaFila()">
-                    <button class="btn-add-fila" onclick="adicionarNaFila()">+ Entrar</button>
                 </div>
             </div>
 
@@ -1416,7 +1397,6 @@
     let entregadoresExpandidos = new Set();
     let erroBancoRotas = false;
     let erroBancoFila = false;
-    let limpandoViradaDia = false;
 
     let eventoInstalacaoPendente = null;
 
@@ -1545,14 +1525,6 @@
         const agora = new Date();
         const pad = (n) => String(n).padStart(2, '0');
         return `${agora.getFullYear()}-${pad(agora.getMonth() + 1)}-${pad(agora.getDate())}`;
-    }
-
-    function timestampParaDataIso(ts) {
-        if (!ts || Number(ts) <= 0) return "";
-        const d = new Date(Number(ts));
-        if (Number.isNaN(d.getTime())) return "";
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     }
 
     function extrairTimestampFirebasePush(pushId) {
@@ -2246,60 +2218,27 @@
         renderizarLista();
     });
 
-    function limparFilaDiasAnterioresSeNecessario(itens) {
-        if (limpandoViradaDia || !Array.isArray(itens) || itens.length === 0) return false;
-        const hojeIso = obterDataHojeIso();
-        const antigos = itens.filter(item => {
-            const diaItem = item.dataDia || timestampParaDataIso(item.criadoEm) || timestampParaDataIso(item.bipadoEm);
-            return Boolean(diaItem && diaItem !== hojeIso);
-        });
-
-        if (antigos.length === 0) return false;
-
-        limpandoViradaDia = true;
-        const remocoes = {};
-        antigos.forEach(item => {
-            remocoes[item.id] = null;
-        });
-
-        filaRef.update(remocoes)
-            .catch(err => console.error('Erro ao zerar fila na virada do dia:', err))
-            .finally(() => {
-                limpandoViradaDia = false;
-            });
-
-        return true;
-    }
-
     filaRef.on('value', (snapshot) => {
         erroBancoFila = false;
-        const parsedItens = [];
+        filaItens = [];
         const data = snapshot.val();
         if (data && typeof data === 'object') {
             Object.keys(data).forEach(id => {
                 const raw = data[id];
                 if (!raw || typeof raw !== 'object') return;
                 const tsCriacao = Number(raw.criadoEm) || extrairTimestampFirebasePush(id) || 0;
-                const diaRegistro = String(raw.dataDia || "").trim() || timestampParaDataIso(tsCriacao);
-                parsedItens.push({
+                filaItens.push({
                     id,
                     motorista: String(raw.motorista || "").toUpperCase().trim(),
                     ordem: Number(raw.ordem) || 0,
                     bipado: Boolean(raw.bipado),
                     bipadoEm: Number(raw.bipadoEm) || 0,
                     criadoEm: tsCriacao,
-                    dataDia: diaRegistro,
-                    origem: raw.origem || 'admin',
+                    origem: raw.origem || 'qrcode',
                     prioridade: Boolean(raw.prioridade)
                 });
             });
         }
-
-        if (limparFilaDiasAnterioresSeNecessario(parsedItens)) {
-            return;
-        }
-
-        filaItens = parsedItens;
         const qtdAguardando = filaItens.filter(f => !f.bipado).length;
         document.getElementById('badgeFilaAtiva').innerText = `(${qtdAguardando})`;
         atualizarResumoBackup();
@@ -2309,12 +2248,6 @@
         console.error('Erro ao ler fila_bipagem:', err);
         renderizarFila();
     });
-
-    setInterval(() => {
-        if (filaItens.length > 0) {
-            limparFilaDiasAnterioresSeNecessario(filaItens);
-        }
-    }, 60000);
 
     inicializarLogin();
 
@@ -2873,29 +2806,6 @@
         }).join('');
     }
 
-    function adicionarNaFila() {
-        const input = document.getElementById('inputFilaMotorista');
-        const nome = input.value.toUpperCase().trim();
-        if (!nome) return;
-
-        const agoraTs = Date.now();
-        const maxOrdem = filaItens.reduce((maior, item) => Math.max(maior, item.ordem || 0), 0);
-
-        filaRef.push({
-            motorista: nome,
-            ordem: maxOrdem + 1,
-            bipado: false,
-            bipadoEm: 0,
-            criadoEm: agoraTs,
-            dataDia: obterDataHojeIso(),
-            origem: 'admin',
-            prioridade: false
-        }).then(() => {
-            input.value = '';
-            input.focus();
-        });
-    }
-
     function alternarPrioridadeFila(id, estadoAtual) {
         filaRef.child(id).update({
             prioridade: !estadoAtual
@@ -3013,21 +2923,20 @@
             html += aguardando.map((item, idx) => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
                 const horaInclusao = formatarHoraInclusao(item.criadoEm);
-                const tagPrio = item.prioridade ? `<span class="fila-prio-tag">⭐ PRIORIDADE</span>` : '';
-                const tagQr = item.origem === 'qrcode' ? `<span class="fila-origem-tag">QR</span>` : '';
+                const tagPrio = item.prioridade ? `<div><span class="fila-prio-tag">⭐ PRIORIDADE</span></div>` : '';
                 return `
                     <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
-                        <div class="fila-info">
-                            <span class="fila-pos">#${idx + 1}</span>
-                            <div class="fila-nome-wrap">
-                                <div class="fila-nome-linha">
+                        <div class="fila-topo-linha">
+                            <div class="fila-info">
+                                <span class="fila-pos">#${idx + 1}</span>
+                                <div class="fila-nome-wrap">
                                     <div class="fila-nome">${item.motorista}</div>
-                                    ${tagQr}
-                                </div>
-                                <div class="fila-meta-row">
-                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
                                     ${tagPrio}
                                 </div>
+                            </div>
+                            <div class="fila-lado-direito">
+                                <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
+                                <span class="fila-tag-na-fila">NA FILA</span>
                             </div>
                         </div>
                         <div class="fila-actions">
@@ -3050,13 +2959,15 @@
                 const horaInclusao = formatarHoraInclusao(item.criadoEm);
                 return `
                     <div class="fila-card bipado">
-                        <div class="fila-info">
-                            <span class="fila-pos">BIP</span>
-                            <div class="fila-nome-wrap">
-                                <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
-                                <div class="fila-meta-row">
-                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                        <div class="fila-topo-linha">
+                            <div class="fila-info">
+                                <span class="fila-pos">BIP</span>
+                                <div class="fila-nome-wrap">
+                                    <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
                                 </div>
+                            </div>
+                            <div class="fila-lado-direito">
+                                <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
                             </div>
                         </div>
                         <div class="fila-actions">
