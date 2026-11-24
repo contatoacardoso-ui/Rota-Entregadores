@@ -157,6 +157,26 @@
             overflow-wrap: break-word;
             line-height: 1.3;
         }
+        .fila-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            margin-top: 5px;
+        }
+        .fila-hora-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid var(--border);
+            padding: 2px 7px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
         .fila-prio-selo {
             display: inline-block;
             font-size: 0.68rem;
@@ -165,7 +185,6 @@
             background: var(--highlight);
             padding: 2px 7px;
             border-radius: 5px;
-            margin-top: 5px;
         }
         .fila-tag-aguardando {
             font-size: 0.72rem;
@@ -503,6 +522,26 @@
     let baseDados = [];
     let filaMotoristas = [];
 
+    function extrairTimestampFirebasePush(pushId) {
+        if (!pushId || typeof pushId !== 'string') return 0;
+        const PUSH_CHARS = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+        let ts = 0;
+        for (let i = 0; i < 8; i++) {
+            const idx = PUSH_CHARS.indexOf(pushId.charAt(i));
+            if (idx === -1) return 0;
+            ts = ts * 64 + idx;
+        }
+        return ts > 1577836800000 && ts < 4102444800000 ? ts : 0;
+    }
+
+    function formatarHoraInclusao(ts) {
+        if (!ts || Number(ts) <= 0) return "--:--";
+        const d = new Date(Number(ts));
+        if (Number.isNaN(d.getTime())) return "--:--";
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
     function trocarAba(aba) {
         document.getElementById('btnTabConsulta').classList.remove('ativa');
         document.getElementById('btnTabFila').classList.remove('ativa');
@@ -604,13 +643,16 @@
         const data = snapshot.val();
         if (data) {
             Object.keys(data).forEach(id => {
+                const raw = data[id] || {};
+                const tsCriacao = Number(raw.criadoEm) || extrairTimestampFirebasePush(id) || 0;
                 filaMotoristas.push({
                     id,
-                    motorista: (data[id].motorista || "").toUpperCase().trim(),
-                    ordem: Number(data[id].ordem) || 0,
-                    bipado: Boolean(data[id].bipado),
-                    bipadoEm: Number(data[id].bipadoEm) || 0,
-                    prioridade: Boolean(data[id].prioridade)
+                    motorista: (raw.motorista || "").toUpperCase().trim(),
+                    ordem: Number(raw.ordem) || 0,
+                    bipado: Boolean(raw.bipado),
+                    bipadoEm: Number(raw.bipadoEm) || 0,
+                    criadoEm: tsCriacao,
+                    prioridade: Boolean(raw.prioridade)
                 });
             });
         }
@@ -714,14 +756,18 @@
         if (aguardando.length > 0) {
             html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
             html += aguardando.map((item, idx) => {
-                const seloPrio = item.prioridade ? `<div><span class="fila-prio-selo">⭐ PRIORIDADE</span></div>` : '';
+                const horaInclusao = formatarHoraInclusao(item.criadoEm);
+                const seloPrio = item.prioridade ? `<span class="fila-prio-selo">⭐ PRIORIDADE</span>` : '';
                 return `
                     <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
                         <div class="fila-info">
                             <span class="fila-pos">#${idx + 1}</span>
                             <div class="fila-nome-wrap">
                                 <div class="fila-nome">${item.motorista}</div>
-                                ${seloPrio}
+                                <div class="fila-meta-row">
+                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                                    ${seloPrio}
+                                </div>
                             </div>
                         </div>
                         <span class="fila-tag-aguardando">NA FILA</span>
@@ -734,16 +780,22 @@
 
         if (bipados.length > 0) {
             html += `<div class="fila-section-title" style="margin-top:20px;"><span>Enviados para Bipagem</span><span>${bipados.length}</span></div>`;
-            html += bipados.map(item => `
-                <div class="fila-card bipado">
-                    <div class="fila-info">
-                        <span class="fila-pos">BIP</span>
-                        <div class="fila-nome-wrap">
-                            <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
+            html += bipados.map(item => {
+                const horaInclusao = formatarHoraInclusao(item.criadoEm);
+                return `
+                    <div class="fila-card bipado">
+                        <div class="fila-info">
+                            <span class="fila-pos">BIP</span>
+                            <div class="fila-nome-wrap">
+                                <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
+                                <div class="fila-meta-row">
+                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         container.innerHTML = html;
