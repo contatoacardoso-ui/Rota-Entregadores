@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Painel de Rotas">
-    <title>Admin - Gestão de Rotas</title>
+    <meta name="apple-mobile-web-app-title" content="Painel Administrativo">
+    <title>Painel Administrativo</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -1124,33 +1124,24 @@
 
     <div id="appScreen">
         <header>
-            <h1>Painel de Rotas</h1>
+            <h1>Painel Administrativo</h1>
         </header>
 
         <div class="tabs-row">
             <div class="tabs">
-                <button class="tab-btn ativa" id="btnTabLista" onclick="trocarAba('lista')">
-                    <span>🚚 Entregadores</span>
-                    <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
-                </button>
-                <button class="tab-btn" id="btnTabFila" onclick="trocarAba('fila')">
+                <button class="tab-btn ativa" id="btnTabFila" onclick="trocarAba('fila')">
                     <span>📋 Fila Bipagem</span>
                     <span class="tab-count" id="badgeFilaAtiva">(0)</span>
+                </button>
+                <button class="tab-btn" id="btnTabLista" onclick="trocarAba('lista')">
+                    <span>🚚 Rotas</span>
+                    <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
                 </button>
             </div>
             <button class="btn-config-gear" onclick="abrirModalBackup()" title="Backup e Migração Firebase">⚙️</button>
         </div>
 
-        <div id="abaLista" class="tab-content ativa">
-            <div class="entregadores-topbar">
-                <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Buscar rua ou entregador..." oninput="aoFiltrar()">
-                <button class="btn-novo-cadastro" onclick="abrirModalCadastro()">➕ Cadastrar</button>
-            </div>
-
-            <div id="listaRegistros"><p style="text-align:center; color:var(--muted); margin-top:24px;">Carregando entregadores...</p></div>
-        </div>
-
-        <div id="abaFila" class="tab-content">
+        <div id="abaFila" class="tab-content ativa">
             <div class="box">
                 <div class="fila-qr-bar">
                     <div class="fila-qr-info">
@@ -1162,6 +1153,15 @@
             </div>
 
             <div id="conteudoFila"><p style="text-align:center; color:var(--muted); margin-top:24px;">Carregando fila de bipagem...</p></div>
+        </div>
+
+        <div id="abaLista" class="tab-content">
+            <div class="entregadores-topbar">
+                <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Buscar rua ou entregador..." oninput="aoFiltrar()">
+                <button class="btn-novo-cadastro" onclick="abrirModalCadastro()">➕ Cadastrar</button>
+            </div>
+
+            <div id="listaRegistros"><p style="text-align:center; color:var(--muted); margin-top:24px;">Carregando rotas...</p></div>
         </div>
     </div>
 
@@ -1384,7 +1384,13 @@
     let eventoInstalacaoPendente = null;
 
     function configurarPWA() {
-        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#0f172a"/><rect x="16" y="16" width="160" height="160" rx="30" fill="#1e293b" stroke="#3b82f6" stroke-width="6"/><text x="96" y="116" text-anchor="middle" font-size="82" font-family="sans-serif">🚚</text></svg>`;
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+            <rect width="192" height="192" rx="40" fill="#0f172a"/>
+            <rect x="14" y="14" width="164" height="164" rx="32" fill="#1e293b" stroke="#3b82f6" stroke-width="6"/>
+            <text x="82" y="122" text-anchor="middle" font-size="84" font-family="sans-serif">🚚</text>
+            <circle cx="144" cy="52" r="30" fill="#0f172a" stroke="#3b82f6" stroke-width="5"/>
+            <text x="144" y="64" text-anchor="middle" font-size="36" font-family="sans-serif">⚙️</text>
+        </svg>`;
         const iconUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgIcon)}`;
 
         const appleLink = document.createElement('link');
@@ -1393,8 +1399,8 @@
         document.head.appendChild(appleLink);
 
         const manifestObj = {
-            name: "Admin - Painel de Rotas",
-            short_name: "Painel Rotas",
+            name: "Painel Administrativo",
+            short_name: "Painel Admin",
             start_url: window.location.href,
             display: "standalone",
             background_color: "#0f172a",
@@ -2070,7 +2076,7 @@
 
     function obterAbaSalva() {
         const salva = sessionStorage.getItem(CHAVE_ABA_ATIVA);
-        return salva === 'fila' ? 'fila' : 'lista';
+        return salva === 'lista' ? 'lista' : 'fila';
     }
 
     function mostrarPainelLogado() {
@@ -2122,7 +2128,7 @@
     }
 
     function trocarAba(aba, persistir = true) {
-        const abaValida = aba === 'fila' ? 'fila' : 'lista';
+        const abaValida = aba === 'lista' ? 'lista' : 'fila';
 
         if (persistir) {
             sessionStorage.setItem(CHAVE_ABA_ATIVA, abaValida);
