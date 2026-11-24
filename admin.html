@@ -1392,7 +1392,7 @@
         if (eventoInstalacaoPendente) {
             const promptEvent = eventoInstalacaoPendente;
             eventoInstalacaoPendente = null;
-            await promptEvent.prompt();
+            promptEvent.prompt();
             const escolha = await promptEvent.userChoice;
             if (escolha && escolha.outcome === 'accepted') {
                 atualizarEstadoBotaoInstalacao();
@@ -1413,7 +1413,7 @@
             `;
         } else {
             modalBody.innerHTML = `
-                Este navegador ainda não liberou o prompt automático. Você também pode instalar direto pelo menu do navegador:
+                Este navegador não disparou o prompt automático no momento. Você pode instalar direto pelo menu do navegador:
                 <ol>
                     <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
                     <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
@@ -1428,101 +1428,31 @@
         document.getElementById('modalInstalacao').classList.remove('aberto');
     }
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
-        authDomain: "rota-entregadores.firebaseapp.com",
-        databaseURL: "https://rota-entregadores-default-rtdb.firebaseio.com",
-        projectId: "rota-entregadores",
-        storageBucket: "rota-entregadores.firebasestorage.app",
-        messagingSenderId: "1094577907467",
-        appId: "1:1094577907467:web:8472471b28b1ffa459640e",
-        measurementId: "G-V71JKBYEZY"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const rotasRef = db.ref('rotas');
-    const filaRef = db.ref('fila_bipagem');
-
-    let registros = [];
-    let filaItens = [];
-    let entregadoresExpandidos = new Set();
-    let erroBancoRotas = false;
-    let erroBancoFila = false;
-
-    function gerarIconePngDataUrl(tamanho) {
-        const canvas = document.createElement('canvas');
-        canvas.width = tamanho;
-        canvas.height = tamanho;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return '';
-
-        const raio = Math.round(tamanho * 0.21);
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.roundRect(0, 0, tamanho, tamanho, raio);
-        ctx.fill();
-
-        const margem = Math.round(tamanho * 0.08);
-        ctx.fillStyle = '#1e293b';
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = Math.max(2, Math.round(tamanho * 0.03));
-        ctx.beginPath();
-        ctx.roundRect(margem, margem, tamanho - margem * 2, tamanho - margem * 2, Math.round(raio * 0.8));
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#f8fafc';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = `bold ${Math.round(tamanho * 0.36)}px sans-serif`;
-        ctx.fillText('🚚', tamanho * 0.46, tamanho * 0.54);
-
-        const badgeRaio = Math.round(tamanho * 0.16);
-        const badgeX = tamanho * 0.74;
-        const badgeY = tamanho * 0.27;
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.arc(badgeX, badgeY, badgeRaio, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.font = `bold ${Math.round(tamanho * 0.18)}px sans-serif`;
-        ctx.fillText('⚙️', badgeX, badgeY + Math.round(tamanho * 0.01));
-
-        return canvas.toDataURL('image/png');
-    }
-
     function configurarPWA() {
-        const icon192 = gerarIconePngDataUrl(192);
-        const icon512 = gerarIconePngDataUrl(512);
-        const appleIcon = icon192 || '';
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#0f172a"/><rect x="16" y="16" width="160" height="160" rx="30" fill="#1e293b" stroke="#3b82f6" stroke-width="6"/><text x="96" y="116" text-anchor="middle" font-size="82" font-family="sans-serif">🚚</text></svg>`;
+        const iconUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgIcon)}`;
 
-        if (appleIcon) {
-            const appleLink = document.createElement('link');
-            appleLink.rel = 'apple-touch-icon';
-            appleLink.href = appleIcon;
-            document.head.appendChild(appleLink);
-        }
-
-        const icons = [];
-        if (icon192) {
-            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any" });
-        }
-        if (icon512) {
-            icons.push({ src: icon512, sizes: "512x512", type: "image/png", purpose: "any" });
-        }
+        const appleLink = document.createElement('link');
+        appleLink.rel = 'apple-touch-icon';
+        appleLink.href = iconUrl;
+        document.head.appendChild(appleLink);
 
         const manifestObj = {
             name: "Painel Administrativo",
             short_name: "Painel Admin",
-            start_url: "./",
-            scope: "./",
+            start_url: window.location.href,
             display: "standalone",
             background_color: "#0f172a",
             theme_color: "#0f172a",
             orientation: "portrait",
-            icons
+            icons: [
+                {
+                    src: iconUrl,
+                    sizes: "192x192",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }
+            ]
         };
 
         const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
@@ -1553,6 +1483,28 @@
     }
 
     configurarPWA();
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
+        authDomain: "rota-entregadores.firebaseapp.com",
+        databaseURL: "https://rota-entregadores-default-rtdb.firebaseio.com",
+        projectId: "rota-entregadores",
+        storageBucket: "rota-entregadores.firebasestorage.app",
+        messagingSenderId: "1094577907467",
+        appId: "1:1094577907467:web:8472471b28b1ffa459640e",
+        measurementId: "G-V71JKBYEZY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const rotasRef = db.ref('rotas');
+    const filaRef = db.ref('fila_bipagem');
+
+    let registros = [];
+    let filaItens = [];
+    let entregadoresExpandidos = new Set();
+    let erroBancoRotas = false;
+    let erroBancoFila = false;
 
     const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
     const ARQUIVO_FILA_MOTORISTA = "fila-motorista.html";
