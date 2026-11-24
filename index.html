@@ -157,17 +157,17 @@
             overflow-wrap: break-word;
             line-height: 1.3;
         }
-        .fila-meta-row {
+        .fila-lado-direito {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px;
-            margin-top: 5px;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
         }
         .fila-hora-tag {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             font-size: 0.72rem;
             font-weight: 700;
             color: var(--muted);
@@ -185,6 +185,7 @@
             background: var(--highlight);
             padding: 2px 7px;
             border-radius: 5px;
+            margin-top: 5px;
         }
         .fila-tag-aguardando {
             font-size: 0.72rem;
@@ -757,20 +758,20 @@
             html += `<div class="fila-section-title"><span>Aguardando Bipagem</span><span>${aguardando.length}</span></div>`;
             html += aguardando.map((item, idx) => {
                 const horaInclusao = formatarHoraInclusao(item.criadoEm);
-                const seloPrio = item.prioridade ? `<span class="fila-prio-selo">⭐ PRIORIDADE</span>` : '';
+                const seloPrio = item.prioridade ? `<div><span class="fila-prio-selo">⭐ PRIORIDADE</span></div>` : '';
                 return `
                     <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
                         <div class="fila-info">
                             <span class="fila-pos">#${idx + 1}</span>
                             <div class="fila-nome-wrap">
                                 <div class="fila-nome">${item.motorista}</div>
-                                <div class="fila-meta-row">
-                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
-                                    ${seloPrio}
-                                </div>
+                                ${seloPrio}
                             </div>
                         </div>
-                        <span class="fila-tag-aguardando">NA FILA</span>
+                        <div class="fila-lado-direito">
+                            <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                            <span class="fila-tag-aguardando">NA FILA</span>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -788,10 +789,10 @@
                             <span class="fila-pos">BIP</span>
                             <div class="fila-nome-wrap">
                                 <div class="fila-nome">${item.motorista}<span class="fila-status-tag">(BIPADO)</span></div>
-                                <div class="fila-meta-row">
-                                    <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
-                                </div>
                             </div>
+                        </div>
+                        <div class="fila-lado-direito">
+                            <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
                         </div>
                     </div>
                 `;
