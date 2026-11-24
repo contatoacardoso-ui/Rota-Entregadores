@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Rotas & Bipagem">
@@ -337,7 +338,7 @@
     </div>
 
     <footer class="install-footer" id="installFooter">
-        <button class="btn-install-discreto" id="btnInstalarApp" onclick="acaoBotaoInstalar()">
+        <button type="button" class="btn-install-discreto" id="btnInstalarApp" onclick="acaoBotaoInstalar()">
             📲 Instalar aplicativo na tela inicial
         </button>
     </footer>
@@ -346,18 +347,18 @@
 <div id="modalInstalacao" class="modal-backdrop" onclick="if(event.target===this) fecharModalInstalacao()">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>📲 Instalar no Celular</h3>
-            <button class="btn-modal-x" onclick="fecharModalInstalacao()">✕</button>
+            <h3>📲 Instalar como Aplicativo</h3>
+            <button type="button" class="btn-modal-x" onclick="fecharModalInstalacao()">✕</button>
         </div>
         <div class="modal-body" id="textoModalInstalacao">
-            Para instalar este aplicativo na tela inicial do celular:
+            Para instalar como aplicativo (sem barra de navegador):
             <ol>
-                <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
-                <li>Toque no menu do navegador (<strong>⋮</strong> no Chrome ou <strong>Compartilhar</strong> no Safari).</li>
-                <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.</li>
+                <li>Abra este link em <strong>HTTPS</strong> direto no <strong>Google Chrome</strong> (não no navegador interno de outro app).</li>
+                <li>Se já houver um atalho antigo desse endereço na tela inicial, apague-o primeiro.</li>
+                <li>Toque no menu <strong>⋮</strong> do Chrome > <strong>Instalar aplicativo</strong>.</li>
             </ol>
         </div>
-        <button class="btn-modal-ok" onclick="fecharModalInstalacao()">Entendi</button>
+        <button type="button" class="btn-modal-ok" onclick="fecharModalInstalacao()">Entendi</button>
     </div>
 </div>
 
@@ -390,12 +391,16 @@
     });
 
     async function acaoBotaoInstalar() {
-        if (jaEstaInstalado()) return;
+        if (jaEstaInstalado()) {
+            atualizarEstadoBotaoInstalacao();
+            return;
+        }
 
         if (eventoInstalacaoPendente) {
-            eventoInstalacaoPendente.prompt();
-            const escolha = await eventoInstalacaoPendente.userChoice;
+            const promptEvent = eventoInstalacaoPendente;
             eventoInstalacaoPendente = null;
+            promptEvent.prompt();
+            const escolha = await promptEvent.userChoice;
             if (escolha && escolha.outcome === 'accepted') {
                 atualizarEstadoBotaoInstalacao();
             }
@@ -415,11 +420,11 @@
             `;
         } else {
             modalBody.innerHTML = `
-                Para instalar este aplicativo na tela inicial do celular:
+                O Chrome ainda não liberou o prompt automático para instalar como app. Para instalar como aplicativo:
                 <ol>
-                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
-                    <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
-                    <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+                    <li>Abra o link direto no <strong>Google Chrome</strong> (evite abrir de dentro de outro aplicativo).</li>
+                    <li>Se já existir um atalho antigo desse endereço na tela inicial, exclua-o e em <strong>⋮ > Configurações do site > Apagar e redefinir</strong>, limpe os dados do site.</li>
+                    <li>No menu <strong>⋮</strong> do Chrome, toque em <strong>"Instalar aplicativo"</strong> (e não apenas "Adicionar à tela inicial").</li>
                 </ol>
             `;
         }
@@ -507,10 +512,11 @@
             document.head.appendChild(appleLink);
         }
 
-        const startUrl = window.location.href.split('#')[0].split('?')[0];
+        const urlLimpa = window.location.href.split('#')[0].split('?')[0];
         const icons = [];
         if (icon192) {
-            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any maskable" });
+            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any" });
+            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "maskable" });
         }
         if (icon512) {
             icons.push({ src: icon512, sizes: "512x512", type: "image/png", purpose: "any" });
@@ -519,7 +525,8 @@
         const manifestObj = {
             name: "Consulta de Rotas e Fila de Bipagem",
             short_name: "Rotas & Bipagem",
-            start_url: startUrl,
+            start_url: urlLimpa,
+            scope: urlLimpa.substring(0, urlLimpa.lastIndexOf('/') + 1),
             display: "standalone",
             background_color: "#0f172a",
             theme_color: "#0f172a",
@@ -543,12 +550,13 @@
                     event.waitUntil(self.clients.claim());
                 });
                 self.addEventListener('fetch', (event) => {
+                    if (event.request.method !== 'GET') return;
                     event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
                 });
             `;
             const swBlob = new Blob([swCode], { type: "application/javascript" });
             const swUrl = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swUrl).catch(() => {});
+            navigator.serviceWorker.register(swUrl, { scope: manifestObj.scope }).catch(() => {});
         }
 
         atualizarEstadoBotaoInstalacao();
