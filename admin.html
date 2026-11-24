@@ -1172,7 +1172,7 @@
     </footer>
 </div>
 
-<!-- Modal Instruções de Instalação -->
+<!-- Modal Instruções de Instalação (fallback apenas quando o navegador não exibe prompt direto) -->
 <div id="modalInstalacao" class="modal-backdrop" onclick="if(event.target===this) fecharModalInstalacao()">
     <div class="modal-card tipo-info">
         <div class="modal-header">
@@ -1359,6 +1359,74 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
+    let eventoInstalacaoPendente = null;
+
+    function jaEstaInstalado() {
+        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    }
+
+    function atualizarEstadoBotaoInstalacao() {
+        const footer = document.getElementById('installFooter');
+        if (!footer) return;
+        footer.style.display = jaEstaInstalado() ? 'none' : 'block';
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        eventoInstalacaoPendente = e;
+        atualizarEstadoBotaoInstalacao();
+    });
+
+    window.addEventListener('appinstalled', () => {
+        eventoInstalacaoPendente = null;
+        atualizarEstadoBotaoInstalacao();
+    });
+
+    async function acaoBotaoInstalar() {
+        if (jaEstaInstalado()) {
+            atualizarEstadoBotaoInstalacao();
+            return;
+        }
+
+        if (eventoInstalacaoPendente) {
+            const promptEvent = eventoInstalacaoPendente;
+            eventoInstalacaoPendente = null;
+            promptEvent.prompt();
+            const escolha = await promptEvent.userChoice;
+            if (escolha && escolha.outcome === 'accepted') {
+                atualizarEstadoBotaoInstalacao();
+            }
+            return;
+        }
+
+        const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const modalBody = document.getElementById('textoModalInstalacao');
+        if (isIos) {
+            modalBody.innerHTML = `
+                No iPhone/iPad (Safari):
+                <ol>
+                    <li>Certifique-se de abrir a página em <strong>HTTPS</strong>.</li>
+                    <li>Toque no ícone de <strong>Compartilhar</strong> (quadrado com seta para cima).</li>
+                    <li>Role e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
+                </ol>
+            `;
+        } else {
+            modalBody.innerHTML = `
+                Este navegador não disparou o prompt automático no momento. Você pode instalar direto pelo menu do navegador:
+                <ol>
+                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
+                    <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
+                    <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+                </ol>
+            `;
+        }
+        document.getElementById('modalInstalacao').classList.add('aberto');
+    }
+
+    function fecharModalInstalacao() {
+        document.getElementById('modalInstalacao').classList.remove('aberto');
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyC1hLk6k1E138ffdJT9oMBgRh6di4PR2EY",
         authDomain: "rota-entregadores.firebaseapp.com",
@@ -1380,8 +1448,6 @@
     let entregadoresExpandidos = new Set();
     let erroBancoRotas = false;
     let erroBancoFila = false;
-
-    let eventoInstalacaoPendente = null;
 
     function configurarPWA() {
         const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
@@ -1441,68 +1507,6 @@
         }
 
         atualizarEstadoBotaoInstalacao();
-    }
-
-    function jaEstaInstalado() {
-        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-    }
-
-    function atualizarEstadoBotaoInstalacao() {
-        const footer = document.getElementById('installFooter');
-        if (!footer) return;
-        footer.style.display = jaEstaInstalado() ? 'none' : 'block';
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        eventoInstalacaoPendente = e;
-        atualizarEstadoBotaoInstalacao();
-    });
-
-    window.addEventListener('appinstalled', () => {
-        eventoInstalacaoPendente = null;
-        atualizarEstadoBotaoInstalacao();
-    });
-
-    async function acaoBotaoInstalar() {
-        if (jaEstaInstalado()) return;
-
-        if (eventoInstalacaoPendente) {
-            eventoInstalacaoPendente.prompt();
-            const escolha = await eventoInstalacaoPendente.userChoice;
-            eventoInstalacaoPendente = null;
-            if (escolha && escolha.outcome === 'accepted') {
-                atualizarEstadoBotaoInstalacao();
-            }
-            return;
-        }
-
-        const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const modalBody = document.getElementById('textoModalInstalacao');
-        if (isIos) {
-            modalBody.innerHTML = `
-                No iPhone/iPad (Safari):
-                <ol>
-                    <li>Certifique-se de abrir a página em <strong>HTTPS</strong>.</li>
-                    <li>Toque no ícone de <strong>Compartilhar</strong> (quadrado com seta para cima).</li>
-                    <li>Role e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
-                </ol>
-            `;
-        } else {
-            modalBody.innerHTML = `
-                Para instalar este aplicativo na tela inicial do celular:
-                <ol>
-                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
-                    <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
-                    <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
-                </ol>
-            `;
-        }
-        document.getElementById('modalInstalacao').classList.add('aberto');
-    }
-
-    function fecharModalInstalacao() {
-        document.getElementById('modalInstalacao').classList.remove('aberto');
     }
 
     configurarPWA();
