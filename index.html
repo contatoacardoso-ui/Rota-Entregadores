@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Rotas & Bipagem">
@@ -347,15 +346,15 @@
 <div id="modalInstalacao" class="modal-backdrop" onclick="if(event.target===this) fecharModalInstalacao()">
     <div class="modal-card">
         <div class="modal-header">
-            <h3>📲 Instalar como Aplicativo</h3>
+            <h3>📲 Instalar no Celular</h3>
             <button class="btn-modal-x" onclick="fecharModalInstalacao()">✕</button>
         </div>
         <div class="modal-body" id="textoModalInstalacao">
-            Para instalar como aplicativo (sem barra do navegador):
+            Para instalar este aplicativo na tela inicial do celular:
             <ol>
-                <li>Remova o atalho antigo da tela inicial, se já existir um para este endereço.</li>
-                <li>No menu do Chrome (<strong>⋮</strong>), toque em <strong>"Instalar aplicativo"</strong> (ou <strong>"Adicionar à tela inicial"</strong>).</li>
-                <li>Se continuar criando atalho de página, abra o menu <strong>⋮</strong> > <strong>Configurações do site</strong> > <strong>Apagar e redefinir</strong> e recarregue.</li>
+                <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
+                <li>Toque no menu do navegador (<strong>⋮</strong> no Chrome ou <strong>Compartilhar</strong> no Safari).</li>
+                <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.</li>
             </ol>
         </div>
         <button class="btn-modal-ok" onclick="fecharModalInstalacao()">Entendi</button>
@@ -370,9 +369,7 @@
     let eventoInstalacaoPendente = null;
 
     function jaEstaInstalado() {
-        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-            || (window.matchMedia && window.matchMedia('(display-mode: minimal-ui)').matches)
-            || window.navigator.standalone === true;
+        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
     }
 
     function atualizarEstadoBotaoInstalacao() {
@@ -393,16 +390,12 @@
     });
 
     async function acaoBotaoInstalar() {
-        if (jaEstaInstalado()) {
-            atualizarEstadoBotaoInstalacao();
-            return;
-        }
+        if (jaEstaInstalado()) return;
 
         if (eventoInstalacaoPendente) {
-            const promptEvent = eventoInstalacaoPendente;
+            eventoInstalacaoPendente.prompt();
+            const escolha = await eventoInstalacaoPendente.userChoice;
             eventoInstalacaoPendente = null;
-            promptEvent.prompt();
-            const escolha = await promptEvent.userChoice;
             if (escolha && escolha.outcome === 'accepted') {
                 atualizarEstadoBotaoInstalacao();
             }
@@ -422,11 +415,11 @@
             `;
         } else {
             modalBody.innerHTML = `
-                Para instalar como aplicativo (em vez de atalho de página web):
+                Para instalar este aplicativo na tela inicial do celular:
                 <ol>
-                    <li>Se já houver um atalho antigo desse site na tela inicial, <strong>exclua-o</strong> primeiro.</li>
+                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
                     <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
-                    <li>Escolha <strong>"Instalar aplicativo"</strong> (se aparecer apenas "Adicionar à tela inicial", vá em <strong>Configurações do site</strong> > <strong>Apagar e redefinir</strong> e recarregue a página).</li>
+                    <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
                 </ol>
             `;
         }
@@ -503,15 +496,7 @@
         return canvas.toDataURL('image/png');
     }
 
-    function obterUrlBaseIndex() {
-        const urlSemHashBusca = window.location.href.split('#')[0].split('?')[0];
-        if (urlSemHashBusca.endsWith('/')) {
-            return urlSemHashBusca + 'index.html';
-        }
-        return urlSemHashBusca;
-    }
-
-    async function configurarPWA() {
+    function configurarPWA() {
         const icon192 = gerarIconePngCaminhao(192);
         const icon512 = gerarIconePngCaminhao(512);
 
@@ -522,39 +507,34 @@
             document.head.appendChild(appleLink);
         }
 
-        const startUrl = obterUrlBaseIndex();
-        const pastaBase = startUrl.substring(0, startUrl.lastIndexOf('/') + 1);
+        const startUrl = window.location.href.split('#')[0].split('?')[0];
         const icons = [];
         if (icon192) {
-            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any" });
-            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "maskable" });
+            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any maskable" });
         }
         if (icon512) {
             icons.push({ src: icon512, sizes: "512x512", type: "image/png", purpose: "any" });
         }
 
         const manifestObj = {
-            id: startUrl + "#app",
             name: "Consulta de Rotas e Fila de Bipagem",
             short_name: "Rotas & Bipagem",
             start_url: startUrl,
-            scope: pastaBase,
             display: "standalone",
-            display_override: ["standalone", "minimal-ui"],
             background_color: "#0f172a",
             theme_color: "#0f172a",
             orientation: "portrait",
             icons
         };
 
-        const manifestDataUri = "data:application/manifest+json;charset=utf-8," + encodeURIComponent(JSON.stringify(manifestObj));
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
         const manifestLink = document.createElement('link');
         manifestLink.rel = 'manifest';
-        manifestLink.href = manifestDataUri;
+        manifestLink.href = manifestUrl;
         document.head.appendChild(manifestLink);
 
-        const ehPaginaIndex = !window.location.pathname.toLowerCase().includes('admin');
-        if ('serviceWorker' in navigator && ehPaginaIndex && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
             const swCode = `
                 self.addEventListener('install', (event) => {
                     self.skipWaiting();
@@ -563,13 +543,12 @@
                     event.waitUntil(self.clients.claim());
                 });
                 self.addEventListener('fetch', (event) => {
-                    if (event.request.method !== 'GET') return;
                     event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
                 });
             `;
             const swBlob = new Blob([swCode], { type: "application/javascript" });
             const swUrl = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swUrl, { scope: pastaBase }).catch(() => {});
+            navigator.serviceWorker.register(swUrl).catch(() => {});
         }
 
         atualizarEstadoBotaoInstalacao();
