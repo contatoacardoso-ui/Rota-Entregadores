@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Rotas & Bipagem">
@@ -368,60 +369,6 @@
     const CHAVE_ABA_CONSULTA = "abaConsultaAtiva";
     let eventoInstalacaoPendente = null;
 
-    function configurarPWA() {
-        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#0f172a"/><rect x="16" y="16" width="160" height="160" rx="30" fill="#1e293b" stroke="#3b82f6" stroke-width="6"/><text x="96" y="116" text-anchor="middle" font-size="82" font-family="sans-serif">🚚</text></svg>`;
-        const iconUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgIcon)}`;
-
-        const appleLink = document.createElement('link');
-        appleLink.rel = 'apple-touch-icon';
-        appleLink.href = iconUrl;
-        document.head.appendChild(appleLink);
-
-        const manifestObj = {
-            name: "Consulta de Rotas e Fila de Bipagem",
-            short_name: "Rotas & Bipagem",
-            start_url: window.location.href,
-            display: "standalone",
-            background_color: "#0f172a",
-            theme_color: "#0f172a",
-            orientation: "portrait",
-            icons: [
-                {
-                    src: iconUrl,
-                    sizes: "192x192",
-                    type: "image/svg+xml",
-                    purpose: "any maskable"
-                }
-            ]
-        };
-
-        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
-        const manifestUrl = URL.createObjectURL(manifestBlob);
-        const manifestLink = document.createElement('link');
-        manifestLink.rel = 'manifest';
-        manifestLink.href = manifestUrl;
-        document.head.appendChild(manifestLink);
-
-        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
-            const swCode = `
-                self.addEventListener('install', (event) => {
-                    self.skipWaiting();
-                });
-                self.addEventListener('activate', (event) => {
-                    event.waitUntil(self.clients.claim());
-                });
-                self.addEventListener('fetch', (event) => {
-                    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
-                });
-            `;
-            const swBlob = new Blob([swCode], { type: "application/javascript" });
-            const swUrl = URL.createObjectURL(swBlob);
-            navigator.serviceWorker.register(swUrl).catch(() => {});
-        }
-
-        atualizarEstadoBotaoInstalacao();
-    }
-
     function jaEstaInstalado() {
         return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
     }
@@ -444,12 +391,16 @@
     });
 
     async function acaoBotaoInstalar() {
-        if (jaEstaInstalado()) return;
+        if (jaEstaInstalado()) {
+            atualizarEstadoBotaoInstalacao();
+            return;
+        }
 
         if (eventoInstalacaoPendente) {
-            eventoInstalacaoPendente.prompt();
-            const escolha = await eventoInstalacaoPendente.userChoice;
+            const promptEvent = eventoInstalacaoPendente;
             eventoInstalacaoPendente = null;
+            promptEvent.prompt();
+            const escolha = await promptEvent.userChoice;
             if (escolha && escolha.outcome === 'accepted') {
                 atualizarEstadoBotaoInstalacao();
             }
@@ -469,9 +420,9 @@
             `;
         } else {
             modalBody.innerHTML = `
-                Para instalar este aplicativo na tela inicial do celular:
+                O Chrome não exibiu o prompt automático agora (comum se já foi fechado antes ou se o app já está salvo no aparelho). Para instalar manualmente:
                 <ol>
-                    <li>Abra esta página em um link <strong>HTTPS</strong> (ex: GitHub Pages).</li>
+                    <li>Verifique se a página está aberta em <strong>HTTPS</strong>.</li>
                     <li>Toque no menu do navegador (<strong>⋮</strong>) no canto superior.</li>
                     <li>Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
                 </ol>
@@ -482,6 +433,138 @@
 
     function fecharModalInstalacao() {
         document.getElementById('modalInstalacao').classList.remove('aberto');
+    }
+
+    function gerarIconePngCaminhao(tamanho) {
+        const canvas = document.createElement('canvas');
+        canvas.width = tamanho;
+        canvas.height = tamanho;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return '';
+
+        const s = tamanho / 512;
+        ctx.save();
+        ctx.scale(s, s);
+
+        // Fundo arredondado
+        const r = 96;
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.lineTo(512 - r, 0);
+        ctx.quadraticCurveTo(512, 0, 512, r);
+        ctx.lineTo(512, 512 - r);
+        ctx.quadraticCurveTo(512, 512, 512 - r, 512);
+        ctx.lineTo(r, 512);
+        ctx.quadraticCurveTo(0, 512, 0, 512 - r);
+        ctx.lineTo(0, r);
+        ctx.quadraticCurveTo(0, 0, r, 0);
+        ctx.closePath();
+        ctx.fillStyle = '#0f172a';
+        ctx.fill();
+
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = '#3b82f6';
+        ctx.stroke();
+
+        // Caminhão centralizado (sem engrenagem)
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.roundRect(62, 176, 232, 146, 20);
+        ctx.fill();
+
+        // Cabine do caminhão
+        ctx.fillStyle = '#60a5fa';
+        ctx.beginPath();
+        ctx.moveTo(302, 204);
+        ctx.lineTo(398, 204);
+        ctx.lineTo(444, 262);
+        ctx.lineTo(444, 322);
+        ctx.lineTo(302, 322);
+        ctx.closePath();
+        ctx.fill();
+
+        // Janela da cabine
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.roundRect(322, 224, 70, 46, 8);
+        ctx.fill();
+
+        // Rodas do caminhão
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.arc(146, 332, 44, 0, Math.PI * 2);
+        ctx.arc(376, 332, 44, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(146, 332, 19, 0, Math.PI * 2);
+        ctx.arc(376, 332, 19, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+        return canvas.toDataURL('image/png');
+    }
+
+    function configurarPWA() {
+        const icon192 = gerarIconePngCaminhao(192);
+        const icon512 = gerarIconePngCaminhao(512);
+
+        if (icon192) {
+            const appleLink = document.createElement('link');
+            appleLink.rel = 'apple-touch-icon';
+            appleLink.href = icon192;
+            document.head.appendChild(appleLink);
+        }
+
+        const urlLimpa = window.location.href.split('#')[0].split('?')[0];
+        const icons = [];
+        if (icon192) {
+            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any" });
+            icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "maskable" });
+        }
+        if (icon512) {
+            icons.push({ src: icon512, sizes: "512x512", type: "image/png", purpose: "any" });
+        }
+
+        const manifestObj = {
+            name: "Consulta de Rotas e Fila de Bipagem",
+            short_name: "Rotas & Bipagem",
+            start_url: urlLimpa,
+            scope: urlLimpa.substring(0, urlLimpa.lastIndexOf('/') + 1),
+            display: "standalone",
+            background_color: "#0f172a",
+            theme_color: "#0f172a",
+            orientation: "portrait",
+            icons
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = manifestUrl;
+        document.head.appendChild(manifestLink);
+
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+            const swCode = `
+                self.addEventListener('install', (event) => {
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(self.clients.claim());
+                });
+                self.addEventListener('fetch', (event) => {
+                    if (event.request.method !== 'GET') return;
+                    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+                });
+            `;
+            const swBlob = new Blob([swCode], { type: "application/javascript" });
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl, { scope: manifestObj.scope }).catch(() => {});
+        }
+
+        atualizarEstadoBotaoInstalacao();
     }
 
     configurarPWA();
