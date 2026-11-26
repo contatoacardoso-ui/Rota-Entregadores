@@ -112,10 +112,16 @@
             padding: 13px 15px;
             margin-bottom: 8px;
             display: flex;
+            flex-direction: column;
+            gap: 6px;
+            animation: fadeIn 0.18s ease;
+        }
+        .fila-topo-linha {
+            display: flex;
             justify-content: space-between;
             align-items: flex-start;
             gap: 10px;
-            animation: fadeIn 0.18s ease;
+            width: 100%;
         }
         .fila-card.aguardando {
             border-left: 4px solid var(--primary);
@@ -127,7 +133,7 @@
         }
         .fila-info {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
             flex: 1;
             min-width: 0;
@@ -161,8 +167,11 @@
             font-size: 0.75rem;
             color: var(--accent);
             font-weight: 600;
-            margin-top: 5px;
             line-height: 1.25;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-left: 2px;
             text-decoration: none;
         }
         .fila-lado-direito {
@@ -851,15 +860,17 @@
                 const seloPrio = item.prioridade ? `<div><span class="fila-prio-selo">⭐ PRIORIDADE</span></div>` : '';
                 return `
                     <div class="fila-card aguardando ${item.prioridade ? 'prioridade' : ''}">
-                        <div class="fila-info">
-                            <span class="fila-pos">#${idx + 1}</span>
-                            <div class="fila-nome-wrap">
-                                <div class="fila-nome">${item.motorista}</div>
-                                ${seloPrio}
+                        <div class="fila-topo-linha">
+                            <div class="fila-info">
+                                <span class="fila-pos">#${idx + 1}</span>
+                                <div class="fila-nome-wrap">
+                                    <div class="fila-nome">${item.motorista}</div>
+                                    ${seloPrio}
+                                </div>
                             </div>
-                        </div>
-                        <div class="fila-lado-direito">
-                            <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                            <div class="fila-lado-direito">
+                                <span class="fila-hora-tag">🕒 ${horaInclusao}</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -877,16 +888,18 @@
                     : '';
                 return `
                     <div class="fila-card bipado">
-                        <div class="fila-info">
-                            <span class="fila-pos">BIP</span>
-                            <div class="fila-nome-wrap">
-                                <div class="fila-nome">${item.motorista}</div>
-                                ${quemBipouLabel}
+                        <div class="fila-topo-linha">
+                            <div class="fila-info">
+                                <span class="fila-pos">BIP</span>
+                                <div class="fila-nome-wrap">
+                                    <div class="fila-nome">${item.motorista}</div>
+                                </div>
+                            </div>
+                            <div class="fila-lado-direito">
+                                <span class="fila-hora-tag">🕒 ${horaBipado}</span>
                             </div>
                         </div>
-                        <div class="fila-lado-direito">
-                            <span class="fila-hora-tag">🕒 ${horaBipado}</span>
-                        </div>
+                        ${quemBipouLabel}
                     </div>
                 `;
             }).join('');
