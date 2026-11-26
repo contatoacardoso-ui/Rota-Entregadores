@@ -1377,7 +1377,7 @@
         </div>
 
         <div class="modal-highlight-box" style="margin-top:0;">
-            <p>Perfil logado: <strong id="ajustePerfilLogin">-</strong> (<strong id="ajustePerfilTipo">-</strong>)</p>
+            <p><strong id="ajustePerfilLogin">-</strong></p>
         </div>
 
         <div class="ajustes-menu-list">
@@ -2451,8 +2451,7 @@
         if (!usuarioLogado) return;
         sincronizarSessaoComBanco();
         const isMaster = usuarioLogado.role === 'master';
-        document.getElementById('ajustePerfilLogin').innerText = usuarioLogado.login;
-        document.getElementById('ajustePerfilTipo').innerText = isMaster ? 'MASTER' : 'FUNCIONÁRIO';
+        document.getElementById('ajustePerfilLogin').innerText = usuarioLogado.nome || usuarioLogado.login;
         document.getElementById('btnAjusteLoginsMaster').style.display = isMaster ? 'flex' : 'none';
         document.getElementById('btnAjusteBackupMaster').style.display = isMaster ? 'flex' : 'none';
         document.getElementById('modalAjustes').classList.add('aberto');
@@ -2494,8 +2493,7 @@
         }
 
         if (document.getElementById('modalAjustes').classList.contains('aberto')) {
-            document.getElementById('ajustePerfilLogin').innerText = usuarioLogado.login;
-            document.getElementById('ajustePerfilTipo').innerText = isMaster ? 'MASTER' : 'FUNCIONÁRIO';
+            document.getElementById('ajustePerfilLogin').innerText = usuarioLogado.nome || usuarioLogado.login;
             document.getElementById('btnAjusteLoginsMaster').style.display = isMaster ? 'flex' : 'none';
             document.getElementById('btnAjusteBackupMaster').style.display = isMaster ? 'flex' : 'none';
         }
