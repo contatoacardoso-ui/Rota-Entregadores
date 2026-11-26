@@ -80,30 +80,6 @@
             color: var(--primary);
             border: 1px solid rgba(59, 130, 246, 0.4);
         }
-        .session-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .btn-mini-action {
-            padding: 5px 10px;
-            border-radius: 7px;
-            border: 1px solid var(--border);
-            background: #0f172a;
-            color: var(--text);
-            font-size: 0.76rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .btn-mini-action:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-        .btn-mini-sair {
-            color: var(--danger);
-            border-color: rgba(239, 68, 68, 0.35);
-        }
 
         .tabs-row {
             display: flex;
@@ -165,7 +141,7 @@
             font-size: 1.15rem;
             line-height: 1;
             cursor: pointer;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
@@ -182,6 +158,47 @@
         }
         .btn-config-gear:active {
             transform: scale(0.96);
+        }
+
+        .ajustes-menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .btn-ajuste-item {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #0f172a;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            text-align: left;
+            transition: all 0.15s;
+        }
+        .btn-ajuste-item:hover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .btn-ajuste-item .ajuste-sub {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+        .btn-ajuste-sair {
+            border-color: rgba(239, 68, 68, 0.35);
+            color: var(--danger);
+        }
+        .btn-ajuste-sair:hover {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.12);
         }
 
         .tab-content {
@@ -1301,11 +1318,6 @@
                 <span id="sessaoNomeUsuario">-</span>
                 <span class="role-badge operador" id="sessaoBadgePerfil">FUNCIONÁRIO</span>
             </div>
-            <div class="session-actions">
-                <button type="button" class="btn-mini-action" onclick="abrirModalTrocarSenha()">🔑 Senha</button>
-                <button type="button" class="btn-mini-action" id="btnAbrirFuncionarios" style="display:none;" onclick="abrirModalFuncionarios()">👥 Logins</button>
-                <button type="button" class="btn-mini-action btn-mini-sair" onclick="sairSessao()">Sair</button>
-            </div>
         </div>
 
         <div class="tabs-row">
@@ -1319,7 +1331,7 @@
                     <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
                 </button>
             </div>
-            <button class="btn-config-gear" id="btnEngrenagemBackup" onclick="abrirModalBackup()" title="Backup e Migração Firebase">⚙️</button>
+            <button type="button" class="btn-config-gear" id="btnEngrenagemAjustes" onclick="abrirModalAjustes()" title="Ajustes da Conta">⚙️</button>
         </div>
 
         <div id="abaFila" class="tab-content ativa">
@@ -1351,6 +1363,51 @@
             📲 Instalar aplicativo na tela inicial
         </button>
     </footer>
+</div>
+
+<!-- Modal Central de Ajustes (Todos os Perfis) -->
+<div id="modalAjustes" class="modal-backdrop" onclick="if(event.target===this) fecharModalAjustes()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon">⚙️</div>
+                <div>
+                    <h3>Ajustes</h3>
+                </div>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalAjustes()" title="Fechar">✕</button>
+        </div>
+
+        <div class="modal-highlight-box" style="margin-top:0;">
+            <p>Perfil logado: <strong id="ajustePerfilLogin">-</strong> (<strong id="ajustePerfilTipo">-</strong>)</p>
+        </div>
+
+        <div class="ajustes-menu-list">
+            <button type="button" class="btn-ajuste-item" onclick="fecharModalAjustes(); abrirModalTrocarSenha();">
+                <span>🔑 Trocar Minha Senha</span>
+                <span class="ajuste-sub">Alterar senha</span>
+            </button>
+
+            <button type="button" class="btn-ajuste-item" id="btnAjusteLoginsMaster" style="display:none;" onclick="fecharModalAjustes(); abrirModalFuncionarios();">
+                <span>👥 Logins e Permissões</span>
+                <span class="ajuste-sub">Master</span>
+            </button>
+
+            <button type="button" class="btn-ajuste-item" id="btnAjusteBackupMaster" style="display:none;" onclick="fecharModalAjustes(); abrirModalBackup();">
+                <span>💾 Backup &amp; Migração</span>
+                <span class="ajuste-sub">Firebase JSON</span>
+            </button>
+
+            <button type="button" class="btn-ajuste-item btn-ajuste-sair" onclick="fecharModalAjustes(); sairSessao();">
+                <span>🚪 Sair da Conta</span>
+                <span class="ajuste-sub">Encerrar sessão</span>
+            </button>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="fecharModalAjustes()">Fechar</button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal Trocar Própria Senha (Todos os Usuários, incluindo Master) -->
@@ -1561,7 +1618,7 @@
     <div class="modal-card tipo-info">
         <div class="modal-header">
             <div class="modal-header-left">
-                <div class="modal-icon">⚙️</div>
+                <div class="modal-icon">💾</div>
                 <h3>Backup &amp; Migração (Firebase)</h3>
             </div>
             <button class="btn-modal-x" onclick="fecharModalBackup()" title="Fechar">✕</button>
@@ -2392,19 +2449,34 @@
         }
     }
 
+    function abrirModalAjustes() {
+        if (!usuarioLogado) return;
+        sincronizarSessaoComBanco();
+        const isMaster = usuarioLogado.role === 'master';
+        document.getElementById('ajustePerfilLogin').innerText = usuarioLogado.login;
+        document.getElementById('ajustePerfilTipo').innerText = isMaster ? 'MASTER' : 'FUNCIONÁRIO';
+        document.getElementById('btnAjusteLoginsMaster').style.display = isMaster ? 'flex' : 'none';
+        document.getElementById('btnAjusteBackupMaster').style.display = isMaster ? 'flex' : 'none';
+        document.getElementById('modalAjustes').classList.add('aberto');
+    }
+
+    function fecharModalAjustes() {
+        document.getElementById('modalAjustes').classList.remove('aberto');
+    }
+
     function aplicarPermissoesSessao() {
         sincronizarSessaoComBanco();
         const isMaster = usuarioLogado && usuarioLogado.role === 'master';
         const barra = document.getElementById('sessionBar');
         const nomeEl = document.getElementById('sessaoNomeUsuario');
         const badgeEl = document.getElementById('sessaoBadgePerfil');
-        const btnFunc = document.getElementById('btnAbrirFuncionarios');
-        const btnGear = document.getElementById('btnEngrenagemBackup');
+        const btnGear = document.getElementById('btnEngrenagemAjustes');
         const btnQr = document.getElementById('btnQrDiario');
         const btnNovoCad = document.getElementById('btnNovoCadastroTopo');
 
         if (!usuarioLogado) {
             barra.style.display = 'none';
+            if (btnGear) btnGear.style.display = 'none';
             return;
         }
 
@@ -2414,13 +2486,20 @@
         if (isMaster) {
             badgeEl.innerText = 'MASTER';
             badgeEl.className = 'role-badge master';
-            btnFunc.style.display = 'inline-block';
-            btnGear.style.display = 'flex';
         } else {
             badgeEl.innerText = 'FUNCIONÁRIO';
             badgeEl.className = 'role-badge operador';
-            btnFunc.style.display = 'none';
-            btnGear.style.display = 'none';
+        }
+
+        if (btnGear) {
+            btnGear.style.display = 'flex';
+        }
+
+        if (document.getElementById('modalAjustes').classList.contains('aberto')) {
+            document.getElementById('ajustePerfilLogin').innerText = usuarioLogado.login;
+            document.getElementById('ajustePerfilTipo').innerText = isMaster ? 'MASTER' : 'FUNCIONÁRIO';
+            document.getElementById('btnAjusteLoginsMaster').style.display = isMaster ? 'flex' : 'none';
+            document.getElementById('btnAjusteBackupMaster').style.display = isMaster ? 'flex' : 'none';
         }
 
         if (btnQr) {
@@ -2441,10 +2520,12 @@
     }
 
     function sairSessao() {
+        fecharModalAjustes();
         usuarioLogado = null;
         sessionStorage.removeItem(CHAVE_SESSAO_ATIVA);
         document.getElementById('appScreen').style.display = 'none';
         document.getElementById('sessionBar').style.display = 'none';
+        document.getElementById('btnEngrenagemAjustes').style.display = 'none';
         document.getElementById('loginScreen').style.display = 'block';
         if (!document.getElementById('salvarSenhaCheck').checked) {
             document.getElementById('pinInput').value = '';
