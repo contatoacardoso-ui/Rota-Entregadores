@@ -659,6 +659,17 @@
             background: rgba(245, 158, 11, 0.22);
             color: var(--warning);
         }
+        .fila-hora-bipado {
+            background: rgba(148, 163, 184, 0.12);
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.78rem;
+            padding: 5px 8px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
         .fila-nome-wrap {
             flex: 1;
             min-width: 0;
@@ -772,10 +783,6 @@
             background: rgba(15, 23, 42, 0.55);
             border-color: #263244;
             opacity: 0.72;
-        }
-        .fila-card.bipado .fila-pos {
-            background: rgba(148, 163, 184, 0.12);
-            color: var(--muted);
         }
         .fila-card.bipado .fila-nome {
             color: var(--muted);
@@ -1933,7 +1940,6 @@
     const funcionariosRef = db.ref('funcionarios');
     const masterConfigRef = db.ref('config/master');
 
-    /* Credenciais Master padrão (pode ser alterada pelo próprio Master após login) */
     const MASTER_LOGIN_PADRAO = "MASTER";
     const MASTER_SENHA_PADRAO = "1234";
     const CHAVE_MASTER_SENHA_LOCAL = "adminMasterSenhaOverride";
@@ -2055,7 +2061,6 @@
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
-    /* Reset automático diário às 00:00h */
     let timerResetMeiaNoite = null;
     let ultimoDiaVerificado = obterDataHojeIso();
     let resetEmAndamento = false;
@@ -2531,7 +2536,6 @@
         mostrarPainelLogado();
     }
 
-    /* Trocar Própria Senha (Funcionário e Master) */
     function setStatusTrocaSenha(texto, tipo = 'ok') {
         const el = document.getElementById('trocaSenhaStatusMsg');
         if (!el) return;
@@ -2631,7 +2635,6 @@
         }
     }
 
-    /* Gestão de Funcionários e Permissões (Master) */
     function setStatusFunc(texto, tipo = 'ok') {
         const el = document.getElementById('funcStatusMsg');
         if (!el) return;
@@ -4202,13 +4205,12 @@
                     <div class="fila-card bipado">
                         <div class="fila-topo-linha">
                             <div class="fila-info">
-                                <span class="fila-pos">BIP</span>
+                                <span class="fila-hora-bipado">🕒 ${horaBipado}</span>
                                 <div class="fila-nome-wrap">
                                     <div class="fila-nome">${item.motorista}</div>
                                     ${quemBipouLabel}
                                 </div>
                             </div>
-                            <span class="fila-hora-solta">🕒 ${horaBipado}</span>
                         </div>
                         <div class="fila-actions">
                             ${podeEditarFila ? `<button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>` : ''}
