@@ -62,13 +62,20 @@
             gap: 8px;
             color: var(--text);
             font-weight: 700;
+            flex-wrap: wrap;
+        }
+        .session-role-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         .role-badge {
             font-size: 0.68rem;
             font-weight: 800;
-            padding: 2px 7px;
+            padding: 3px 7px;
             border-radius: 6px;
             text-transform: uppercase;
+            line-height: 1;
         }
         .role-badge.master {
             background: rgba(245, 158, 11, 0.2);
@@ -81,18 +88,11 @@
             border: 1px solid rgba(59, 130, 246, 0.4);
         }
 
-        .tabs-row {
-            display: flex;
-            align-items: stretch;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
         .tabs {
-            flex: 1;
-            min-width: 0;
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 8px;
+            margin-bottom: 18px;
         }
         .tab-btn {
             height: 42px;
@@ -131,14 +131,14 @@
             opacity: 0.92;
         }
         .btn-config-gear {
-            width: 42px;
-            height: 42px;
+            width: 26px;
+            height: 26px;
             flex-shrink: 0;
             border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--card);
+            border-radius: 7px;
+            background: #0f172a;
             color: var(--text);
-            font-size: 1.15rem;
+            font-size: 0.85rem;
             line-height: 1;
             cursor: pointer;
             display: none;
@@ -147,17 +147,17 @@
             transition: all 0.2s;
         }
         body.device-desktop .btn-config-gear {
-            width: 46px;
-            height: 46px;
-            font-size: 1.25rem;
+            width: 28px;
+            height: 28px;
+            font-size: 0.9rem;
         }
         .btn-config-gear:hover {
             border-color: var(--primary);
             color: var(--primary);
-            background: rgba(59, 130, 246, 0.08);
+            background: rgba(59, 130, 246, 0.12);
         }
         .btn-config-gear:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
         }
 
         .ajustes-menu-list {
@@ -1316,22 +1316,22 @@
             <div class="session-user">
                 <span>👤</span>
                 <span id="sessaoNomeUsuario">-</span>
-                <span class="role-badge operador" id="sessaoBadgePerfil">FUNCIONÁRIO</span>
+                <div class="session-role-group">
+                    <span class="role-badge operador" id="sessaoBadgePerfil">FUNCIONÁRIO</span>
+                    <button type="button" class="btn-config-gear" id="btnEngrenagemAjustes" onclick="abrirModalAjustes()" title="Ajustes da Conta">⚙️</button>
+                </div>
             </div>
         </div>
 
-        <div class="tabs-row">
-            <div class="tabs">
-                <button class="tab-btn ativa" id="btnTabFila" onclick="trocarAba('fila')">
-                    <span>📋 Bipagem</span>
-                    <span class="tab-count" id="badgeFilaAtiva">(0)</span>
-                </button>
-                <button class="tab-btn" id="btnTabLista" onclick="trocarAba('lista')">
-                    <span>🚚 Rotas</span>
-                    <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
-                </button>
-            </div>
-            <button type="button" class="btn-config-gear" id="btnEngrenagemAjustes" onclick="abrirModalAjustes()" title="Ajustes da Conta">⚙️</button>
+        <div class="tabs">
+            <button class="tab-btn ativa" id="btnTabFila" onclick="trocarAba('fila')">
+                <span>📋 Bipagem</span>
+                <span class="tab-count" id="badgeFilaAtiva">(0)</span>
+            </button>
+            <button class="tab-btn" id="btnTabLista" onclick="trocarAba('lista')">
+                <span>🚚 Rotas</span>
+                <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
+            </button>
         </div>
 
         <div id="abaFila" class="tab-content ativa">
@@ -2492,7 +2492,7 @@
         }
 
         if (btnGear) {
-            btnGear.style.display = 'flex';
+            btnGear.style.display = 'inline-flex';
         }
 
         if (document.getElementById('modalAjustes').classList.contains('aberto')) {
