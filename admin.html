@@ -1274,7 +1274,7 @@
         <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 16px;">Entre com seu login de funcionário ou acesso Master</p>
 
         <div class="form-group">
-            <label for="loginUsuarioInput">Login ou Nome de Usuário</label>
+            <label for="loginUsuarioInput">Login</label>
             <input type="text" id="loginUsuarioInput" class="upper" placeholder="Ex: MASTER ou CARLOS" autocomplete="username" onkeydown="if(event.key==='Enter') verificarLogin()">
         </div>
 
@@ -1404,13 +1404,8 @@
             <input type="hidden" id="funcEditId">
 
             <div class="form-group">
-                <label for="funcNomeInput">Nome Completo / Exibição *</label>
-                <input type="text" id="funcNomeInput" class="upper" placeholder="Ex: CARLOS ALMEIDA">
-            </div>
-
-            <div class="form-group">
-                <label for="funcLoginInput">Login de Acesso *</label>
-                <input type="text" id="funcLoginInput" class="upper" placeholder="Ex: CARLOS.ALMEIDA">
+                <label for="funcLoginInput">Nome / Login *</label>
+                <input type="text" id="funcLoginInput" class="upper" placeholder="Ex: CARLOS">
             </div>
 
             <div class="form-group">
@@ -2346,7 +2341,7 @@
             return {
                 id: null,
                 login: MASTER_LOGIN_PADRAO,
-                nome: 'MASTER',
+                nome: MASTER_LOGIN_PADRAO,
                 role: 'master',
                 perms: obterPermissoesPadrao('master')
             };
@@ -2358,14 +2353,14 @@
 
         if (!funcEncontrado) return null;
         if (funcEncontrado.ativo === false) {
-            return { bloqueado: true, nome: funcEncontrado.nome || funcEncontrado.login };
+            return { bloqueado: true, nome: funcEncontrado.login };
         }
 
         const roleEfetiva = funcEncontrado.role === 'master' ? 'master' : 'operador';
         return {
             id: funcEncontrado.id,
             login: funcEncontrado.login,
-            nome: funcEncontrado.nome || funcEncontrado.login,
+            nome: funcEncontrado.login,
             role: roleEfetiva,
             perms: normalizarPermissoes(funcEncontrado.perms, roleEfetiva)
         };
@@ -2374,6 +2369,7 @@
     function sincronizarSessaoComBanco() {
         if (!usuarioLogado) return;
         if (usuarioLogado.login === MASTER_LOGIN_PADRAO && usuarioLogado.role === 'master' && !usuarioLogado.id) {
+            usuarioLogado.nome = MASTER_LOGIN_PADRAO;
             usuarioLogado.perms = obterPermissoesPadrao('master');
             return;
         }
@@ -2388,8 +2384,8 @@
             }
             const roleEfetiva = atualizado.role === 'master' ? 'master' : 'operador';
             usuarioLogado.id = atualizado.id;
-            usuarioLogado.nome = atualizado.nome || atualizado.login;
             usuarioLogado.login = atualizado.login;
+            usuarioLogado.nome = atualizado.login;
             usuarioLogado.role = roleEfetiva;
             usuarioLogado.perms = normalizarPermissoes(atualizado.perms, roleEfetiva);
             sessionStorage.setItem(CHAVE_SESSAO_ATIVA, JSON.stringify(usuarioLogado));
@@ -2413,7 +2409,7 @@
         }
 
         barra.style.display = 'flex';
-        nomeEl.innerText = `${usuarioLogado.nome} (${usuarioLogado.login})`;
+        nomeEl.innerText = usuarioLogado.login;
 
         if (isMaster) {
             badgeEl.innerText = 'MASTER';
@@ -2516,7 +2512,7 @@
                 tipo: 'warning',
                 icone: '⛔',
                 titulo: 'Acesso Inativo',
-                mensagem: `O login de <strong>${resultado.nome}</strong> está bloqueado/inativo. Procure o acesso <strong>MASTER</strong>.`,
+                mensagem: `O login <strong>${resultado.nome}</strong> está bloqueado/inativo. Procure o acesso <strong>MASTER</strong>.`,
                 textoConfirmar: 'Entendi',
                 somenteOk: true
             });
@@ -2676,7 +2672,6 @@
 
     function limparFormFuncionario() {
         document.getElementById('funcEditId').value = '';
-        document.getElementById('funcNomeInput').value = '';
         document.getElementById('funcLoginInput').value = '';
         document.getElementById('funcSenhaInput').value = '';
         document.getElementById('funcAtivoSelect').value = 'true';
@@ -2707,10 +2702,10 @@
         if (!func) return;
         const isMasterFunc = func.role === 'master';
         const perms = normalizarPermissoes(func.perms, func.role);
+        const loginExibicao = func.login || func.nome || '';
 
         document.getElementById('funcEditId').value = func.id;
-        document.getElementById('funcNomeInput').value = func.nome || '';
-        document.getElementById('funcLoginInput').value = func.login || '';
+        document.getElementById('funcLoginInput').value = loginExibicao;
         document.getElementById('funcSenhaInput').value = func.senha || '';
         document.getElementById('funcAtivoSelect').value = func.ativo === false ? 'false' : 'true';
         document.getElementById('permFuncMaster').checked = isMasterFunc;
@@ -2725,7 +2720,7 @@
         document.getElementById('permExcluirRotas').checked = perms.podeExcluirRotas;
         aoMudarCheckboxMasterFunc();
 
-        document.getElementById('funcFormTitulo').innerText = `✏️ Editando: ${func.nome || func.login}`;
+        document.getElementById('funcFormTitulo').innerText = `✏️ Editando: ${loginExibicao}`;
         document.getElementById('btnCancelarEdicaoFunc').style.display = 'inline-block';
     }
 
@@ -2733,14 +2728,13 @@
         if (!usuarioLogado || usuarioLogado.role !== 'master') return;
 
         const editId = document.getElementById('funcEditId').value.trim();
-        const nome = document.getElementById('funcNomeInput').value.toUpperCase().trim();
         const login = document.getElementById('funcLoginInput').value.toUpperCase().trim();
         const senha = document.getElementById('funcSenhaInput').value.trim();
         const ativo = document.getElementById('funcAtivoSelect').value === 'true';
         const promoverMaster = document.getElementById('permFuncMaster').checked;
 
-        if (!nome || !login || !senha) {
-            setStatusFunc('Preencha nome, login e senha.', 'erro');
+        if (!login || !senha) {
+            setStatusFunc('Preencha o nome/login e a senha.', 'erro');
             return;
         }
 
@@ -2773,7 +2767,7 @@
             };
 
         const payload = {
-            nome,
+            nome: login,
             login,
             senha,
             ativo,
@@ -2785,11 +2779,11 @@
         try {
             if (editId) {
                 await funcionariosRef.child(editId).update(payload);
-                setStatusFunc(`✓ Login de ${nome} atualizado!`, 'ok');
+                setStatusFunc(`✓ Login ${login} atualizado!`, 'ok');
             } else {
                 payload.criadoEm = Date.now();
                 await funcionariosRef.push(payload);
-                setStatusFunc(`✓ Funcionário ${nome} cadastrado!`, 'ok');
+                setStatusFunc(`✓ Funcionário ${login} cadastrado!`, 'ok');
             }
             limparFormFuncionario();
         } catch (err) {
@@ -2829,12 +2823,13 @@
             return;
         }
 
-        const ordenados = [...funcionarios].sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+        const ordenados = [...funcionarios].sort((a, b) => (a.login || '').localeCompare(b.login || ''));
         container.innerHTML = ordenados.map(f => {
             const ativo = f.ativo !== false;
             const isMasterFunc = f.role === 'master';
             const perms = normalizarPermissoes(f.perms, f.role);
-            const nomeEscapado = (f.nome || f.login).replace(/'/g, "\\'");
+            const nomeExibicao = f.login || f.nome || '';
+            const nomeEscapado = nomeExibicao.replace(/'/g, "\\'");
 
             const pillsHtml = isMasterFunc
                 ? `<span class="perm-pill">👑 MASTER (ACESSO TOTAL)</span>`
@@ -2853,8 +2848,8 @@
             return `
                 <div class="func-item-card">
                     <div class="func-item-info">
-                        <strong>${f.nome || f.login} ${isMasterFunc ? '👑' : ''}</strong>
-                        <span>Login: <strong>${f.login}</strong> • Senha: <strong>${f.senha}</strong></span>
+                        <strong>${nomeExibicao} ${isMasterFunc ? '👑' : ''}</strong>
+                        <span>Senha: <strong>${f.senha}</strong></span>
                         <span class="${ativo ? '' : 'func-status-inativo'}">${ativo ? '● Ativo' : '● Inativo / Bloqueado'}</span>
                         <div class="perm-pills">${pillsHtml}</div>
                     </div>
@@ -2929,10 +2924,11 @@
                 const raw = data[id];
                 if (!raw || typeof raw !== 'object') return;
                 const roleVal = raw.role === 'master' ? 'master' : 'operador';
+                const loginLimpo = String(raw.login || raw.nome || '').toUpperCase().trim();
                 funcionarios.push({
                     id,
-                    nome: String(raw.nome || raw.login || '').toUpperCase().trim(),
-                    login: String(raw.login || '').toUpperCase().trim(),
+                    nome: loginLimpo,
+                    login: loginLimpo,
                     senha: String(raw.senha || ''),
                     ativo: raw.ativo !== false,
                     role: roleVal,
@@ -3014,8 +3010,8 @@
                     ordem: Number(raw.ordem) || 0,
                     bipado: Boolean(raw.bipado),
                     bipadoEm: Number(raw.bipadoEm) || 0,
-                    bipadoPor: String(raw.bipadoPor || "").toUpperCase().trim(),
-                    bipadoPorLogin: String(raw.bipadoPorLogin || "").toUpperCase().trim(),
+                    bipadoPor: String(raw.bipadoPor || raw.bipadoPorLogin || "").toUpperCase().trim(),
+                    bipadoPorLogin: String(raw.bipadoPorLogin || raw.bipadoPor || "").toUpperCase().trim(),
                     criadoEm: tsCriacao,
                     dataFila: dataItem,
                     origem: raw.origem || 'qrcode',
@@ -4036,12 +4032,11 @@
 
     function marcarBipagem(id, estadoBipado) {
         if (estadoBipado) {
-            const quemBipouNome = usuarioLogado ? usuarioLogado.nome : 'OPERADOR';
-            const quemBipouLogin = usuarioLogado ? usuarioLogado.login : '';
+            const quemBipouLogin = usuarioLogado ? usuarioLogado.login : 'OPERADOR';
             filaRef.child(id).update({
                 bipado: true,
                 bipadoEm: Date.now(),
-                bipadoPor: quemBipouNome,
+                bipadoPor: quemBipouLogin,
                 bipadoPorLogin: quemBipouLogin
             });
         } else {
