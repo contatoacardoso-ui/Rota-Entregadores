@@ -84,6 +84,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-wrap: wrap;
         }
         .btn-mini-action {
             padding: 5px 10px;
@@ -263,6 +264,56 @@
         input.upper { text-transform: uppercase; }
         input.upper::placeholder { text-transform: none; }
         input:focus, select:focus { border-color: var(--primary); }
+
+        .perms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .perm-check-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+        .perm-check-card input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            accent-color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .perm-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .perm-pill {
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 5px;
+            background: rgba(59, 130, 246, 0.14);
+            color: var(--primary);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .perm-pill.off {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--muted);
+            border-color: rgba(148, 163, 184, 0.25);
+            text-decoration: line-through;
+        }
 
         .combobox-wrap {
             position: relative;
@@ -777,9 +828,13 @@
             padding: 11px 12px;
             margin-bottom: 8px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 10px;
+        }
+        .func-item-info {
+            flex: 1;
+            min-width: 0;
         }
         .func-item-info strong {
             display: block;
@@ -959,7 +1014,7 @@
             overflow-y: auto;
         }
         body.device-desktop .modal-card {
-            max-width: 520px;
+            max-width: 540px;
             padding: 24px;
         }
         .modal-card.tipo-warning { border-color: var(--warning); }
@@ -1239,6 +1294,7 @@
                 <span class="role-badge operador" id="sessaoBadgePerfil">FUNCIONÁRIO</span>
             </div>
             <div class="session-actions">
+                <button type="button" class="btn-mini-action" onclick="abrirModalTrocarSenha()">🔑 Senha</button>
                 <button type="button" class="btn-mini-action" id="btnAbrirFuncionarios" style="display:none;" onclick="abrirModalFuncionarios()">👥 Logins</button>
                 <button type="button" class="btn-mini-action btn-mini-sair" onclick="sairSessao()">Sair</button>
             </div>
@@ -1259,13 +1315,13 @@
         </div>
 
         <div id="abaFila" class="tab-content ativa">
-            <div class="box">
+            <div class="box" id="boxQrDiario">
                 <div class="fila-qr-bar">
                     <div class="fila-qr-info">
                         <p>Entrada na fila via QR Code</p>
                         <span>A lista zera automaticamente às 00:00h todo dia</span>
                     </div>
-                    <button type="button" class="btn-qr-dia" onclick="abrirModalQrDiario()">📱 QR Code do Dia</button>
+                    <button type="button" class="btn-qr-dia" id="btnQrDiario" onclick="abrirModalQrDiario()">📱 QR Code do Dia</button>
                 </div>
             </div>
 
@@ -1275,7 +1331,7 @@
         <div id="abaLista" class="tab-content">
             <div class="entregadores-topbar">
                 <input type="text" id="filtroAdmin" class="upper" placeholder="🔍 Buscar rua ou entregador..." oninput="aoFiltrar()">
-                <button class="btn-novo-cadastro" onclick="abrirModalCadastro()">➕ Cadastrar</button>
+                <button class="btn-novo-cadastro" id="btnNovoCadastroTopo" onclick="abrirModalCadastro()">➕ Cadastrar</button>
             </div>
 
             <div id="listaRegistros"><p style="text-align:center; color:var(--muted); margin-top:24px;">Carregando rotas...</p></div>
@@ -1289,13 +1345,48 @@
     </footer>
 </div>
 
-<!-- Modal Gestão de Funcionários (Exclusivo Master) -->
+<!-- Modal Trocar Própria Senha (Todos os Usuários, incluindo Master) -->
+<div id="modalTrocarSenha" class="modal-backdrop" onclick="if(event.target===this) fecharModalTrocarSenha()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon">🔑</div>
+                <h3>Trocar Minha Senha</h3>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalTrocarSenha()" title="Fechar">✕</button>
+        </div>
+
+        <div class="form-group">
+            <label for="senhaAtualInput">Senha Atual *</label>
+            <input type="password" id="senhaAtualInput" placeholder="Digite sua senha atual">
+        </div>
+
+        <div class="form-group">
+            <label for="novaSenhaInput">Nova Senha *</label>
+            <input type="password" id="novaSenhaInput" placeholder="Digite a nova senha">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 6px;">
+            <label for="confirmarSenhaInput">Confirmar Nova Senha *</label>
+            <input type="password" id="confirmarSenhaInput" placeholder="Repita a nova senha" onkeydown="if(event.key==='Enter') salvarNovaSenhaPropria()">
+        </div>
+
+        <div id="trocaSenhaStatusMsg" class="backup-status-msg"></div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="fecharModalTrocarSenha()">Cancelar</button>
+            <button type="button" class="btn-modal-confirm" onclick="salvarNovaSenhaPropria()">Salvar Nova Senha</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Gestão de Funcionários e Permissões (Exclusivo Master) -->
 <div id="modalFuncionarios" class="modal-backdrop" onclick="if(event.target===this) fecharModalFuncionarios()">
     <div class="modal-card tipo-info">
         <div class="modal-header">
             <div class="modal-header-left">
                 <div class="modal-icon">👥</div>
-                <h3 id="tituloModalFunc">Logins de Funcionários</h3>
+                <h3 id="tituloModalFunc">Logins e Permissões</h3>
             </div>
             <button class="btn-modal-x" onclick="fecharModalFuncionarios()" title="Fechar">✕</button>
         </div>
@@ -1319,12 +1410,36 @@
                 <input type="text" id="funcSenhaInput" placeholder="Defina a senha do funcionário">
             </div>
 
-            <div class="form-group" style="margin-bottom: 10px;">
+            <div class="form-group">
                 <label for="funcAtivoSelect">Status do Acesso</label>
                 <select id="funcAtivoSelect">
                     <option value="true">Ativo</option>
                     <option value="false">Bloqueado / Inativo</option>
                 </select>
+            </div>
+
+            <label style="margin-bottom: 6px;">Funções e Nível de Acesso</label>
+            <div class="perms-grid">
+                <label class="perm-check-card" for="permFuncMaster">
+                    <input type="checkbox" id="permFuncMaster" onchange="aoMudarCheckboxMasterFunc()">
+                    <span>👑 Função Master</span>
+                </label>
+                <label class="perm-check-card" for="permGerarQr">
+                    <input type="checkbox" id="permGerarQr" checked>
+                    <span>📱 Gerar QR Code</span>
+                </label>
+                <label class="perm-check-card" for="permCadastrarRotas">
+                    <input type="checkbox" id="permCadastrarRotas" checked>
+                    <span>➕ Cadastrar Rotas</span>
+                </label>
+                <label class="perm-check-card" for="permEditarRotas">
+                    <input type="checkbox" id="permEditarRotas" checked>
+                    <span>✏️ Editar Rotas</span>
+                </label>
+                <label class="perm-check-card" for="permExcluirRotas" style="grid-column: span 2;">
+                    <input type="checkbox" id="permExcluirRotas" checked>
+                    <span>🗑️ Excluir Rotas</span>
+                </label>
             </div>
 
             <div style="display:flex; gap:8px;">
@@ -1790,15 +1905,18 @@
     const rotasRef = db.ref('rotas');
     const filaRef = db.ref('fila_bipagem');
     const funcionariosRef = db.ref('funcionarios');
+    const masterConfigRef = db.ref('config/master');
 
-    /* Credenciais Master */
-    const MASTER_LOGIN = "MASTER";
-    const MASTER_SENHA = "1234";
+    /* Credenciais Master padrão (pode ser alterada pelo próprio Master após login) */
+    const MASTER_LOGIN_PADRAO = "MASTER";
+    const MASTER_SENHA_PADRAO = "1234";
+    const CHAVE_MASTER_SENHA_LOCAL = "adminMasterSenhaOverride";
 
     let registros = [];
     let filaItens = [];
     let funcionarios = [];
-    let usuarioLogado = null; // { login, nome, role: 'master' | 'operador' }
+    let senhaMasterBanco = null;
+    let usuarioLogado = null; // { id?, login, nome, role: 'master' | 'operador', perms: {...} }
     let entregadoresExpandidos = new Set();
     let erroBancoRotas = false;
     let erroBancoFila = false;
@@ -1808,6 +1926,54 @@
 
     function normalizar(texto) {
         return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
+    }
+
+    function obterSenhaMasterAtual() {
+        if (senhaMasterBanco && String(senhaMasterBanco).trim()) {
+            return String(senhaMasterBanco).trim();
+        }
+        const localOverride = localStorage.getItem(CHAVE_MASTER_SENHA_LOCAL) || sessionStorage.getItem(CHAVE_MASTER_SENHA_LOCAL);
+        if (localOverride && String(localOverride).trim()) {
+            return String(localOverride).trim();
+        }
+        return MASTER_SENHA_PADRAO;
+    }
+
+    function obterPermissoesPadrao(role = 'operador') {
+        if (role === 'master') {
+            return {
+                podeGerarQr: true,
+                podeCadastrarRotas: true,
+                podeEditarRotas: true,
+                podeExcluirRotas: true
+            };
+        }
+        return {
+            podeGerarQr: true,
+            podeCadastrarRotas: true,
+            podeEditarRotas: true,
+            podeExcluirRotas: true
+        };
+    }
+
+    function normalizarPermissoes(rawPerms, role) {
+        if (role === 'master') {
+            return obterPermissoesPadrao('master');
+        }
+        const p = rawPerms && typeof rawPerms === 'object' ? rawPerms : {};
+        return {
+            podeGerarQr: p.podeGerarQr !== false,
+            podeCadastrarRotas: p.podeCadastrarRotas !== false,
+            podeEditarRotas: p.podeEditarRotas !== false,
+            podeExcluirRotas: p.podeExcluirRotas !== false
+        };
+    }
+
+    function temPermissao(chave) {
+        if (!usuarioLogado) return false;
+        if (usuarioLogado.role === 'master') return true;
+        const perms = normalizarPermissoes(usuarioLogado.perms, usuarioLogado.role);
+        return Boolean(perms[chave]);
     }
 
     function obterDataHojeIso(dataObj = new Date()) {
@@ -1928,7 +2094,19 @@
         return `${pastaBase}${ARQUIVO_FILA_MOTORISTA}?dia=${encodeURIComponent(dataIso)}&tk=${encodeURIComponent(token)}`;
     }
 
-    function abrirModalQrDiario() {
+    async function abrirModalQrDiario() {
+        if (!temPermissao('podeGerarQr')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Gerar QR Code</strong>. Solicite ao acesso <strong>MASTER</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+
         const hojeIso = obterDataHojeIso();
         const hojeBr = formatarDataBr(hojeIso);
         const urlQr = construirUrlQrDia(hojeIso);
@@ -2117,11 +2295,14 @@
 
         if (!loginNorm || !senha) return null;
 
-        if (loginNorm === normalizar(MASTER_LOGIN) && senha === MASTER_SENHA) {
+        const senhaMasterAtual = obterSenhaMasterAtual();
+        if (loginNorm === normalizar(MASTER_LOGIN_PADRAO) && senha === senhaMasterAtual) {
             return {
-                login: MASTER_LOGIN,
+                id: null,
+                login: MASTER_LOGIN_PADRAO,
                 nome: 'MASTER',
-                role: 'master'
+                role: 'master',
+                perms: obterPermissoesPadrao('master')
             };
         }
 
@@ -2134,20 +2315,51 @@
             return { bloqueado: true, nome: funcEncontrado.nome || funcEncontrado.login };
         }
 
+        const roleEfetiva = funcEncontrado.role === 'master' ? 'master' : 'operador';
         return {
+            id: funcEncontrado.id,
             login: funcEncontrado.login,
             nome: funcEncontrado.nome || funcEncontrado.login,
-            role: 'operador'
+            role: roleEfetiva,
+            perms: normalizarPermissoes(funcEncontrado.perms, roleEfetiva)
         };
     }
 
+    function sincronizarSessaoComBanco() {
+        if (!usuarioLogado) return;
+        if (usuarioLogado.login === MASTER_LOGIN_PADRAO && usuarioLogado.role === 'master' && !usuarioLogado.id) {
+            usuarioLogado.perms = obterPermissoesPadrao('master');
+            return;
+        }
+        const atualizado = funcionarios.find(f =>
+            (usuarioLogado.id && f.id === usuarioLogado.id) ||
+            normalizar(f.login) === normalizar(usuarioLogado.login)
+        );
+        if (atualizado) {
+            if (atualizado.ativo === false) {
+                sairSessao();
+                return;
+            }
+            const roleEfetiva = atualizado.role === 'master' ? 'master' : 'operador';
+            usuarioLogado.id = atualizado.id;
+            usuarioLogado.nome = atualizado.nome || atualizado.login;
+            usuarioLogado.login = atualizado.login;
+            usuarioLogado.role = roleEfetiva;
+            usuarioLogado.perms = normalizarPermissoes(atualizado.perms, roleEfetiva);
+            sessionStorage.setItem(CHAVE_SESSAO_ATIVA, JSON.stringify(usuarioLogado));
+        }
+    }
+
     function aplicarPermissoesSessao() {
+        sincronizarSessaoComBanco();
         const isMaster = usuarioLogado && usuarioLogado.role === 'master';
         const barra = document.getElementById('sessionBar');
         const nomeEl = document.getElementById('sessaoNomeUsuario');
         const badgeEl = document.getElementById('sessaoBadgePerfil');
         const btnFunc = document.getElementById('btnAbrirFuncionarios');
         const btnGear = document.getElementById('btnEngrenagemBackup');
+        const btnQr = document.getElementById('btnQrDiario');
+        const btnNovoCad = document.getElementById('btnNovoCadastroTopo');
 
         if (!usuarioLogado) {
             barra.style.display = 'none';
@@ -2167,6 +2379,13 @@
             badgeEl.className = 'role-badge operador';
             btnFunc.style.display = 'none';
             btnGear.style.display = 'none';
+        }
+
+        if (btnQr) {
+            btnQr.style.display = temPermissao('podeGerarQr') ? 'inline-flex' : 'none';
+        }
+        if (btnNovoCad) {
+            btnNovoCad.style.display = temPermissao('podeCadastrarRotas') ? 'flex' : 'none';
         }
     }
 
@@ -2271,6 +2490,107 @@
         mostrarPainelLogado();
     }
 
+    /* Trocar Própria Senha (Funcionário e Master) */
+    function setStatusTrocaSenha(texto, tipo = 'ok') {
+        const el = document.getElementById('trocaSenhaStatusMsg');
+        if (!el) return;
+        el.className = `backup-status-msg ${tipo}`;
+        el.innerText = texto;
+    }
+
+    function abrirModalTrocarSenha() {
+        if (!usuarioLogado) return;
+        document.getElementById('senhaAtualInput').value = '';
+        document.getElementById('novaSenhaInput').value = '';
+        document.getElementById('confirmarSenhaInput').value = '';
+        const el = document.getElementById('trocaSenhaStatusMsg');
+        el.className = 'backup-status-msg';
+        el.innerText = '';
+        document.getElementById('modalTrocarSenha').classList.add('aberto');
+        setTimeout(() => document.getElementById('senhaAtualInput').focus(), 50);
+    }
+
+    function fecharModalTrocarSenha() {
+        document.getElementById('modalTrocarSenha').classList.remove('aberto');
+    }
+
+    async function salvarNovaSenhaPropria() {
+        if (!usuarioLogado) return;
+
+        const senhaAtual = document.getElementById('senhaAtualInput').value.trim();
+        const novaSenha = document.getElementById('novaSenhaInput').value.trim();
+        const confirmarSenha = document.getElementById('confirmarSenhaInput').value.trim();
+
+        if (!senhaAtual || !novaSenha || !confirmarSenha) {
+            setStatusTrocaSenha('Preencha todos os campos.', 'erro');
+            return;
+        }
+
+        if (novaSenha.length < 4) {
+            setStatusTrocaSenha('A nova senha deve ter pelo menos 4 caracteres.', 'erro');
+            return;
+        }
+
+        if (novaSenha !== confirmarSenha) {
+            setStatusTrocaSenha('A confirmação da nova senha não confere.', 'erro');
+            return;
+        }
+
+        const isMasterPadrao = usuarioLogado.login === MASTER_LOGIN_PADRAO && !usuarioLogado.id;
+        if (isMasterPadrao) {
+            if (senhaAtual !== obterSenhaMasterAtual()) {
+                setStatusTrocaSenha('Senha atual do Master incorreta.', 'erro');
+                return;
+            }
+            try {
+                await masterConfigRef.update({
+                    login: MASTER_LOGIN_PADRAO,
+                    senha: novaSenha,
+                    atualizadoEm: Date.now()
+                });
+            } catch (_) {}
+            senhaMasterBanco = novaSenha;
+            localStorage.setItem(CHAVE_MASTER_SENHA_LOCAL, novaSenha);
+            sessionStorage.setItem(CHAVE_MASTER_SENHA_LOCAL, novaSenha);
+            if (localStorage.getItem(CHAVE_PIN_SALVO) !== null) {
+                localStorage.setItem(CHAVE_PIN_SALVO, novaSenha);
+            }
+            setStatusTrocaSenha('✓ Senha do Master alterada com sucesso!', 'ok');
+            setTimeout(() => fecharModalTrocarSenha(), 1200);
+            return;
+        }
+
+        const funcRegistro = funcionarios.find(f =>
+            (usuarioLogado.id && f.id === usuarioLogado.id) ||
+            normalizar(f.login) === normalizar(usuarioLogado.login)
+        );
+
+        if (!funcRegistro) {
+            setStatusTrocaSenha('Usuário não encontrado no banco.', 'erro');
+            return;
+        }
+
+        if (String(funcRegistro.senha || '') !== senhaAtual) {
+            setStatusTrocaSenha('Senha atual incorreta.', 'erro');
+            return;
+        }
+
+        try {
+            await funcionariosRef.child(funcRegistro.id).update({
+                senha: novaSenha,
+                atualizadoEm: Date.now()
+            });
+            if (localStorage.getItem(CHAVE_PIN_SALVO) !== null) {
+                localStorage.setItem(CHAVE_PIN_SALVO, novaSenha);
+            }
+            setStatusTrocaSenha('✓ Sua senha foi alterada com sucesso!', 'ok');
+            setTimeout(() => fecharModalTrocarSenha(), 1200);
+        } catch (err) {
+            setStatusTrocaSenha(`✕ Erro ao salvar nova senha: ${err.message || err}`, 'erro');
+        }
+    }
+
+    /* Gestão de Funcionários e Permissões (Master) */
     function setStatusFunc(texto, tipo = 'ok') {
         const el = document.getElementById('funcStatusMsg');
         if (!el) return;
@@ -2284,12 +2604,32 @@
         }, 3000);
     }
 
+    function aoMudarCheckboxMasterFunc() {
+        const isMaster = document.getElementById('permFuncMaster').checked;
+        const idsPerm = ['permGerarQr', 'permCadastrarRotas', 'permEditarRotas', 'permExcluirRotas'];
+        idsPerm.forEach(id => {
+            const el = document.getElementById(id);
+            if (isMaster) {
+                el.checked = true;
+                el.disabled = true;
+            } else {
+                el.disabled = false;
+            }
+        });
+    }
+
     function limparFormFuncionario() {
         document.getElementById('funcEditId').value = '';
         document.getElementById('funcNomeInput').value = '';
         document.getElementById('funcLoginInput').value = '';
         document.getElementById('funcSenhaInput').value = '';
         document.getElementById('funcAtivoSelect').value = 'true';
+        document.getElementById('permFuncMaster').checked = false;
+        document.getElementById('permGerarQr').checked = true;
+        document.getElementById('permCadastrarRotas').checked = true;
+        document.getElementById('permEditarRotas').checked = true;
+        document.getElementById('permExcluirRotas').checked = true;
+        aoMudarCheckboxMasterFunc();
         document.getElementById('funcFormTitulo').innerText = '➕ Novo Funcionário';
         document.getElementById('btnCancelarEdicaoFunc').style.display = 'none';
     }
@@ -2309,11 +2649,21 @@
     function editarFuncionario(id) {
         const func = funcionarios.find(f => f.id === id);
         if (!func) return;
+        const isMasterFunc = func.role === 'master';
+        const perms = normalizarPermissoes(func.perms, func.role);
+
         document.getElementById('funcEditId').value = func.id;
         document.getElementById('funcNomeInput').value = func.nome || '';
         document.getElementById('funcLoginInput').value = func.login || '';
         document.getElementById('funcSenhaInput').value = func.senha || '';
         document.getElementById('funcAtivoSelect').value = func.ativo === false ? 'false' : 'true';
+        document.getElementById('permFuncMaster').checked = isMasterFunc;
+        document.getElementById('permGerarQr').checked = perms.podeGerarQr;
+        document.getElementById('permCadastrarRotas').checked = perms.podeCadastrarRotas;
+        document.getElementById('permEditarRotas').checked = perms.podeEditarRotas;
+        document.getElementById('permExcluirRotas').checked = perms.podeExcluirRotas;
+        aoMudarCheckboxMasterFunc();
+
         document.getElementById('funcFormTitulo').innerText = `✏️ Editando: ${func.nome || func.login}`;
         document.getElementById('btnCancelarEdicaoFunc').style.display = 'inline-block';
     }
@@ -2326,13 +2676,14 @@
         const login = document.getElementById('funcLoginInput').value.toUpperCase().trim();
         const senha = document.getElementById('funcSenhaInput').value.trim();
         const ativo = document.getElementById('funcAtivoSelect').value === 'true';
+        const promoverMaster = document.getElementById('permFuncMaster').checked;
 
         if (!nome || !login || !senha) {
             setStatusFunc('Preencha nome, login e senha.', 'erro');
             return;
         }
 
-        if (normalizar(login) === normalizar(MASTER_LOGIN)) {
+        if (normalizar(login) === normalizar(MASTER_LOGIN_PADRAO)) {
             setStatusFunc('Este login é reservado para o acesso MASTER.', 'erro');
             return;
         }
@@ -2345,11 +2696,23 @@
             return;
         }
 
+        const roleFinal = promoverMaster ? 'master' : 'operador';
+        const permsFinal = promoverMaster
+            ? obterPermissoesPadrao('master')
+            : {
+                podeGerarQr: document.getElementById('permGerarQr').checked,
+                podeCadastrarRotas: document.getElementById('permCadastrarRotas').checked,
+                podeEditarRotas: document.getElementById('permEditarRotas').checked,
+                podeExcluirRotas: document.getElementById('permExcluirRotas').checked
+            };
+
         const payload = {
             nome,
             login,
             senha,
             ativo,
+            role: roleFinal,
+            perms: permsFinal,
             atualizadoEm: Date.now()
         };
 
@@ -2403,13 +2766,26 @@
         const ordenados = [...funcionarios].sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
         container.innerHTML = ordenados.map(f => {
             const ativo = f.ativo !== false;
+            const isMasterFunc = f.role === 'master';
+            const perms = normalizarPermissoes(f.perms, f.role);
             const nomeEscapado = (f.nome || f.login).replace(/'/g, "\\'");
+
+            const pillsHtml = isMasterFunc
+                ? `<span class="perm-pill">👑 MASTER (ACESSO TOTAL)</span>`
+                : `
+                    <span class="perm-pill ${perms.podeGerarQr ? '' : 'off'}">QR Code</span>
+                    <span class="perm-pill ${perms.podeCadastrarRotas ? '' : 'off'}">Cadastrar Rotas</span>
+                    <span class="perm-pill ${perms.podeEditarRotas ? '' : 'off'}">Editar Rotas</span>
+                    <span class="perm-pill ${perms.podeExcluirRotas ? '' : 'off'}">Excluir Rotas</span>
+                `;
+
             return `
                 <div class="func-item-card">
                     <div class="func-item-info">
-                        <strong>${f.nome || f.login}</strong>
+                        <strong>${f.nome || f.login} ${isMasterFunc ? '👑' : ''}</strong>
                         <span>Login: <strong>${f.login}</strong> • Senha: <strong>${f.senha}</strong></span>
                         <span class="${ativo ? '' : 'func-status-inativo'}">${ativo ? '● Ativo' : '● Inativo / Bloqueado'}</span>
+                        <div class="perm-pills">${pillsHtml}</div>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="btn-sm btn-edit" onclick="editarFuncionario('${f.id}')">Editar</button>
@@ -2467,6 +2843,13 @@
         });
     });
 
+    masterConfigRef.on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val && typeof val === 'object' && val.senha) {
+            senhaMasterBanco = String(val.senha).trim();
+        }
+    });
+
     funcionariosRef.on('value', (snapshot) => {
         funcionarios = [];
         const data = snapshot.val();
@@ -2474,16 +2857,23 @@
             Object.keys(data).forEach(id => {
                 const raw = data[id];
                 if (!raw || typeof raw !== 'object') return;
+                const roleVal = raw.role === 'master' ? 'master' : 'operador';
                 funcionarios.push({
                     id,
                     nome: String(raw.nome || raw.login || '').toUpperCase().trim(),
                     login: String(raw.login || '').toUpperCase().trim(),
                     senha: String(raw.senha || ''),
-                    ativo: raw.ativo !== false
+                    ativo: raw.ativo !== false,
+                    role: roleVal,
+                    perms: normalizarPermissoes(raw.perms, roleVal)
                 });
             });
         }
         atualizarResumoBackup();
+        if (usuarioLogado) {
+            aplicarPermissoesSessao();
+            renderizarLista();
+        }
         if (document.getElementById('modalFuncionarios').classList.contains('aberto')) {
             renderizarListaFuncionarios();
         }
@@ -2670,7 +3060,31 @@
         }
     });
 
-    function abrirModalCadastro(opcoes = null) {
+    async function abrirModalCadastro(opcoes = null) {
+        const isEdit = Boolean(opcoes && opcoes.itemEdicao);
+        if (isEdit && !temPermissao('podeEditarRotas')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Editar Rotas</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+        if (!isEdit && !temPermissao('podeCadastrarRotas')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Cadastrar Rotas</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+
         document.getElementById('feedbackMsg').style.display = 'none';
         fecharListaEntregadoresCombo();
 
@@ -3115,6 +3529,9 @@
 
     async function prepararSalvamento() {
         const id = document.getElementById('editId').value;
+        if (id && !temPermissao('podeEditarRotas')) return;
+        if (!id && !temPermissao('podeCadastrarRotas')) return;
+
         const entregador = document.getElementById('entregador').value.toUpperCase().trim();
         const rua = document.getElementById('rua').value.toUpperCase().trim();
         let numeracao = document.getElementById('numeracao').value.toUpperCase().trim();
@@ -3224,12 +3641,14 @@
     }
 
     function editarRegistro(id) {
+        if (!temPermissao('podeEditarRotas')) return;
         const item = registros.find(r => r.id === id);
         if (!item) return;
         abrirModalCadastro({ itemEdicao: item });
     }
 
     async function excluirRegistro(id, rua, entregador) {
+        if (!temPermissao('podeExcluirRotas')) return;
         const confirmado = await abrirPopup({
             tipo: 'danger',
             icone: '🗑️',
@@ -3245,6 +3664,7 @@
     }
 
     async function renomearEntregador(nomeAtual) {
+        if (!temPermissao('podeEditarRotas')) return;
         const novoNome = await abrirPopup({
             tipo: 'info',
             icone: '✏️',
@@ -3287,6 +3707,7 @@
     }
 
     async function excluirEntregadorCompleto(nomeEntregador) {
+        if (!temPermissao('podeExcluirRotas')) return;
         const itensDoEntregador = registros.filter(r => r.entregador === nomeEntregador);
         const qtd = itensDoEntregador.length;
 
@@ -3380,7 +3801,7 @@
         }
 
         if (registros.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado. Toque em <strong>➕ Cadastrar</strong> para adicionar.</p>';
+            container.innerHTML = '<p style="text-align:center; color:var(--muted); margin-top:24px;">Nenhum registro encontrado.</p>';
             return;
         }
 
@@ -3425,6 +3846,10 @@
 
         const nomesOrdenados = Object.keys(agrupadoPorEntregador).sort((a, b) => a.localeCompare(b));
 
+        const podeCadastrar = temPermissao('podeCadastrarRotas');
+        const podeEditar = temPermissao('podeEditarRotas');
+        const podeExcluir = temPermissao('podeExcluirRotas');
+
         container.innerHTML = nomesOrdenados.map(nomeEntregador => {
             const ruasDoEntregador = agrupadoPorEntregador[nomeEntregador].sort((a, b) => a.rua.localeCompare(b.rua));
             const totalRuas = ruasDoEntregador.length;
@@ -3442,11 +3867,20 @@
                         <span>NUMERAÇÃO: ${item.numeracao}</span>
                     </div>
                     <div class="item-actions">
-                        <button class="btn-sm btn-edit" onclick="editarRegistro('${item.id}')">Editar</button>
-                        <button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua.replace(/'/g, "\\'")}', '${nomeEscapado}')">Excluir</button>
+                        ${podeEditar ? `<button class="btn-sm btn-edit" onclick="editarRegistro('${item.id}')">Editar</button>` : ''}
+                        ${podeExcluir ? `<button class="btn-sm btn-del" onclick="excluirRegistro('${item.id}', '${item.rua.replace(/'/g, "\\'")}', '${nomeEscapado}')">Excluir</button>` : ''}
                     </div>
                 </div>
             `).join('');
+
+            const temAcoesGrupo = podeCadastrar || podeEditar || podeExcluir;
+            const bulkActionsHtml = temAcoesGrupo ? `
+                <div class="entregador-bulk-actions">
+                    ${podeCadastrar ? `<button type="button" class="btn-add-rua-ent" onclick="abrirModalNovaRuaParaEntregador('${nomeEscapado}')">➕ Nova Rua</button>` : ''}
+                    ${podeEditar ? `<button type="button" class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear</button>` : ''}
+                    ${podeExcluir ? `<button type="button" class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir</button>` : ''}
+                </div>
+            ` : '';
 
             return `
                 <div class="entregador-group ${estaAberto ? 'aberto' : ''}">
@@ -3460,11 +3894,7 @@
                         </div>
                     </div>
                     <div class="entregador-body">
-                        <div class="entregador-bulk-actions">
-                            <button type="button" class="btn-add-rua-ent" onclick="abrirModalNovaRuaParaEntregador('${nomeEscapado}')">➕ Nova Rua</button>
-                            <button type="button" class="btn-bulk btn-rename-ent" onclick="renomearEntregador('${nomeEscapado}')">✏️ Renomear</button>
-                            <button type="button" class="btn-bulk btn-del-ent" onclick="excluirEntregadorCompleto('${nomeEscapado}')">🗑️ Excluir</button>
-                        </div>
+                        ${bulkActionsHtml}
                         ${linhasRuas}
                     </div>
                 </div>
