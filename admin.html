@@ -1420,23 +1420,43 @@
 
             <label style="margin-bottom: 6px;">Funções e Nível de Acesso</label>
             <div class="perms-grid">
-                <label class="perm-check-card" for="permFuncMaster">
+                <label class="perm-check-card" for="permFuncMaster" style="grid-column: span 2;">
                     <input type="checkbox" id="permFuncMaster" onchange="aoMudarCheckboxMasterFunc()">
-                    <span>👑 Função Master</span>
+                    <span>👑 Função Master (Acesso Total)</span>
                 </label>
+
                 <label class="perm-check-card" for="permGerarQr">
                     <input type="checkbox" id="permGerarQr" checked>
                     <span>📱 Gerar QR Code</span>
+                </label>
+                <label class="perm-check-card" for="permZerarFila">
+                    <input type="checkbox" id="permZerarFila" checked>
+                    <span>🗑️ Zerar Fila Bipagem</span>
+                </label>
+
+                <label class="perm-check-card" for="permMarcarPrioridadeFila">
+                    <input type="checkbox" id="permMarcarPrioridadeFila" checked>
+                    <span>⭐ Prioridade na Fila</span>
+                </label>
+                <label class="perm-check-card" for="permEditarMotoristaFila">
+                    <input type="checkbox" id="permEditarMotoristaFila" checked>
+                    <span>✏️ Editar Nome na Fila</span>
+                </label>
+
+                <label class="perm-check-card" for="permExcluirMotoristaFila">
+                    <input type="checkbox" id="permExcluirMotoristaFila" checked>
+                    <span>✕ Excluir da Fila</span>
                 </label>
                 <label class="perm-check-card" for="permCadastrarRotas">
                     <input type="checkbox" id="permCadastrarRotas" checked>
                     <span>➕ Cadastrar Rotas</span>
                 </label>
+
                 <label class="perm-check-card" for="permEditarRotas">
                     <input type="checkbox" id="permEditarRotas" checked>
                     <span>✏️ Editar Rotas</span>
                 </label>
-                <label class="perm-check-card" for="permExcluirRotas" style="grid-column: span 2;">
+                <label class="perm-check-card" for="permExcluirRotas">
                     <input type="checkbox" id="permExcluirRotas" checked>
                     <span>🗑️ Excluir Rotas</span>
                 </label>
@@ -1943,6 +1963,10 @@
         if (role === 'master') {
             return {
                 podeGerarQr: true,
+                podeZerarFila: true,
+                podeMarcarPrioridadeFila: true,
+                podeEditarMotoristaFila: true,
+                podeExcluirMotoristaFila: true,
                 podeCadastrarRotas: true,
                 podeEditarRotas: true,
                 podeExcluirRotas: true
@@ -1950,6 +1974,10 @@
         }
         return {
             podeGerarQr: true,
+            podeZerarFila: true,
+            podeMarcarPrioridadeFila: true,
+            podeEditarMotoristaFila: true,
+            podeExcluirMotoristaFila: true,
             podeCadastrarRotas: true,
             podeEditarRotas: true,
             podeExcluirRotas: true
@@ -1963,6 +1991,10 @@
         const p = rawPerms && typeof rawPerms === 'object' ? rawPerms : {};
         return {
             podeGerarQr: p.podeGerarQr !== false,
+            podeZerarFila: p.podeZerarFila !== false,
+            podeMarcarPrioridadeFila: p.podeMarcarPrioridadeFila !== false,
+            podeEditarMotoristaFila: p.podeEditarMotoristaFila !== false,
+            podeExcluirMotoristaFila: p.podeExcluirMotoristaFila !== false,
             podeCadastrarRotas: p.podeCadastrarRotas !== false,
             podeEditarRotas: p.podeEditarRotas !== false,
             podeExcluirRotas: p.podeExcluirRotas !== false
@@ -2604,11 +2636,22 @@
         }, 3000);
     }
 
+    const IDS_PERMISSOES_FUNC = [
+        'permGerarQr',
+        'permZerarFila',
+        'permMarcarPrioridadeFila',
+        'permEditarMotoristaFila',
+        'permExcluirMotoristaFila',
+        'permCadastrarRotas',
+        'permEditarRotas',
+        'permExcluirRotas'
+    ];
+
     function aoMudarCheckboxMasterFunc() {
         const isMaster = document.getElementById('permFuncMaster').checked;
-        const idsPerm = ['permGerarQr', 'permCadastrarRotas', 'permEditarRotas', 'permExcluirRotas'];
-        idsPerm.forEach(id => {
+        IDS_PERMISSOES_FUNC.forEach(id => {
             const el = document.getElementById(id);
+            if (!el) return;
             if (isMaster) {
                 el.checked = true;
                 el.disabled = true;
@@ -2625,10 +2668,10 @@
         document.getElementById('funcSenhaInput').value = '';
         document.getElementById('funcAtivoSelect').value = 'true';
         document.getElementById('permFuncMaster').checked = false;
-        document.getElementById('permGerarQr').checked = true;
-        document.getElementById('permCadastrarRotas').checked = true;
-        document.getElementById('permEditarRotas').checked = true;
-        document.getElementById('permExcluirRotas').checked = true;
+        IDS_PERMISSOES_FUNC.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.checked = true;
+        });
         aoMudarCheckboxMasterFunc();
         document.getElementById('funcFormTitulo').innerText = '➕ Novo Funcionário';
         document.getElementById('btnCancelarEdicaoFunc').style.display = 'none';
@@ -2659,6 +2702,10 @@
         document.getElementById('funcAtivoSelect').value = func.ativo === false ? 'false' : 'true';
         document.getElementById('permFuncMaster').checked = isMasterFunc;
         document.getElementById('permGerarQr').checked = perms.podeGerarQr;
+        document.getElementById('permZerarFila').checked = perms.podeZerarFila;
+        document.getElementById('permMarcarPrioridadeFila').checked = perms.podeMarcarPrioridadeFila;
+        document.getElementById('permEditarMotoristaFila').checked = perms.podeEditarMotoristaFila;
+        document.getElementById('permExcluirMotoristaFila').checked = perms.podeExcluirMotoristaFila;
         document.getElementById('permCadastrarRotas').checked = perms.podeCadastrarRotas;
         document.getElementById('permEditarRotas').checked = perms.podeEditarRotas;
         document.getElementById('permExcluirRotas').checked = perms.podeExcluirRotas;
@@ -2701,6 +2748,10 @@
             ? obterPermissoesPadrao('master')
             : {
                 podeGerarQr: document.getElementById('permGerarQr').checked,
+                podeZerarFila: document.getElementById('permZerarFila').checked,
+                podeMarcarPrioridadeFila: document.getElementById('permMarcarPrioridadeFila').checked,
+                podeEditarMotoristaFila: document.getElementById('permEditarMotoristaFila').checked,
+                podeExcluirMotoristaFila: document.getElementById('permExcluirMotoristaFila').checked,
                 podeCadastrarRotas: document.getElementById('permCadastrarRotas').checked,
                 podeEditarRotas: document.getElementById('permEditarRotas').checked,
                 podeExcluirRotas: document.getElementById('permExcluirRotas').checked
@@ -2774,6 +2825,10 @@
                 ? `<span class="perm-pill">👑 MASTER (ACESSO TOTAL)</span>`
                 : `
                     <span class="perm-pill ${perms.podeGerarQr ? '' : 'off'}">QR Code</span>
+                    <span class="perm-pill ${perms.podeZerarFila ? '' : 'off'}">Zerar Fila</span>
+                    <span class="perm-pill ${perms.podeMarcarPrioridadeFila ? '' : 'off'}">Prioridade Fila</span>
+                    <span class="perm-pill ${perms.podeEditarMotoristaFila ? '' : 'off'}">Editar Fila</span>
+                    <span class="perm-pill ${perms.podeExcluirMotoristaFila ? '' : 'off'}">Excluir Fila</span>
                     <span class="perm-pill ${perms.podeCadastrarRotas ? '' : 'off'}">Cadastrar Rotas</span>
                     <span class="perm-pill ${perms.podeEditarRotas ? '' : 'off'}">Editar Rotas</span>
                     <span class="perm-pill ${perms.podeExcluirRotas ? '' : 'off'}">Excluir Rotas</span>
@@ -2873,6 +2928,7 @@
         if (usuarioLogado) {
             aplicarPermissoesSessao();
             renderizarLista();
+            renderizarFila();
         }
         if (document.getElementById('modalFuncionarios').classList.contains('aberto')) {
             renderizarListaFuncionarios();
@@ -3902,13 +3958,36 @@
         }).join('');
     }
 
-    function alternarPrioridadeFila(id, estadoAtual) {
+    async function alternarPrioridadeFila(id, estadoAtual) {
+        if (!temPermissao('podeMarcarPrioridadeFila')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Marcar Prioridade na Fila</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
         filaRef.child(id).update({
             prioridade: !estadoAtual
         });
     }
 
     async function editarMotoristaFila(id, nomeAtual) {
+        if (!temPermissao('podeEditarMotoristaFila')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Editar Nome do Motorista na Fila</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+
         const novoNome = await abrirPopup({
             tipo: 'info',
             icone: '✏️',
@@ -3959,7 +4038,18 @@
         }
     }
 
-    function removerDaFila(id) {
+    async function removerDaFila(id) {
+        if (!temPermissao('podeExcluirMotoristaFila')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Excluir Motorista da Fila</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
         filaRef.child(id).remove();
     }
 
@@ -3984,6 +4074,17 @@
     }
 
     async function zerarFilaCompleta() {
+        if (!temPermissao('podeZerarFila')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Zerar Fila da Bipagem</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
         if (filaItens.length === 0) return;
 
         const confirmado = await abrirPopup({
@@ -4025,6 +4126,11 @@
             return;
         }
 
+        const podePrio = temPermissao('podeMarcarPrioridadeFila');
+        const podeEditarFila = temPermissao('podeEditarMotoristaFila');
+        const podeExcluirFila = temPermissao('podeExcluirMotoristaFila');
+        const podeZerar = temPermissao('podeZerarFila');
+
         let html = '';
 
         if (aguardando.length > 0) {
@@ -4046,10 +4152,10 @@
                             <span class="fila-hora-solta">🕒 ${horaInclusao}</span>
                         </div>
                         <div class="fila-actions">
-                            <button class="btn-prio-fila ${item.prioridade ? 'ativo' : ''}" onclick="alternarPrioridadeFila('${item.id}', ${Boolean(item.prioridade)})" title="Marcar/desmarcar prioridade">${item.prioridade ? '★' : '☆'}</button>
-                            <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
+                            ${podePrio ? `<button class="btn-prio-fila ${item.prioridade ? 'ativo' : ''}" onclick="alternarPrioridadeFila('${item.id}', ${Boolean(item.prioridade)})" title="Marcar/desmarcar prioridade">${item.prioridade ? '★' : '☆'}</button>` : ''}
+                            ${podeEditarFila ? `<button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>` : ''}
                             <button class="btn-bipar" onclick="marcarBipagem('${item.id}', true)" title="Marcar como bipado">✓</button>
-                            <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover da fila">✕</button>
+                            ${podeExcluirFila ? `<button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover da fila">✕</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -4079,21 +4185,23 @@
                             <span class="fila-hora-solta">🕒 ${horaBipado}</span>
                         </div>
                         <div class="fila-actions">
-                            <button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>
+                            ${podeEditarFila ? `<button class="btn-edit-fila" onclick="editarMotoristaFila('${item.id}', '${nomeEscapado}')" title="Editar motorista">✏️</button>` : ''}
                             <button class="btn-desfazer-bip" onclick="marcarBipagem('${item.id}', false)">↩ Voltar</button>
-                            <button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover">✕</button>
+                            ${podeExcluirFila ? `<button class="btn-rm-fila" onclick="removerDaFila('${item.id}')" title="Remover">✕</button>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        html += `
-            <div class="fila-toolbar">
-                ${bipados.length > 0 ? `<button class="btn-limpar-bip" onclick="limparBipados()">🧹 Limpar Bipados</button>` : ''}
-                <button class="btn-zerar-fila" onclick="zerarFilaCompleta()">🗑️ Zerar Fila</button>
-            </div>
-        `;
+        if (bipados.length > 0 || podeZerar) {
+            html += `
+                <div class="fila-toolbar">
+                    ${bipados.length > 0 ? `<button class="btn-limpar-bip" onclick="limparBipados()">🧹 Limpar Bipados</button>` : ''}
+                    ${podeZerar ? `<button class="btn-zerar-fila" onclick="zerarFilaCompleta()">🗑️ Zerar Fila</button>` : ''}
+                </div>
+            `;
+        }
 
         container.innerHTML = html;
     }
