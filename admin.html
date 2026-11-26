@@ -1147,7 +1147,7 @@
                 <div class="fila-qr-bar">
                     <div class="fila-qr-info">
                         <p>Entrada na fila via QR Code</p>
-                        <span>Os motoristas entram escaneando o QR Code diário</span>
+                        <span>A lista zera automaticamente às 00:00h todo dia</span>
                     </div>
                     <button type="button" class="btn-qr-dia" onclick="abrirModalQrDiario()">📱 QR Code do Dia</button>
                 </div>
@@ -1173,7 +1173,7 @@
     </footer>
 </div>
 
-<!-- Modal Instruções de Instalação (fallback apenas quando o navegador não exibe prompt direto) -->
+<!-- Modal Instruções de Instalação -->
 <div id="modalInstalacao" class="modal-backdrop" onclick="if(event.target===this) fecharModalInstalacao()">
     <div class="modal-card tipo-info">
         <div class="modal-header">
@@ -1439,7 +1439,6 @@
         ctx.save();
         ctx.scale(s, s);
 
-        // Fundo arredondado do painel admin
         const r = 96;
         ctx.beginPath();
         ctx.moveTo(r, 0);
@@ -1459,13 +1458,11 @@
         ctx.strokeStyle = '#3b82f6';
         ctx.stroke();
 
-        // Caminhão estilizado em azul/branco
         ctx.fillStyle = '#3b82f6';
         ctx.beginPath();
         ctx.roundRect(66, 198, 224, 138, 18);
         ctx.fill();
 
-        // Cabine do caminhão
         ctx.fillStyle = '#60a5fa';
         ctx.beginPath();
         ctx.moveTo(298, 224);
@@ -1476,13 +1473,11 @@
         ctx.closePath();
         ctx.fill();
 
-        // Janela da cabine
         ctx.fillStyle = '#0f172a';
         ctx.beginPath();
         ctx.roundRect(318, 242, 68, 44, 8);
         ctx.fill();
 
-        // Rodas do caminhão
         ctx.fillStyle = '#e2e8f0';
         ctx.beginPath();
         ctx.arc(146, 344, 42, 0, Math.PI * 2);
@@ -1495,7 +1490,6 @@
         ctx.arc(372, 344, 18, 0, Math.PI * 2);
         ctx.fill();
 
-        // Engrenagem no canto superior direito
         const gx = 376;
         const gy = 132;
         const dentes = 8;
@@ -1628,10 +1622,16 @@
     const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
     const ARQUIVO_FILA_MOTORISTA = "fila-motorista.html";
 
-    function obterDataHojeIso() {
-        const agora = new Date();
+    function obterDataHojeIso(dataObj = new Date()) {
         const pad = (n) => String(n).padStart(2, '0');
-        return `${agora.getFullYear()}-${pad(agora.getMonth() + 1)}-${pad(agora.getDate())}`;
+        return `${dataObj.getFullYear()}-${pad(dataObj.getMonth() + 1)}-${pad(dataObj.getDate())}`;
+    }
+
+    function obterDataIsoDeTimestamp(ts) {
+        if (!ts || Number(ts) <= 0) return '';
+        const d = new Date(Number(ts));
+        if (Number.isNaN(d.getTime())) return '';
+        return obterDataHojeIso(d);
     }
 
     function extrairTimestampFirebasePush(pushId) {
@@ -1659,6 +1659,65 @@
         if (partes.length !== 3) return isoDate;
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
+
+    /* Reset automático diário às 00:00h (zera toda a fila: aguardando e bipados) */
+    let timerResetMeiaNoite = null;
+    let ultimoDiaVerificado = obterDataHojeIso();
+    let resetEmAndamento = false;
+
+    async function resetarFilaViradaDia(motivo = '00:00') {
+        if (resetEmAndamento) return;
+        resetEmAndamento = true;
+        try {
+            await filaRef.remove();
+            ultimoDiaVerificado = obterDataHojeIso();
+            console.log(`Fila de bipagem zerada automaticamente (${motivo}) para o dia ${ultimoDiaVerificado}.`);
+        } catch (err) {
+            console.error('Erro ao zerar fila na virada do dia:', err);
+        } finally {
+            resetEmAndamento = false;
+        }
+    }
+
+    function verificarMudancaDia() {
+        const hojeIso = obterDataHojeIso();
+        if (hojeIso !== ultimoDiaVerificado) {
+            resetarFilaViradaDia('mudanca-dia');
+        }
+    }
+
+    function agendarResetMeiaNoite() {
+        if (timerResetMeiaNoite) {
+            clearTimeout(timerResetMeiaNoite);
+            timerResetMeiaNoite = null;
+        }
+
+        const agora = new Date();
+        const proximaMeiaNoite = new Date(
+            agora.getFullYear(),
+            agora.getMonth(),
+            agora.getDate() + 1,
+            0, 0, 0, 50
+        );
+        const msAteMeiaNoite = Math.max(100, proximaMeiaNoite.getTime() - agora.getTime());
+
+        timerResetMeiaNoite = setTimeout(async () => {
+            await resetarFilaViradaDia('00:00h');
+            agendarResetMeiaNoite();
+        }, msAteMeiaNoite);
+    }
+
+    agendarResetMeiaNoite();
+    setInterval(() => {
+        verificarMudancaDia();
+        if (!timerResetMeiaNoite) agendarResetMeiaNoite();
+    }, 30000);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            verificarMudancaDia();
+            agendarResetMeiaNoite();
+        }
+    });
 
     function gerarTokenDia(dataIso) {
         const base = `${dataIso}|${SEGREDO_QR_DIARIO}`;
@@ -2329,11 +2388,21 @@
         erroBancoFila = false;
         filaItens = [];
         const data = snapshot.val();
+        const hojeIso = obterDataHojeIso();
+        let haRegistrosDiaAnterior = false;
+
         if (data && typeof data === 'object') {
             Object.keys(data).forEach(id => {
                 const raw = data[id];
                 if (!raw || typeof raw !== 'object') return;
                 const tsCriacao = Number(raw.criadoEm) || extrairTimestampFirebasePush(id) || 0;
+                const dataItem = raw.dataFila || obterDataIsoDeTimestamp(tsCriacao) || hojeIso;
+
+                if (dataItem < hojeIso) {
+                    haRegistrosDiaAnterior = true;
+                    return;
+                }
+
                 filaItens.push({
                     id,
                     motorista: String(raw.motorista || "").toUpperCase().trim(),
@@ -2341,11 +2410,18 @@
                     bipado: Boolean(raw.bipado),
                     bipadoEm: Number(raw.bipadoEm) || 0,
                     criadoEm: tsCriacao,
+                    dataFila: dataItem,
                     origem: raw.origem || 'qrcode',
                     prioridade: Boolean(raw.prioridade)
                 });
             });
         }
+
+        if (haRegistrosDiaAnterior && !resetEmAndamento) {
+            resetarFilaViradaDia('registros-dia-anterior');
+            return;
+        }
+
         const qtdAguardando = filaItens.filter(f => !f.bipado).length;
         document.getElementById('badgeFilaAtiva').innerText = `(${qtdAguardando})`;
         atualizarResumoBackup();
