@@ -39,9 +39,70 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; padding: var(--page-padding); }
         .container { width: 100%; max-width: var(--container-max); display: flex; flex-direction: column; min-height: calc(100vh - (var(--page-padding) * 2)); transition: max-width 0.2s ease, padding 0.2s ease; }
-        header { text-align: center; margin-bottom: 16px; }
+        header { text-align: center; margin-bottom: 14px; }
         header h1 { font-size: 1.35rem; }
         body.device-desktop header h1 { font-size: 1.55rem; }
+
+        .session-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            font-size: 0.82rem;
+            flex-wrap: wrap;
+        }
+        .session-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            font-weight: 700;
+        }
+        .role-badge {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .role-badge.master {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+        .role-badge.operador {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--primary);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+        .session-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-mini-action {
+            padding: 5px 10px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: #0f172a;
+            color: var(--text);
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-mini-action:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .btn-mini-sair {
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.35);
+        }
 
         .tabs-row {
             display: flex;
@@ -190,18 +251,18 @@
             font-size: 0.92rem;
         }
 
-        .form-group { margin-bottom: 12px; position: relative; }
+        .form-group { margin-bottom: 12px; position: relative; text-align: left; }
         label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; }
-        input {
+        input, select {
             width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
             background: #0f172a; color: var(--text); font-size: 0.95rem; outline: none;
         }
-        body.device-desktop input {
+        body.device-desktop input, body.device-desktop select {
             padding: 13px 14px;
         }
         input.upper { text-transform: uppercase; }
         input.upper::placeholder { text-transform: none; }
-        input:focus { border-color: var(--primary); }
+        input:focus, select:focus { border-color: var(--primary); }
 
         .combobox-wrap {
             position: relative;
@@ -571,6 +632,12 @@
             border-radius: 5px;
             margin-top: 5px;
         }
+        .fila-bip-meta {
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 4px;
+        }
         .fila-hora-solta {
             font-size: 0.78rem;
             font-weight: 700;
@@ -652,7 +719,7 @@
         .fila-card.bipado {
             background: rgba(15, 23, 42, 0.55);
             border-color: #263244;
-            opacity: 0.58;
+            opacity: 0.72;
         }
         .fila-card.bipado .fila-pos {
             background: rgba(148, 163, 184, 0.12);
@@ -700,6 +767,34 @@
             font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
+        }
+
+        /* Gestão de Funcionários (Master) */
+        .func-item-card {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .func-item-info strong {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .func-item-info span {
+            display: block;
+            font-size: 0.76rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+        .func-status-inativo {
+            color: var(--danger) !important;
+            font-weight: 700;
         }
 
         /* Rodapé discreto para instalar na tela inicial */
@@ -864,7 +959,7 @@
             overflow-y: auto;
         }
         body.device-desktop .modal-card {
-            max-width: 500px;
+            max-width: 520px;
             padding: 24px;
         }
         .modal-card.tipo-warning { border-color: var(--warning); }
@@ -957,8 +1052,8 @@
 
         .backup-stats {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
             margin-bottom: 14px;
         }
         .backup-stat-card {
@@ -969,7 +1064,7 @@
         }
         .backup-stat-card span {
             display: block;
-            font-size: 0.74rem;
+            font-size: 0.72rem;
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.04em;
@@ -977,7 +1072,7 @@
         }
         .backup-stat-card strong {
             display: block;
-            font-size: 1.05rem;
+            font-size: 1.02rem;
             color: var(--text);
             margin-top: 2px;
         }
@@ -1104,7 +1199,7 @@
         .tipo-danger .btn-modal-confirm { background: var(--danger); color: #fff; }
         .tipo-info .btn-modal-confirm { background: var(--primary); color: #fff; }
 
-        #loginScreen { margin-top: 60px; text-align: center; }
+        #loginScreen { margin-top: 40px; text-align: center; }
         #appScreen { display: none; }
     </style>
 </head>
@@ -1112,21 +1207,42 @@
 
 <div class="container">
     <div id="loginScreen" class="box">
-        <h2 style="margin-bottom: 12px; font-size: 1.2rem;">Acesso Administrativo</h2>
+        <h2 style="margin-bottom: 6px; font-size: 1.2rem;">Acesso ao Galpão</h2>
+        <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 16px;">Entre com seu login de funcionário ou acesso Master</p>
+
         <div class="form-group">
-            <input type="password" id="pinInput" inputmode="numeric" placeholder="Digite o PIN de acesso" onkeydown="if(event.key==='Enter') verificarPin()">
+            <label for="loginUsuarioInput">Login ou Nome de Usuário</label>
+            <input type="text" id="loginUsuarioInput" class="upper" placeholder="Ex: MASTER ou CARLOS" autocomplete="username" onkeydown="if(event.key==='Enter') verificarLogin()">
         </div>
+
+        <div class="form-group">
+            <label for="pinInput">Senha / PIN</label>
+            <input type="password" id="pinInput" placeholder="Digite sua senha ou PIN" autocomplete="current-password" onkeydown="if(event.key==='Enter') verificarLogin()">
+        </div>
+
         <label class="remember-row" for="salvarSenhaCheck">
             <input type="checkbox" id="salvarSenhaCheck">
-            <span>Salvar senha neste dispositivo</span>
+            <span>Salvar login e senha neste dispositivo</span>
         </label>
-        <button class="action-btn btn-save" onclick="verificarPin()" style="width: 100%;">Entrar</button>
+        <button class="action-btn btn-save" onclick="verificarLogin()" style="width: 100%;">Entrar</button>
     </div>
 
     <div id="appScreen">
         <header>
             <h1>Painel Administrativo</h1>
         </header>
+
+        <div class="session-bar" id="sessionBar">
+            <div class="session-user">
+                <span>👤</span>
+                <span id="sessaoNomeUsuario">-</span>
+                <span class="role-badge operador" id="sessaoBadgePerfil">FUNCIONÁRIO</span>
+            </div>
+            <div class="session-actions">
+                <button type="button" class="btn-mini-action" id="btnAbrirFuncionarios" style="display:none;" onclick="abrirModalFuncionarios()">👥 Logins</button>
+                <button type="button" class="btn-mini-action btn-mini-sair" onclick="sairSessao()">Sair</button>
+            </div>
+        </div>
 
         <div class="tabs-row">
             <div class="tabs">
@@ -1139,7 +1255,7 @@
                     <span class="tab-count" id="badgeTotalEntregadores">(0)</span>
                 </button>
             </div>
-            <button class="btn-config-gear" onclick="abrirModalBackup()" title="Backup e Migração Firebase">⚙️</button>
+            <button class="btn-config-gear" id="btnEngrenagemBackup" onclick="abrirModalBackup()" title="Backup e Migração Firebase">⚙️</button>
         </div>
 
         <div id="abaFila" class="tab-content ativa">
@@ -1171,6 +1287,63 @@
             📲 Instalar aplicativo na tela inicial
         </button>
     </footer>
+</div>
+
+<!-- Modal Gestão de Funcionários (Exclusivo Master) -->
+<div id="modalFuncionarios" class="modal-backdrop" onclick="if(event.target===this) fecharModalFuncionarios()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon">👥</div>
+                <h3 id="tituloModalFunc">Logins de Funcionários</h3>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalFuncionarios()" title="Fechar">✕</button>
+        </div>
+
+        <div class="backup-section">
+            <h4 id="funcFormTitulo">➕ Novo Funcionário</h4>
+            <input type="hidden" id="funcEditId">
+
+            <div class="form-group">
+                <label for="funcNomeInput">Nome Completo / Exibição *</label>
+                <input type="text" id="funcNomeInput" class="upper" placeholder="Ex: CARLOS ALMEIDA">
+            </div>
+
+            <div class="form-group">
+                <label for="funcLoginInput">Login de Acesso *</label>
+                <input type="text" id="funcLoginInput" class="upper" placeholder="Ex: CARLOS.ALMEIDA">
+            </div>
+
+            <div class="form-group">
+                <label for="funcSenhaInput">Senha *</label>
+                <input type="text" id="funcSenhaInput" placeholder="Defina a senha do funcionário">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label for="funcAtivoSelect">Status do Acesso</label>
+                <select id="funcAtivoSelect">
+                    <option value="true">Ativo</option>
+                    <option value="false">Bloqueado / Inativo</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="action-btn btn-save" onclick="salvarFuncionario()">Salvar Login</button>
+                <button type="button" class="btn-modal-cancel" id="btnCancelarEdicaoFunc" style="display:none; flex:0 0 auto;" onclick="limparFormFuncionario()">Cancelar Edição</button>
+            </div>
+            <div id="funcStatusMsg" class="backup-status-msg"></div>
+        </div>
+
+        <div class="fila-section-title" style="margin-top: 6px;">
+            <span>Funcionários Cadastrados</span>
+            <span id="funcQtdBadge">0</span>
+        </div>
+        <div id="listaFuncionariosContainer"></div>
+
+        <div class="modal-footer">
+            <button class="btn-modal-cancel" onclick="fecharModalFuncionarios()">Fechar</button>
+        </div>
+    </div>
 </div>
 
 <!-- Modal Instruções de Instalação -->
@@ -1253,18 +1426,22 @@
 
         <div class="backup-stats">
             <div class="backup-stat-card">
-                <span>Rotas Cadastradas</span>
+                <span>Rotas</span>
                 <strong id="backupQtdRotas">0</strong>
             </div>
             <div class="backup-stat-card">
-                <span>Itens na Fila</span>
+                <span>Fila</span>
                 <strong id="backupQtdFila">0</strong>
+            </div>
+            <div class="backup-stat-card">
+                <span>Funcionários</span>
+                <strong id="backupQtdFunc">0</strong>
             </div>
         </div>
 
         <div class="backup-section">
             <h4>📤 Exportar Backup (.JSON)</h4>
-            <p>Salva todas as rotas e a fila de bipagem em um arquivo JSON para guardar ou subir em outro banco Firebase.</p>
+            <p>Salva rotas, fila de bipagem e logins de funcionários em um arquivo JSON para guardar ou subir em outro banco Firebase.</p>
             <button class="btn-export-json" onclick="exportarBackupJson()">⬇️ Baixar Backup JSON</button>
         </div>
 
@@ -1612,15 +1789,26 @@
     const db = firebase.database();
     const rotasRef = db.ref('rotas');
     const filaRef = db.ref('fila_bipagem');
+    const funcionariosRef = db.ref('funcionarios');
+
+    /* Credenciais Master */
+    const MASTER_LOGIN = "MASTER";
+    const MASTER_SENHA = "1234";
 
     let registros = [];
     let filaItens = [];
+    let funcionarios = [];
+    let usuarioLogado = null; // { login, nome, role: 'master' | 'operador' }
     let entregadoresExpandidos = new Set();
     let erroBancoRotas = false;
     let erroBancoFila = false;
 
     const SEGREDO_QR_DIARIO = "ROTA-BIPAGEM-GALPAO-2026";
     const ARQUIVO_FILA_MOTORISTA = "fila-motorista.html";
+
+    function normalizar(texto) {
+        return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
+    }
 
     function obterDataHojeIso(dataObj = new Date()) {
         const pad = (n) => String(n).padStart(2, '0');
@@ -1660,7 +1848,7 @@
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
 
-    /* Reset automático diário às 00:00h (zera toda a fila: aguardando e bipados) */
+    /* Reset automático diário às 00:00h */
     let timerResetMeiaNoite = null;
     let ultimoDiaVerificado = obterDataHojeIso();
     let resetEmAndamento = false;
@@ -1841,8 +2029,9 @@
     window.addEventListener('resize', detectarTipoDispositivo);
     window.addEventListener('orientationchange', detectarTipoDispositivo);
 
-    const SENHA_ADMIN = "1234";
+    const CHAVE_LOGIN_SALVO = "adminLoginSalvo";
     const CHAVE_PIN_SALVO = "adminPinSalvo";
+    const CHAVE_SESSAO_ATIVA = "sessaoAdminAtiva";
     const CHAVE_ABA_ATIVA = "abaAdminAtiva";
     let resolverPopup = null;
 
@@ -1922,9 +2111,473 @@
         }
     }
 
-    function normalizar(texto) {
-        return texto ? texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim() : "";
+    function autenticarCredenciais(loginDigitado, senhaDigitada) {
+        const loginNorm = normalizar(loginDigitado);
+        const senha = String(senhaDigitada || '').trim();
+
+        if (!loginNorm || !senha) return null;
+
+        if (loginNorm === normalizar(MASTER_LOGIN) && senha === MASTER_SENHA) {
+            return {
+                login: MASTER_LOGIN,
+                nome: 'MASTER',
+                role: 'master'
+            };
+        }
+
+        const funcEncontrado = funcionarios.find(f =>
+            normalizar(f.login) === loginNorm && String(f.senha || '') === senha
+        );
+
+        if (!funcEncontrado) return null;
+        if (funcEncontrado.ativo === false) {
+            return { bloqueado: true, nome: funcEncontrado.nome || funcEncontrado.login };
+        }
+
+        return {
+            login: funcEncontrado.login,
+            nome: funcEncontrado.nome || funcEncontrado.login,
+            role: 'operador'
+        };
     }
+
+    function aplicarPermissoesSessao() {
+        const isMaster = usuarioLogado && usuarioLogado.role === 'master';
+        const barra = document.getElementById('sessionBar');
+        const nomeEl = document.getElementById('sessaoNomeUsuario');
+        const badgeEl = document.getElementById('sessaoBadgePerfil');
+        const btnFunc = document.getElementById('btnAbrirFuncionarios');
+        const btnGear = document.getElementById('btnEngrenagemBackup');
+
+        if (!usuarioLogado) {
+            barra.style.display = 'none';
+            return;
+        }
+
+        barra.style.display = 'flex';
+        nomeEl.innerText = `${usuarioLogado.nome} (${usuarioLogado.login})`;
+
+        if (isMaster) {
+            badgeEl.innerText = 'MASTER';
+            badgeEl.className = 'role-badge master';
+            btnFunc.style.display = 'inline-block';
+            btnGear.style.display = 'flex';
+        } else {
+            badgeEl.innerText = 'FUNCIONÁRIO';
+            badgeEl.className = 'role-badge operador';
+            btnFunc.style.display = 'none';
+            btnGear.style.display = 'none';
+        }
+    }
+
+    function mostrarPainelLogado() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'block';
+        aplicarPermissoesSessao();
+        trocarAba(obterAbaSalva(), false);
+        renderizarLista();
+        renderizarFila();
+    }
+
+    function sairSessao() {
+        usuarioLogado = null;
+        sessionStorage.removeItem(CHAVE_SESSAO_ATIVA);
+        document.getElementById('appScreen').style.display = 'none';
+        document.getElementById('sessionBar').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'block';
+        if (!document.getElementById('salvarSenhaCheck').checked) {
+            document.getElementById('pinInput').value = '';
+        }
+    }
+
+    function inicializarLogin() {
+        const loginSalvo = localStorage.getItem(CHAVE_LOGIN_SALVO);
+        const pinSalvo = localStorage.getItem(CHAVE_PIN_SALVO);
+        const loginInput = document.getElementById('loginUsuarioInput');
+        const pinInput = document.getElementById('pinInput');
+        const checkSalvar = document.getElementById('salvarSenhaCheck');
+
+        if (loginSalvo) {
+            loginInput.value = loginSalvo;
+        }
+        if (pinSalvo) {
+            pinInput.value = pinSalvo;
+            checkSalvar.checked = true;
+        }
+
+        try {
+            const sessaoSalva = JSON.parse(sessionStorage.getItem(CHAVE_SESSAO_ATIVA) || 'null');
+            if (sessaoSalva && sessaoSalva.login && sessaoSalva.role) {
+                usuarioLogado = sessaoSalva;
+                mostrarPainelLogado();
+            }
+        } catch (_) {}
+    }
+
+    async function verificarLogin() {
+        const loginDigitado = document.getElementById('loginUsuarioInput').value.toUpperCase().trim();
+        const pin = document.getElementById('pinInput').value.trim();
+        const salvarSenha = document.getElementById('salvarSenhaCheck').checked;
+
+        if (!loginDigitado || !pin) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔑',
+                titulo: 'Dados Incompletos',
+                mensagem: 'Informe o <strong>login</strong> e a <strong>senha/PIN</strong> para acessar.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+
+        const resultado = autenticarCredenciais(loginDigitado, pin);
+
+        if (!resultado) {
+            localStorage.removeItem(CHAVE_PIN_SALVO);
+            await abrirPopup({
+                tipo: 'danger',
+                icone: '🔒',
+                titulo: 'Acesso Negado',
+                mensagem: 'Login ou senha incorretos. Verifique seus dados e tente novamente.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+
+        if (resultado.bloqueado) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '⛔',
+                titulo: 'Acesso Inativo',
+                mensagem: `O login de <strong>${resultado.nome}</strong> está bloqueado/inativo. Procure o acesso <strong>MASTER</strong>.`,
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+
+        if (salvarSenha) {
+            localStorage.setItem(CHAVE_LOGIN_SALVO, resultado.login);
+            localStorage.setItem(CHAVE_PIN_SALVO, pin);
+        } else {
+            localStorage.removeItem(CHAVE_LOGIN_SALVO);
+            localStorage.removeItem(CHAVE_PIN_SALVO);
+        }
+
+        usuarioLogado = resultado;
+        sessionStorage.setItem(CHAVE_SESSAO_ATIVA, JSON.stringify(usuarioLogado));
+        mostrarPainelLogado();
+    }
+
+    function setStatusFunc(texto, tipo = 'ok') {
+        const el = document.getElementById('funcStatusMsg');
+        if (!el) return;
+        el.className = `backup-status-msg ${tipo}`;
+        el.innerText = texto;
+        setTimeout(() => {
+            if (el.innerText === texto) {
+                el.className = 'backup-status-msg';
+                el.innerText = '';
+            }
+        }, 3000);
+    }
+
+    function limparFormFuncionario() {
+        document.getElementById('funcEditId').value = '';
+        document.getElementById('funcNomeInput').value = '';
+        document.getElementById('funcLoginInput').value = '';
+        document.getElementById('funcSenhaInput').value = '';
+        document.getElementById('funcAtivoSelect').value = 'true';
+        document.getElementById('funcFormTitulo').innerText = '➕ Novo Funcionário';
+        document.getElementById('btnCancelarEdicaoFunc').style.display = 'none';
+    }
+
+    function abrirModalFuncionarios() {
+        if (!usuarioLogado || usuarioLogado.role !== 'master') return;
+        limparFormFuncionario();
+        renderizarListaFuncionarios();
+        document.getElementById('modalFuncionarios').classList.add('aberto');
+    }
+
+    function fecharModalFuncionarios() {
+        document.getElementById('modalFuncionarios').classList.remove('aberto');
+        limparFormFuncionario();
+    }
+
+    function editarFuncionario(id) {
+        const func = funcionarios.find(f => f.id === id);
+        if (!func) return;
+        document.getElementById('funcEditId').value = func.id;
+        document.getElementById('funcNomeInput').value = func.nome || '';
+        document.getElementById('funcLoginInput').value = func.login || '';
+        document.getElementById('funcSenhaInput').value = func.senha || '';
+        document.getElementById('funcAtivoSelect').value = func.ativo === false ? 'false' : 'true';
+        document.getElementById('funcFormTitulo').innerText = `✏️ Editando: ${func.nome || func.login}`;
+        document.getElementById('btnCancelarEdicaoFunc').style.display = 'inline-block';
+    }
+
+    async function salvarFuncionario() {
+        if (!usuarioLogado || usuarioLogado.role !== 'master') return;
+
+        const editId = document.getElementById('funcEditId').value.trim();
+        const nome = document.getElementById('funcNomeInput').value.toUpperCase().trim();
+        const login = document.getElementById('funcLoginInput').value.toUpperCase().trim();
+        const senha = document.getElementById('funcSenhaInput').value.trim();
+        const ativo = document.getElementById('funcAtivoSelect').value === 'true';
+
+        if (!nome || !login || !senha) {
+            setStatusFunc('Preencha nome, login e senha.', 'erro');
+            return;
+        }
+
+        if (normalizar(login) === normalizar(MASTER_LOGIN)) {
+            setStatusFunc('Este login é reservado para o acesso MASTER.', 'erro');
+            return;
+        }
+
+        const loginDuplicado = funcionarios.some(f =>
+            f.id !== editId && normalizar(f.login) === normalizar(login)
+        );
+        if (loginDuplicado) {
+            setStatusFunc(`O login "${login}" já está em uso por outro funcionário.`, 'erro');
+            return;
+        }
+
+        const payload = {
+            nome,
+            login,
+            senha,
+            ativo,
+            atualizadoEm: Date.now()
+        };
+
+        try {
+            if (editId) {
+                await funcionariosRef.child(editId).update(payload);
+                setStatusFunc(`✓ Login de ${nome} atualizado!`, 'ok');
+            } else {
+                payload.criadoEm = Date.now();
+                await funcionariosRef.push(payload);
+                setStatusFunc(`✓ Funcionário ${nome} cadastrado!`, 'ok');
+            }
+            limparFormFuncionario();
+        } catch (err) {
+            setStatusFunc(`✕ Erro ao salvar: ${err.message || err}`, 'erro');
+        }
+    }
+
+    async function excluirFuncionario(id, nomeFunc) {
+        if (!usuarioLogado || usuarioLogado.role !== 'master') return;
+
+        const confirmado = await abrirPopup({
+            tipo: 'danger',
+            icone: '🗑️',
+            titulo: 'Excluir Login de Funcionário',
+            mensagem: `Deseja remover o acesso de <strong>${nomeFunc}</strong>? Ele não poderá mais entrar com esse login e senha.`,
+            textoConfirmar: 'Excluir Login',
+            textoCancelar: 'Cancelar'
+        });
+
+        if (confirmado) {
+            await funcionariosRef.child(id).remove();
+            if (document.getElementById('funcEditId').value === id) {
+                limparFormFuncionario();
+            }
+        }
+    }
+
+    function renderizarListaFuncionarios() {
+        const container = document.getElementById('listaFuncionariosContainer');
+        const badge = document.getElementById('funcQtdBadge');
+        if (!container) return;
+
+        if (badge) badge.innerText = funcionarios.length;
+
+        if (funcionarios.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:var(--muted); font-size:0.84rem; padding:12px 0;">Nenhum funcionário cadastrado ainda.</p>`;
+            return;
+        }
+
+        const ordenados = [...funcionarios].sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+        container.innerHTML = ordenados.map(f => {
+            const ativo = f.ativo !== false;
+            const nomeEscapado = (f.nome || f.login).replace(/'/g, "\\'");
+            return `
+                <div class="func-item-card">
+                    <div class="func-item-info">
+                        <strong>${f.nome || f.login}</strong>
+                        <span>Login: <strong>${f.login}</strong> • Senha: <strong>${f.senha}</strong></span>
+                        <span class="${ativo ? '' : 'func-status-inativo'}">${ativo ? '● Ativo' : '● Inativo / Bloqueado'}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button type="button" class="btn-sm btn-edit" onclick="editarFuncionario('${f.id}')">Editar</button>
+                        <button type="button" class="btn-sm btn-del" onclick="excluirFuncionario('${f.id}', '${nomeEscapado}')">Excluir</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function obterAbaSalva() {
+        const salva = sessionStorage.getItem(CHAVE_ABA_ATIVA);
+        return salva === 'lista' ? 'lista' : 'fila';
+    }
+
+    function trocarAba(aba, persistir = true) {
+        const abaValida = aba === 'lista' ? 'lista' : 'fila';
+
+        if (persistir) {
+            sessionStorage.setItem(CHAVE_ABA_ATIVA, abaValida);
+        }
+
+        document.getElementById('btnTabLista').classList.remove('ativa');
+        document.getElementById('btnTabFila').classList.remove('ativa');
+
+        document.getElementById('abaLista').classList.remove('ativa');
+        document.getElementById('abaFila').classList.remove('ativa');
+
+        if (abaValida === 'lista') {
+            document.getElementById('btnTabLista').classList.add('ativa');
+            document.getElementById('abaLista').classList.add('ativa');
+            renderizarLista();
+        } else {
+            document.getElementById('btnTabFila').classList.add('ativa');
+            document.getElementById('abaFila').classList.add('ativa');
+            renderizarFila();
+        }
+    }
+
+    function mostrarFeedback(texto) {
+        const el = document.getElementById('feedbackMsg');
+        el.innerText = texto;
+        el.style.display = 'block';
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 2600);
+    }
+
+    document.querySelectorAll('input.upper').forEach(input => {
+        input.addEventListener('input', function() {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+        });
+    });
+
+    funcionariosRef.on('value', (snapshot) => {
+        funcionarios = [];
+        const data = snapshot.val();
+        if (data && typeof data === 'object') {
+            Object.keys(data).forEach(id => {
+                const raw = data[id];
+                if (!raw || typeof raw !== 'object') return;
+                funcionarios.push({
+                    id,
+                    nome: String(raw.nome || raw.login || '').toUpperCase().trim(),
+                    login: String(raw.login || '').toUpperCase().trim(),
+                    senha: String(raw.senha || ''),
+                    ativo: raw.ativo !== false
+                });
+            });
+        }
+        atualizarResumoBackup();
+        if (document.getElementById('modalFuncionarios').classList.contains('aberto')) {
+            renderizarListaFuncionarios();
+        }
+    });
+
+    rotasRef.on('value', (snapshot) => {
+        erroBancoRotas = false;
+        registros = [];
+        const data = snapshot.val();
+        const entregadoresUnicos = new Set();
+        const ruasUnicas = new Set();
+
+        if (data && typeof data === 'object') {
+            Object.keys(data).forEach(id => {
+                const raw = data[id];
+                if (!raw || typeof raw !== 'object') return;
+                const item = {
+                    id,
+                    entregador: String(raw.entregador || "").toUpperCase().trim(),
+                    rua: String(raw.rua || "").toUpperCase().trim(),
+                    numeracao: String(raw.numeracao || "TODA A RUA").toUpperCase().trim()
+                };
+                if (item.entregador || item.rua) {
+                    registros.push(item);
+                    if (item.entregador) entregadoresUnicos.add(item.entregador);
+                    if (item.rua) ruasUnicas.add(item.rua);
+                }
+            });
+        }
+
+        document.getElementById('badgeTotalEntregadores').innerText = `(${entregadoresUnicos.size})`;
+        document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].sort().map(e => `<option value="${e}">`).join('');
+        document.getElementById('listaRuas').innerHTML = [...ruasUnicas].sort().map(r => `<option value="${r}">`).join('');
+
+        renderizarOpcoesEntregadoresCombo(document.getElementById('entregador').value);
+        atualizarResumoBackup();
+        renderizarLista();
+    }, (err) => {
+        erroBancoRotas = true;
+        console.error('Erro ao ler rotas:', err);
+        renderizarLista();
+    });
+
+    filaRef.on('value', (snapshot) => {
+        erroBancoFila = false;
+        filaItens = [];
+        const data = snapshot.val();
+        const hojeIso = obterDataHojeIso();
+        let haRegistrosDiaAnterior = false;
+
+        if (data && typeof data === 'object') {
+            Object.keys(data).forEach(id => {
+                const raw = data[id];
+                if (!raw || typeof raw !== 'object') return;
+                const tsCriacao = Number(raw.criadoEm) || extrairTimestampFirebasePush(id) || 0;
+                const dataItem = raw.dataFila || obterDataIsoDeTimestamp(tsCriacao) || hojeIso;
+
+                if (dataItem < hojeIso) {
+                    haRegistrosDiaAnterior = true;
+                    return;
+                }
+
+                filaItens.push({
+                    id,
+                    motorista: String(raw.motorista || "").toUpperCase().trim(),
+                    ordem: Number(raw.ordem) || 0,
+                    bipado: Boolean(raw.bipado),
+                    bipadoEm: Number(raw.bipadoEm) || 0,
+                    bipadoPor: String(raw.bipadoPor || "").toUpperCase().trim(),
+                    bipadoPorLogin: String(raw.bipadoPorLogin || "").toUpperCase().trim(),
+                    criadoEm: tsCriacao,
+                    dataFila: dataItem,
+                    origem: raw.origem || 'qrcode',
+                    prioridade: Boolean(raw.prioridade)
+                });
+            });
+        }
+
+        if (haRegistrosDiaAnterior && !resetEmAndamento) {
+            resetarFilaViradaDia('registros-dia-anterior');
+            return;
+        }
+
+        const qtdAguardando = filaItens.filter(f => !f.bipado).length;
+        document.getElementById('badgeFilaAtiva').innerText = `(${qtdAguardando})`;
+        atualizarResumoBackup();
+        renderizarFila();
+    }, (err) => {
+        erroBancoFila = true;
+        console.error('Erro ao ler fila_bipagem:', err);
+        renderizarFila();
+    });
+
+    inicializarLogin();
 
     function obterListaEntregadoresComContagem() {
         const mapa = new Map();
@@ -2097,8 +2750,10 @@
     function atualizarResumoBackup() {
         const elRotas = document.getElementById('backupQtdRotas');
         const elFila = document.getElementById('backupQtdFila');
+        const elFunc = document.getElementById('backupQtdFunc');
         if (elRotas) elRotas.innerText = registros.length;
         if (elFila) elFila.innerText = filaItens.length;
+        if (elFunc) elFunc.innerText = funcionarios.length;
     }
 
     function setStatusBackup(texto, tipo = 'ok') {
@@ -2109,6 +2764,7 @@
     }
 
     function abrirModalBackup() {
+        if (!usuarioLogado || usuarioLogado.role !== 'master') return;
         atualizarResumoBackup();
         const statusEl = document.getElementById('backupStatusMsg');
         if (statusEl) {
@@ -2126,19 +2782,21 @@
 
     async function exportarBackupJson() {
         try {
-            const [snapRotas, snapFila] = await Promise.all([
+            const [snapRotas, snapFila, snapFunc] = await Promise.all([
                 rotasRef.once('value'),
-                filaRef.once('value')
+                filaRef.once('value'),
+                funcionariosRef.once('value')
             ]);
 
             const payload = {
                 sistema: 'rota-entregadores-admin',
-                versao: 1,
+                versao: 2,
                 exportadoEm: new Date().toISOString(),
                 bancoOrigem: firebaseConfig.databaseURL,
                 dados: {
                     rotas: snapRotas.val() || {},
-                    fila_bipagem: snapFila.val() || {}
+                    fila_bipagem: snapFila.val() || {},
+                    funcionarios: snapFunc.val() || {}
                 }
             };
 
@@ -2160,7 +2818,8 @@
 
             const qtdRotas = Object.keys(payload.dados.rotas).length;
             const qtdFila = Object.keys(payload.dados.fila_bipagem).length;
-            setStatusBackup(`✓ Exportado (${qtdRotas} rotas, ${qtdFila} fila): ${nomeArquivo}`, 'ok');
+            const qtdFunc = Object.keys(payload.dados.funcionarios).length;
+            setStatusBackup(`✓ Exportado (${qtdRotas} rotas, ${qtdFila} fila, ${qtdFunc} logins): ${nomeArquivo}`, 'ok');
         } catch (err) {
             setStatusBackup(`✕ Erro ao exportar: ${err.message || err}`, 'erro');
         }
@@ -2172,14 +2831,16 @@
         if (parsed.dados && typeof parsed.dados === 'object') {
             return {
                 rotas: parsed.dados.rotas && typeof parsed.dados.rotas === 'object' ? parsed.dados.rotas : {},
-                fila_bipagem: parsed.dados.fila_bipagem && typeof parsed.dados.fila_bipagem === 'object' ? parsed.dados.fila_bipagem : {}
+                fila_bipagem: parsed.dados.fila_bipagem && typeof parsed.dados.fila_bipagem === 'object' ? parsed.dados.fila_bipagem : {},
+                funcionarios: parsed.dados.funcionarios && typeof parsed.dados.funcionarios === 'object' ? parsed.dados.funcionarios : {}
             };
         }
 
-        if (parsed.rotas || parsed.fila_bipagem) {
+        if (parsed.rotas || parsed.fila_bipagem || parsed.funcionarios) {
             return {
                 rotas: parsed.rotas && typeof parsed.rotas === 'object' ? parsed.rotas : {},
-                fila_bipagem: parsed.fila_bipagem && typeof parsed.fila_bipagem === 'object' ? parsed.fila_bipagem : {}
+                fila_bipagem: parsed.fila_bipagem && typeof parsed.fila_bipagem === 'object' ? parsed.fila_bipagem : {},
+                funcionarios: parsed.funcionarios && typeof parsed.funcionarios === 'object' ? parsed.funcionarios : {}
             };
         }
 
@@ -2206,16 +2867,17 @@
 
             const qtdRotas = Object.keys(estrutura.rotas).length;
             const qtdFila = Object.keys(estrutura.fila_bipagem).length;
+            const qtdFunc = Object.keys(estrutura.funcionarios).length;
 
             const avisoModo = modo === 'replace'
-                ? '<strong>ATENÇÃO:</strong> Os dados atuais de <strong>rotas</strong> e <strong>fila_bipagem</strong> no banco conectado serão <strong>substituídos</strong> pelos do arquivo.'
+                ? '<strong>ATENÇÃO:</strong> Os dados atuais de <strong>rotas</strong>, <strong>fila_bipagem</strong> e <strong>funcionarios</strong> no banco conectado serão <strong>substituídos</strong> pelos do arquivo.'
                 : 'Os registros do arquivo serão <strong>mesclados/atualizados</strong> no banco conectado.';
 
             const confirmado = await abrirPopup({
                 tipo: modo === 'replace' ? 'warning' : 'info',
                 icone: '📥',
                 titulo: 'Confirmar Importação',
-                mensagem: `Importar backup com <strong>${qtdRotas} rotas</strong> e <strong>${qtdFila} itens de fila</strong>?<br><br>${avisoModo}`,
+                mensagem: `Importar backup com <strong>${qtdRotas} rotas</strong>, <strong>${qtdFila} itens de fila</strong> e <strong>${qtdFunc} logins</strong>?<br><br>${avisoModo}`,
                 textoConfirmar: modo === 'replace' ? 'Substituir e Importar' : 'Importar Dados',
                 textoCancelar: 'Cancelar'
             });
@@ -2228,7 +2890,8 @@
             if (modo === 'replace') {
                 await db.ref().update({
                     rotas: Object.keys(estrutura.rotas).length > 0 ? estrutura.rotas : null,
-                    fila_bipagem: Object.keys(estrutura.fila_bipagem).length > 0 ? estrutura.fila_bipagem : null
+                    fila_bipagem: Object.keys(estrutura.fila_bipagem).length > 0 ? estrutura.fila_bipagem : null,
+                    funcionarios: Object.keys(estrutura.funcionarios).length > 0 ? estrutura.funcionarios : null
                 });
             } else {
                 const updates = {};
@@ -2238,201 +2901,21 @@
                 Object.entries(estrutura.fila_bipagem).forEach(([k, v]) => {
                     if (v && typeof v === 'object') updates[`fila_bipagem/${k}`] = v;
                 });
+                Object.entries(estrutura.funcionarios).forEach(([k, v]) => {
+                    if (v && typeof v === 'object') updates[`funcionarios/${k}`] = v;
+                });
                 if (Object.keys(updates).length > 0) {
                     await db.ref().update(updates);
                 }
             }
 
-            setStatusBackup(`✓ Importado com sucesso (${qtdRotas} rotas, ${qtdFila} fila)!`, 'ok');
+            setStatusBackup(`✓ Importado com sucesso (${qtdRotas} rotas, ${qtdFila} fila, ${qtdFunc} logins)!`, 'ok');
         } catch (err) {
             setStatusBackup(`✕ Falha ao ler/importar JSON: ${err.message || err}`, 'erro');
         } finally {
             event.target.value = '';
         }
     }
-
-    function obterAbaSalva() {
-        const salva = sessionStorage.getItem(CHAVE_ABA_ATIVA);
-        return salva === 'lista' ? 'lista' : 'fila';
-    }
-
-    function mostrarPainelLogado() {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('appScreen').style.display = 'block';
-        trocarAba(obterAbaSalva(), false);
-        renderizarLista();
-        renderizarFila();
-    }
-
-    function inicializarLogin() {
-        const pinSalvo = localStorage.getItem(CHAVE_PIN_SALVO);
-        const pinInput = document.getElementById('pinInput');
-        const checkSalvar = document.getElementById('salvarSenhaCheck');
-
-        if (pinSalvo) {
-            pinInput.value = pinSalvo;
-            checkSalvar.checked = true;
-        }
-
-        if (sessionStorage.getItem('adminLogado') === 'true') {
-            mostrarPainelLogado();
-        }
-    }
-
-    async function verificarPin() {
-        const pin = document.getElementById('pinInput').value.trim();
-        const salvarSenha = document.getElementById('salvarSenhaCheck').checked;
-
-        if (pin === SENHA_ADMIN) {
-            if (salvarSenha) {
-                localStorage.setItem(CHAVE_PIN_SALVO, pin);
-            } else {
-                localStorage.removeItem(CHAVE_PIN_SALVO);
-            }
-            sessionStorage.setItem('adminLogado', 'true');
-            mostrarPainelLogado();
-        } else {
-            localStorage.removeItem(CHAVE_PIN_SALVO);
-            await abrirPopup({
-                tipo: 'danger',
-                icone: '🔒',
-                titulo: 'PIN Incorreto',
-                mensagem: 'O PIN digitado não confere. Tente novamente.',
-                textoConfirmar: 'Entendi',
-                somenteOk: true
-            });
-        }
-    }
-
-    function trocarAba(aba, persistir = true) {
-        const abaValida = aba === 'lista' ? 'lista' : 'fila';
-
-        if (persistir) {
-            sessionStorage.setItem(CHAVE_ABA_ATIVA, abaValida);
-        }
-
-        document.getElementById('btnTabLista').classList.remove('ativa');
-        document.getElementById('btnTabFila').classList.remove('ativa');
-
-        document.getElementById('abaLista').classList.remove('ativa');
-        document.getElementById('abaFila').classList.remove('ativa');
-
-        if (abaValida === 'lista') {
-            document.getElementById('btnTabLista').classList.add('ativa');
-            document.getElementById('abaLista').classList.add('ativa');
-            renderizarLista();
-        } else {
-            document.getElementById('btnTabFila').classList.add('ativa');
-            document.getElementById('abaFila').classList.add('ativa');
-            renderizarFila();
-        }
-    }
-
-    function mostrarFeedback(texto) {
-        const el = document.getElementById('feedbackMsg');
-        el.innerText = texto;
-        el.style.display = 'block';
-        setTimeout(() => {
-            el.style.display = 'none';
-        }, 2600);
-    }
-
-    document.querySelectorAll('input.upper').forEach(input => {
-        input.addEventListener('input', function() {
-            const start = this.selectionStart;
-            const end = this.selectionEnd;
-            this.value = this.value.toUpperCase();
-            this.setSelectionRange(start, end);
-        });
-    });
-
-    rotasRef.on('value', (snapshot) => {
-        erroBancoRotas = false;
-        registros = [];
-        const data = snapshot.val();
-        const entregadoresUnicos = new Set();
-        const ruasUnicas = new Set();
-
-        if (data && typeof data === 'object') {
-            Object.keys(data).forEach(id => {
-                const raw = data[id];
-                if (!raw || typeof raw !== 'object') return;
-                const item = {
-                    id,
-                    entregador: String(raw.entregador || "").toUpperCase().trim(),
-                    rua: String(raw.rua || "").toUpperCase().trim(),
-                    numeracao: String(raw.numeracao || "TODA A RUA").toUpperCase().trim()
-                };
-                if (item.entregador || item.rua) {
-                    registros.push(item);
-                    if (item.entregador) entregadoresUnicos.add(item.entregador);
-                    if (item.rua) ruasUnicas.add(item.rua);
-                }
-            });
-        }
-
-        document.getElementById('badgeTotalEntregadores').innerText = `(${entregadoresUnicos.size})`;
-        document.getElementById('listaEntregadores').innerHTML = [...entregadoresUnicos].sort().map(e => `<option value="${e}">`).join('');
-        document.getElementById('listaRuas').innerHTML = [...ruasUnicas].sort().map(r => `<option value="${r}">`).join('');
-
-        renderizarOpcoesEntregadoresCombo(document.getElementById('entregador').value);
-        atualizarResumoBackup();
-        renderizarLista();
-    }, (err) => {
-        erroBancoRotas = true;
-        console.error('Erro ao ler rotas:', err);
-        renderizarLista();
-    });
-
-    filaRef.on('value', (snapshot) => {
-        erroBancoFila = false;
-        filaItens = [];
-        const data = snapshot.val();
-        const hojeIso = obterDataHojeIso();
-        let haRegistrosDiaAnterior = false;
-
-        if (data && typeof data === 'object') {
-            Object.keys(data).forEach(id => {
-                const raw = data[id];
-                if (!raw || typeof raw !== 'object') return;
-                const tsCriacao = Number(raw.criadoEm) || extrairTimestampFirebasePush(id) || 0;
-                const dataItem = raw.dataFila || obterDataIsoDeTimestamp(tsCriacao) || hojeIso;
-
-                if (dataItem < hojeIso) {
-                    haRegistrosDiaAnterior = true;
-                    return;
-                }
-
-                filaItens.push({
-                    id,
-                    motorista: String(raw.motorista || "").toUpperCase().trim(),
-                    ordem: Number(raw.ordem) || 0,
-                    bipado: Boolean(raw.bipado),
-                    bipadoEm: Number(raw.bipadoEm) || 0,
-                    criadoEm: tsCriacao,
-                    dataFila: dataItem,
-                    origem: raw.origem || 'qrcode',
-                    prioridade: Boolean(raw.prioridade)
-                });
-            });
-        }
-
-        if (haRegistrosDiaAnterior && !resetEmAndamento) {
-            resetarFilaViradaDia('registros-dia-anterior');
-            return;
-        }
-
-        const qtdAguardando = filaItens.filter(f => !f.bipado).length;
-        document.getElementById('badgeFilaAtiva').innerText = `(${qtdAguardando})`;
-        atualizarResumoBackup();
-        renderizarFila();
-    }, (err) => {
-        erroBancoFila = true;
-        console.error('Erro ao ler fila_bipagem:', err);
-        renderizarFila();
-    });
-
-    inicializarLogin();
 
     function extrairFaixasENumeros(regraTexto) {
         const regra = normalizar(regraTexto);
@@ -3027,10 +3510,23 @@
     }
 
     function marcarBipagem(id, estadoBipado) {
-        filaRef.child(id).update({
-            bipado: estadoBipado,
-            bipadoEm: estadoBipado ? Date.now() : 0
-        });
+        if (estadoBipado) {
+            const quemBipouNome = usuarioLogado ? usuarioLogado.nome : 'OPERADOR';
+            const quemBipouLogin = usuarioLogado ? usuarioLogado.login : '';
+            filaRef.child(id).update({
+                bipado: true,
+                bipadoEm: Date.now(),
+                bipadoPor: quemBipouNome,
+                bipadoPorLogin: quemBipouLogin
+            });
+        } else {
+            filaRef.child(id).update({
+                bipado: false,
+                bipadoEm: 0,
+                bipadoPor: null,
+                bipadoPorLogin: null
+            });
+        }
     }
 
     function removerDaFila(id) {
@@ -3137,6 +3633,9 @@
             html += bipados.map(item => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
                 const horaBipado = formatarHoraInclusao(item.bipadoEm);
+                const quemBipouLabel = item.bipadoPor
+                    ? `<div class="fila-bip-meta">✓ Bipado por: ${item.bipadoPor}</div>`
+                    : '';
                 return `
                     <div class="fila-card bipado">
                         <div class="fila-topo-linha">
@@ -3144,6 +3643,7 @@
                                 <span class="fila-pos">BIP</span>
                                 <div class="fila-nome-wrap">
                                     <div class="fila-nome">${item.motorista}</div>
+                                    ${quemBipouLabel}
                                 </div>
                             </div>
                             <span class="fila-hora-solta">🕒 ${horaBipado}</span>
