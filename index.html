@@ -187,6 +187,20 @@
             line-height: 1.2;
             white-space: nowrap;
         }
+        .fila-hora-bipado {
+            background: rgba(148, 163, 184, 0.14);
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.78rem;
+            padding: 5px 8px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
         .fila-prio-selo {
             display: inline-block;
             font-size: 0.68rem;
@@ -201,10 +215,6 @@
             background: rgba(15, 23, 42, 0.55);
             border-color: #263244;
             opacity: 0.78;
-        }
-        .fila-card.bipado .fila-pos {
-            background: rgba(148, 163, 184, 0.14);
-            color: var(--muted);
         }
         .fila-card.bipado .fila-nome {
             color: var(--muted);
@@ -881,14 +891,11 @@
                 return `
                     <div class="fila-card bipado">
                         <div class="fila-info">
-                            <span class="fila-pos">BIP</span>
+                            <span class="fila-hora-bipado">🕒 ${horaBipado}</span>
                             <div class="fila-nome-wrap">
                                 <div class="fila-nome">${item.motorista}</div>
                                 ${quemBipouLabel}
                             </div>
-                        </div>
-                        <div class="fila-lado-direito">
-                            <span class="fila-hora-tag">🕒 ${horaBipado}</span>
                         </div>
                     </div>
                 `;
