@@ -607,31 +607,6 @@
             align-items: center;
             gap: 8px;
         }
-        .fila-section-right {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-limpar-bip-topo {
-            background: rgba(148, 163, 184, 0.12);
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 4px 9px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: none;
-            letter-spacing: 0;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: 0.15s;
-        }
-        .btn-limpar-bip-topo:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
 
         /* Card da fila */
         .fila-card {
@@ -4216,15 +4191,7 @@
         }
 
         if (bipados.length > 0) {
-            html += `
-                <div class="fila-section-title" style="margin-top:20px;">
-                    <span>Enviados para Bipagem</span>
-                    <span class="fila-section-right">
-                        ${podeLimparBip ? `<button type="button" class="btn-limpar-bip-topo" onclick="limparBipados()" title="Limpar todos os bipados">🧹 Limpar Bipados</button>` : ''}
-                        <span>${bipados.length}</span>
-                    </span>
-                </div>
-            `;
+            html += `<div class="fila-section-title" style="margin-top:20px;"><span>Enviados para Bipagem</span><span>${bipados.length}</span></div>`;
             html += bipados.map(item => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
                 const horaBipado = formatarHoraInclusao(item.bipadoEm);
