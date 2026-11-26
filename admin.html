@@ -605,6 +605,32 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 8px;
+        }
+        .fila-section-right {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-limpar-bip-topo {
+            background: rgba(148, 163, 184, 0.12);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 4px 9px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: 0.15s;
+        }
+        .btn-limpar-bip-topo:hover {
+            border-color: var(--primary);
+            color: var(--primary);
         }
 
         /* Card da fila */
@@ -1429,34 +1455,39 @@
                     <input type="checkbox" id="permGerarQr" checked>
                     <span>📱 Gerar QR Code</span>
                 </label>
+                <label class="perm-check-card" for="permLimparBipados">
+                    <input type="checkbox" id="permLimparBipados" checked>
+                    <span>🧹 Limpar Bipados</span>
+                </label>
+
                 <label class="perm-check-card" for="permZerarFila">
                     <input type="checkbox" id="permZerarFila" checked>
                     <span>🗑️ Zerar Fila Bipagem</span>
                 </label>
-
                 <label class="perm-check-card" for="permMarcarPrioridadeFila">
                     <input type="checkbox" id="permMarcarPrioridadeFila" checked>
                     <span>⭐ Prioridade na Fila</span>
                 </label>
+
                 <label class="perm-check-card" for="permEditarMotoristaFila">
                     <input type="checkbox" id="permEditarMotoristaFila" checked>
                     <span>✏️ Editar Nome na Fila</span>
                 </label>
-
                 <label class="perm-check-card" for="permExcluirMotoristaFila">
                     <input type="checkbox" id="permExcluirMotoristaFila" checked>
                     <span>✕ Excluir da Fila</span>
                 </label>
+
                 <label class="perm-check-card" for="permCadastrarRotas">
                     <input type="checkbox" id="permCadastrarRotas" checked>
                     <span>➕ Cadastrar Rotas</span>
                 </label>
-
                 <label class="perm-check-card" for="permEditarRotas">
                     <input type="checkbox" id="permEditarRotas" checked>
                     <span>✏️ Editar Rotas</span>
                 </label>
-                <label class="perm-check-card" for="permExcluirRotas">
+
+                <label class="perm-check-card" for="permExcluirRotas" style="grid-column: span 2;">
                     <input type="checkbox" id="permExcluirRotas" checked>
                     <span>🗑️ Excluir Rotas</span>
                 </label>
@@ -1963,6 +1994,7 @@
         if (role === 'master') {
             return {
                 podeGerarQr: true,
+                podeLimparBipados: true,
                 podeZerarFila: true,
                 podeMarcarPrioridadeFila: true,
                 podeEditarMotoristaFila: true,
@@ -1974,6 +2006,7 @@
         }
         return {
             podeGerarQr: true,
+            podeLimparBipados: true,
             podeZerarFila: true,
             podeMarcarPrioridadeFila: true,
             podeEditarMotoristaFila: true,
@@ -1991,6 +2024,7 @@
         const p = rawPerms && typeof rawPerms === 'object' ? rawPerms : {};
         return {
             podeGerarQr: p.podeGerarQr !== false,
+            podeLimparBipados: p.podeLimparBipados !== false,
             podeZerarFila: p.podeZerarFila !== false,
             podeMarcarPrioridadeFila: p.podeMarcarPrioridadeFila !== false,
             podeEditarMotoristaFila: p.podeEditarMotoristaFila !== false,
@@ -2638,6 +2672,7 @@
 
     const IDS_PERMISSOES_FUNC = [
         'permGerarQr',
+        'permLimparBipados',
         'permZerarFila',
         'permMarcarPrioridadeFila',
         'permEditarMotoristaFila',
@@ -2702,6 +2737,7 @@
         document.getElementById('funcAtivoSelect').value = func.ativo === false ? 'false' : 'true';
         document.getElementById('permFuncMaster').checked = isMasterFunc;
         document.getElementById('permGerarQr').checked = perms.podeGerarQr;
+        document.getElementById('permLimparBipados').checked = perms.podeLimparBipados;
         document.getElementById('permZerarFila').checked = perms.podeZerarFila;
         document.getElementById('permMarcarPrioridadeFila').checked = perms.podeMarcarPrioridadeFila;
         document.getElementById('permEditarMotoristaFila').checked = perms.podeEditarMotoristaFila;
@@ -2748,6 +2784,7 @@
             ? obterPermissoesPadrao('master')
             : {
                 podeGerarQr: document.getElementById('permGerarQr').checked,
+                podeLimparBipados: document.getElementById('permLimparBipados').checked,
                 podeZerarFila: document.getElementById('permZerarFila').checked,
                 podeMarcarPrioridadeFila: document.getElementById('permMarcarPrioridadeFila').checked,
                 podeEditarMotoristaFila: document.getElementById('permEditarMotoristaFila').checked,
@@ -2825,6 +2862,7 @@
                 ? `<span class="perm-pill">👑 MASTER (ACESSO TOTAL)</span>`
                 : `
                     <span class="perm-pill ${perms.podeGerarQr ? '' : 'off'}">QR Code</span>
+                    <span class="perm-pill ${perms.podeLimparBipados ? '' : 'off'}">Limpar Bipados</span>
                     <span class="perm-pill ${perms.podeZerarFila ? '' : 'off'}">Zerar Fila</span>
                     <span class="perm-pill ${perms.podeMarcarPrioridadeFila ? '' : 'off'}">Prioridade Fila</span>
                     <span class="perm-pill ${perms.podeEditarMotoristaFila ? '' : 'off'}">Editar Fila</span>
@@ -4054,6 +4092,18 @@
     }
 
     async function limparBipados() {
+        if (!temPermissao('podeLimparBipados')) {
+            await abrirPopup({
+                tipo: 'warning',
+                icone: '🔒',
+                titulo: 'Função Desabilitada',
+                mensagem: 'Seu login não tem permissão para <strong>Limpar Bipados</strong>.',
+                textoConfirmar: 'Entendi',
+                somenteOk: true
+            });
+            return;
+        }
+
         const bipados = filaItens.filter(f => f.bipado);
         if (bipados.length === 0) return;
 
@@ -4129,6 +4179,7 @@
         const podePrio = temPermissao('podeMarcarPrioridadeFila');
         const podeEditarFila = temPermissao('podeEditarMotoristaFila');
         const podeExcluirFila = temPermissao('podeExcluirMotoristaFila');
+        const podeLimparBip = temPermissao('podeLimparBipados');
         const podeZerar = temPermissao('podeZerarFila');
 
         let html = '';
@@ -4165,7 +4216,15 @@
         }
 
         if (bipados.length > 0) {
-            html += `<div class="fila-section-title" style="margin-top:20px;"><span>Enviados para Bipagem</span><span>${bipados.length}</span></div>`;
+            html += `
+                <div class="fila-section-title" style="margin-top:20px;">
+                    <span>Enviados para Bipagem</span>
+                    <span class="fila-section-right">
+                        ${podeLimparBip ? `<button type="button" class="btn-limpar-bip-topo" onclick="limparBipados()" title="Limpar todos os bipados">🧹 Limpar Bipados</button>` : ''}
+                        <span>${bipados.length}</span>
+                    </span>
+                </div>
+            `;
             html += bipados.map(item => {
                 const nomeEscapado = item.motorista.replace(/'/g, "\\'");
                 const horaBipado = formatarHoraInclusao(item.bipadoEm);
@@ -4194,10 +4253,10 @@
             }).join('');
         }
 
-        if (bipados.length > 0 || podeZerar) {
+        if ((bipados.length > 0 && podeLimparBip) || podeZerar) {
             html += `
                 <div class="fila-toolbar">
-                    ${bipados.length > 0 ? `<button class="btn-limpar-bip" onclick="limparBipados()">🧹 Limpar Bipados</button>` : ''}
+                    ${(bipados.length > 0 && podeLimparBip) ? `<button class="btn-limpar-bip" onclick="limparBipados()">🧹 Limpar Bipados</button>` : ''}
                     ${podeZerar ? `<button class="btn-zerar-fila" onclick="zerarFilaCompleta()">🗑️ Zerar Fila</button>` : ''}
                 </div>
             `;
