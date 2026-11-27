@@ -284,21 +284,25 @@
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .perm-check-card {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--card);
+            background: #0f172a;
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 9px 10px;
-            font-size: 0.78rem;
+            border-radius: 10px;
+            padding: 10px 11px;
+            font-size: 0.79rem;
             font-weight: 700;
             color: var(--text);
             cursor: pointer;
             user-select: none;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .perm-check-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
         }
         .perm-check-card input[type="checkbox"] {
             width: 16px;
@@ -307,27 +311,6 @@
             accent-color: var(--primary);
             cursor: pointer;
             flex-shrink: 0;
-        }
-        .perm-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 6px;
-        }
-        .perm-pill {
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 5px;
-            background: rgba(59, 130, 246, 0.14);
-            color: var(--primary);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-        .perm-pill.off {
-            background: rgba(148, 163, 184, 0.1);
-            color: var(--muted);
-            border-color: rgba(148, 163, 184, 0.25);
-            text-decoration: line-through;
         }
 
         .combobox-wrap {
@@ -568,7 +551,7 @@
         .rua-details { flex: 1; }
         .rua-details p { font-size: 0.88rem; font-weight: 600; color: var(--text); }
         .rua-details span { font-size: 0.76rem; color: var(--success); display: block; margin-top: 2px; font-weight: 600; }
-        .item-actions { display: flex; gap: 6px; }
+        .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .btn-sm { padding: 6px 10px; font-size: 0.76rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
         .btn-edit { background: var(--warning); color: #000; }
         .btn-del { background: var(--danger); color: #fff; }
@@ -844,14 +827,47 @@
         }
 
         /* Gestão de Funcionários (Master) */
+        .func-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .func-header-bar p {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .btn-novo-func-popup {
+            padding: 9px 14px;
+            border: none;
+            border-radius: 9px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.84rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+            transition: filter 0.15s, transform 0.15s;
+        }
+        .btn-novo-func-popup:hover {
+            filter: brightness(1.06);
+        }
+        .btn-novo-func-popup:active {
+            transform: scale(0.97);
+        }
         .func-item-card {
             background: #0f172a;
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 11px 12px;
+            padding: 12px 14px;
             margin-bottom: 8px;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
             gap: 10px;
         }
@@ -861,14 +877,14 @@
         }
         .func-item-info strong {
             display: block;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             color: var(--text);
         }
         .func-item-info span {
             display: block;
-            font-size: 0.76rem;
+            font-size: 0.77rem;
             color: var(--muted);
-            margin-top: 2px;
+            margin-top: 3px;
         }
         .func-status-inativo {
             color: var(--danger) !important;
@@ -1021,6 +1037,9 @@
         .modal-backdrop.aberto {
             display: flex;
             animation: fadeIn 0.16s ease;
+        }
+        #modalPerfilForm {
+            z-index: 1040;
         }
         #modalPopup {
             z-index: 1060;
@@ -1443,7 +1462,7 @@
     </div>
 </div>
 
-<!-- Modal Gestão de Funcionários e Permissões (Exclusivo Master) -->
+<!-- Modal Lista de Funcionários e Permissões (Exclusivo Master) -->
 <div id="modalFuncionarios" class="modal-backdrop" onclick="if(event.target===this) fecharModalFuncionarios()">
     <div class="modal-card tipo-info">
         <div class="modal-header">
@@ -1454,92 +1473,108 @@
             <button class="btn-modal-x" onclick="fecharModalFuncionarios()" title="Fechar">✕</button>
         </div>
 
-        <div class="backup-section">
-            <h4 id="funcFormTitulo">➕ Novo Funcionário</h4>
-            <input type="hidden" id="funcEditId">
-
-            <div class="form-group">
-                <label for="funcLoginInput">Nome / Login *</label>
-                <input type="text" id="funcLoginInput" class="upper" placeholder="Ex: CARLOS">
-            </div>
-
-            <div class="form-group">
-                <label for="funcSenhaInput">Senha *</label>
-                <input type="text" id="funcSenhaInput" placeholder="Defina a senha do funcionário">
-            </div>
-
-            <div class="form-group">
-                <label for="funcAtivoSelect">Status do Acesso</label>
-                <select id="funcAtivoSelect">
-                    <option value="true">Ativo</option>
-                    <option value="false">Bloqueado / Inativo</option>
-                </select>
-            </div>
-
-            <label style="margin-bottom: 6px;">Funções e Nível de Acesso</label>
-            <div class="perms-grid">
-                <label class="perm-check-card" for="permFuncMaster" style="grid-column: span 2;">
-                    <input type="checkbox" id="permFuncMaster" onchange="aoMudarCheckboxMasterFunc()">
-                    <span>👑 Função Master (Acesso Total)</span>
-                </label>
-
-                <label class="perm-check-card" for="permGerarQr">
-                    <input type="checkbox" id="permGerarQr" checked>
-                    <span>📱 Gerar QR Code</span>
-                </label>
-                <label class="perm-check-card" for="permLimparBipados">
-                    <input type="checkbox" id="permLimparBipados" checked>
-                    <span>🧹 Limpar Bipados</span>
-                </label>
-
-                <label class="perm-check-card" for="permZerarFila">
-                    <input type="checkbox" id="permZerarFila" checked>
-                    <span>🗑️ Zerar Fila Bipagem</span>
-                </label>
-                <label class="perm-check-card" for="permMarcarPrioridadeFila">
-                    <input type="checkbox" id="permMarcarPrioridadeFila" checked>
-                    <span>⭐ Prioridade na Fila</span>
-                </label>
-
-                <label class="perm-check-card" for="permEditarMotoristaFila">
-                    <input type="checkbox" id="permEditarMotoristaFila" checked>
-                    <span>✏️ Editar Nome na Fila</span>
-                </label>
-                <label class="perm-check-card" for="permExcluirMotoristaFila">
-                    <input type="checkbox" id="permExcluirMotoristaFila" checked>
-                    <span>✕ Excluir da Fila</span>
-                </label>
-
-                <label class="perm-check-card" for="permCadastrarRotas">
-                    <input type="checkbox" id="permCadastrarRotas" checked>
-                    <span>➕ Cadastrar Rotas</span>
-                </label>
-                <label class="perm-check-card" for="permEditarRotas">
-                    <input type="checkbox" id="permEditarRotas" checked>
-                    <span>✏️ Editar Rotas</span>
-                </label>
-
-                <label class="perm-check-card" for="permExcluirRotas" style="grid-column: span 2;">
-                    <input type="checkbox" id="permExcluirRotas" checked>
-                    <span>🗑️ Excluir Rotas</span>
-                </label>
-            </div>
-
-            <div style="display:flex; gap:8px;">
-                <button type="button" class="action-btn btn-save" onclick="salvarFuncionario()">Salvar Login</button>
-                <button type="button" class="btn-modal-cancel" id="btnCancelarEdicaoFunc" style="display:none; flex:0 0 auto;" onclick="limparFormFuncionario()">Cancelar Edição</button>
-            </div>
-            <div id="funcStatusMsg" class="backup-status-msg"></div>
+        <div class="func-header-bar">
+            <p>Gerencie os acessos cadastrados no sistema.</p>
+            <button type="button" class="btn-novo-func-popup" onclick="abrirModalNovoPerfil()">➕ Novo Funcionário</button>
         </div>
 
-        <div class="fila-section-title" style="margin-top: 6px;">
-            <span>Funcionários Cadastrados</span>
+        <div class="fila-section-title" style="margin-top: 2px;">
+            <span>Perfis Cadastrados</span>
             <span id="funcQtdBadge">0</span>
         </div>
         <div id="listaFuncionariosContainer"></div>
 
         <div class="modal-footer">
             <button type="button" class="btn-modal-cancel" onclick="fecharModalFuncionarios()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Pop-up Moderno de Cadastro / Edição de Perfil e Permissões -->
+<div id="modalPerfilForm" class="modal-backdrop" onclick="if(event.target===this) fecharModalPerfilForm()">
+    <div class="modal-card tipo-info">
+        <div class="modal-header">
+            <div class="modal-header-left">
+                <div class="modal-icon" id="funcFormIcon">➕</div>
+                <h3 id="funcFormTitulo">Novo Funcionário</h3>
+            </div>
+            <button class="btn-modal-x" onclick="fecharModalPerfilForm()" title="Fechar">✕</button>
+        </div>
+
+        <input type="hidden" id="funcEditId">
+
+        <div class="form-group">
+            <label for="funcLoginInput">Nome / Login *</label>
+            <input type="text" id="funcLoginInput" class="upper" placeholder="Ex: CARLOS">
+        </div>
+
+        <div class="form-group">
+            <label for="funcSenhaInput">Senha *</label>
+            <input type="text" id="funcSenhaInput" placeholder="Defina a senha do funcionário">
+        </div>
+
+        <div class="form-group">
+            <label for="funcAtivoSelect">Status do Acesso</label>
+            <select id="funcAtivoSelect">
+                <option value="true">Ativo</option>
+                <option value="false">Bloqueado / Inativo</option>
+            </select>
+        </div>
+
+        <label style="margin-bottom: 6px;">Permissões e Nível de Acesso</label>
+        <div class="perms-grid">
+            <label class="perm-check-card" for="permFuncMaster" style="grid-column: span 2;">
+                <input type="checkbox" id="permFuncMaster" onchange="aoMudarCheckboxMasterFunc()">
+                <span>👑 Função Master (Acesso Total)</span>
+            </label>
+
+            <label class="perm-check-card" for="permGerarQr">
+                <input type="checkbox" id="permGerarQr" checked>
+                <span>📱 Gerar QR Code</span>
+            </label>
+            <label class="perm-check-card" for="permLimparBipados">
+                <input type="checkbox" id="permLimparBipados" checked>
+                <span>🧹 Limpar Bipados</span>
+            </label>
+
+            <label class="perm-check-card" for="permZerarFila">
+                <input type="checkbox" id="permZerarFila" checked>
+                <span>🗑️ Zerar Fila Bipagem</span>
+            </label>
+            <label class="perm-check-card" for="permMarcarPrioridadeFila">
+                <input type="checkbox" id="permMarcarPrioridadeFila" checked>
+                <span>⭐ Prioridade na Fila</span>
+            </label>
+
+            <label class="perm-check-card" for="permEditarMotoristaFila">
+                <input type="checkbox" id="permEditarMotoristaFila" checked>
+                <span>✏️ Editar Nome na Fila</span>
+            </label>
+            <label class="perm-check-card" for="permExcluirMotoristaFila">
+                <input type="checkbox" id="permExcluirMotoristaFila" checked>
+                <span>✕ Excluir da Fila</span>
+            </label>
+
+            <label class="perm-check-card" for="permCadastrarRotas">
+                <input type="checkbox" id="permCadastrarRotas" checked>
+                <span>➕ Cadastrar Rotas</span>
+            </label>
+            <label class="perm-check-card" for="permEditarRotas">
+                <input type="checkbox" id="permEditarRotas" checked>
+                <span>✏️ Editar Rotas</span>
+            </label>
+
+            <label class="perm-check-card" for="permExcluirRotas" style="grid-column: span 2;">
+                <input type="checkbox" id="permExcluirRotas" checked>
+                <span>🗑️ Excluir Rotas</span>
+            </label>
+        </div>
+
+        <div id="funcStatusMsg" class="backup-status-msg"></div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="fecharModalPerfilForm()">Cancelar</button>
+            <button type="button" class="btn-modal-confirm" id="btnSalvarPerfilForm" onclick="salvarFuncionario()">Salvar Perfil</button>
         </div>
     </div>
 </div>
@@ -1632,14 +1667,14 @@
                 <strong id="backupQtdFila">0</strong>
             </div>
             <div class="backup-stat-card">
-                <span>Funcionários</span>
+                <span>Perfis</span>
                 <strong id="backupQtdFunc">0</strong>
             </div>
         </div>
 
         <div class="backup-section">
             <h4>📤 Exportar Backup (.JSON)</h4>
-            <p>Salva rotas, fila de bipagem e logins de funcionários em um arquivo JSON para guardar ou subir em outro banco Firebase.</p>
+            <p>Salva rotas, fila de bipagem e perfis de acesso em um arquivo JSON para guardar ou subir em outro banco Firebase.</p>
             <button class="btn-export-json" onclick="exportarBackupJson()">⬇️ Baixar Backup JSON</button>
         </div>
 
@@ -2713,12 +2748,6 @@
         if (!el) return;
         el.className = `backup-status-msg ${tipo}`;
         el.innerText = texto;
-        setTimeout(() => {
-            if (el.innerText === texto) {
-                el.className = 'backup-status-msg';
-                el.innerText = '';
-            }
-        }, 3000);
     }
 
     const IDS_PERMISSOES_FUNC = [
@@ -2758,29 +2787,48 @@
             if (el) el.checked = true;
         });
         aoMudarCheckboxMasterFunc();
-        document.getElementById('funcFormTitulo').innerText = '➕ Novo Funcionário';
-        document.getElementById('btnCancelarEdicaoFunc').style.display = 'none';
+        const statusEl = document.getElementById('funcStatusMsg');
+        if (statusEl) {
+            statusEl.className = 'backup-status-msg';
+            statusEl.innerText = '';
+        }
+    }
+
+    function abrirModalNovoPerfil() {
+        if (!usuarioLogado || usuarioLogado.role !== 'master') return;
+        limparFormFuncionario();
+        document.getElementById('funcFormIcon').innerText = '➕';
+        document.getElementById('funcFormTitulo').innerText = 'Novo Funcionário';
+        document.getElementById('btnSalvarPerfilForm').innerText = 'Cadastrar Perfil';
+        document.getElementById('modalPerfilForm').classList.add('aberto');
+        setTimeout(() => document.getElementById('funcLoginInput').focus(), 50);
+    }
+
+    function fecharModalPerfilForm() {
+        document.getElementById('modalPerfilForm').classList.remove('aberto');
+        limparFormFuncionario();
     }
 
     function abrirModalFuncionarios() {
         if (!usuarioLogado || usuarioLogado.role !== 'master') return;
-        limparFormFuncionario();
         renderizarListaFuncionarios();
         document.getElementById('modalFuncionarios').classList.add('aberto');
     }
 
     function fecharModalFuncionarios() {
+        fecharModalPerfilForm();
         document.getElementById('modalFuncionarios').classList.remove('aberto');
-        limparFormFuncionario();
     }
 
     function editarFuncionario(id) {
+        if (!usuarioLogado || usuarioLogado.role !== 'master') return;
         const func = funcionarios.find(f => f.id === id);
         if (!func) return;
         const isMasterFunc = func.role === 'master';
         const perms = normalizarPermissoes(func.perms, func.role);
         const loginExibicao = func.login || func.nome || '';
 
+        limparFormFuncionario();
         document.getElementById('funcEditId').value = func.id;
         document.getElementById('funcLoginInput').value = loginExibicao;
         document.getElementById('funcSenhaInput').value = func.senha || '';
@@ -2797,8 +2845,11 @@
         document.getElementById('permExcluirRotas').checked = perms.podeExcluirRotas;
         aoMudarCheckboxMasterFunc();
 
-        document.getElementById('funcFormTitulo').innerText = `✏️ Editando: ${loginExibicao}`;
-        document.getElementById('btnCancelarEdicaoFunc').style.display = 'inline-block';
+        document.getElementById('funcFormIcon').innerText = '✏️';
+        document.getElementById('funcFormTitulo').innerText = `Editar Perfil — ${loginExibicao}`;
+        document.getElementById('btnSalvarPerfilForm').innerText = 'Salvar Alterações';
+        document.getElementById('modalPerfilForm').classList.add('aberto');
+        setTimeout(() => document.getElementById('funcLoginInput').focus(), 50);
     }
 
     async function salvarFuncionario() {
@@ -2824,7 +2875,7 @@
             f.id !== editId && normalizar(f.login) === normalizar(login)
         );
         if (loginDuplicado) {
-            setStatusFunc(`O login "${login}" já está em uso por outro funcionário.`, 'erro');
+            setStatusFunc(`O login "${login}" já está em uso por outro perfil.`, 'erro');
             return;
         }
 
@@ -2856,13 +2907,13 @@
         try {
             if (editId) {
                 await funcionariosRef.child(editId).update(payload);
-                setStatusFunc(`✓ Login ${login} atualizado!`, 'ok');
+                setStatusFunc(`✓ Perfil ${login} atualizado!`, 'ok');
             } else {
                 payload.criadoEm = Date.now();
                 await funcionariosRef.push(payload);
-                setStatusFunc(`✓ Funcionário ${login} cadastrado!`, 'ok');
+                setStatusFunc(`✓ Perfil ${login} cadastrado!`, 'ok');
             }
-            limparFormFuncionario();
+            setTimeout(() => fecharModalPerfilForm(), 700);
         } catch (err) {
             setStatusFunc(`✕ Erro ao salvar: ${err.message || err}`, 'erro');
         }
@@ -2874,16 +2925,16 @@
         const confirmado = await abrirPopup({
             tipo: 'danger',
             icone: '🗑️',
-            titulo: 'Excluir Login de Funcionário',
+            titulo: 'Excluir Perfil',
             mensagem: `Deseja remover o acesso de <strong>${nomeFunc}</strong>? Ele não poderá mais entrar com esse login e senha.`,
-            textoConfirmar: 'Excluir Login',
+            textoConfirmar: 'Excluir Perfil',
             textoCancelar: 'Cancelar'
         });
 
         if (confirmado) {
             await funcionariosRef.child(id).remove();
             if (document.getElementById('funcEditId').value === id) {
-                limparFormFuncionario();
+                fecharModalPerfilForm();
             }
         }
     }
@@ -2896,7 +2947,7 @@
         if (badge) badge.innerText = funcionarios.length;
 
         if (funcionarios.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:var(--muted); font-size:0.84rem; padding:12px 0;">Nenhum funcionário cadastrado ainda.</p>`;
+            container.innerHTML = `<p style="text-align:center; color:var(--muted); font-size:0.84rem; padding:14px 0;">Nenhum perfil cadastrado ainda.</p>`;
             return;
         }
 
@@ -2904,23 +2955,8 @@
         container.innerHTML = ordenados.map(f => {
             const ativo = f.ativo !== false;
             const isMasterFunc = f.role === 'master';
-            const perms = normalizarPermissoes(f.perms, f.role);
             const nomeExibicao = f.login || f.nome || '';
             const nomeEscapado = nomeExibicao.replace(/'/g, "\\'");
-
-            const pillsHtml = isMasterFunc
-                ? `<span class="perm-pill">👑 MASTER (ACESSO TOTAL)</span>`
-                : `
-                    <span class="perm-pill ${perms.podeGerarQr ? '' : 'off'}">QR Code</span>
-                    <span class="perm-pill ${perms.podeLimparBipados ? '' : 'off'}">Limpar Bipados</span>
-                    <span class="perm-pill ${perms.podeZerarFila ? '' : 'off'}">Zerar Fila</span>
-                    <span class="perm-pill ${perms.podeMarcarPrioridadeFila ? '' : 'off'}">Prioridade Fila</span>
-                    <span class="perm-pill ${perms.podeEditarMotoristaFila ? '' : 'off'}">Editar Fila</span>
-                    <span class="perm-pill ${perms.podeExcluirMotoristaFila ? '' : 'off'}">Excluir Fila</span>
-                    <span class="perm-pill ${perms.podeCadastrarRotas ? '' : 'off'}">Cadastrar Rotas</span>
-                    <span class="perm-pill ${perms.podeEditarRotas ? '' : 'off'}">Editar Rotas</span>
-                    <span class="perm-pill ${perms.podeExcluirRotas ? '' : 'off'}">Excluir Rotas</span>
-                `;
 
             return `
                 <div class="func-item-card">
@@ -2928,7 +2964,6 @@
                         <strong>${nomeExibicao} ${isMasterFunc ? '👑' : ''}</strong>
                         <span>Senha: <strong>${f.senha}</strong></span>
                         <span class="${ativo ? '' : 'func-status-inativo'}">${ativo ? '● Ativo' : '● Inativo / Bloqueado'}</span>
-                        <div class="perm-pills">${pillsHtml}</div>
                     </div>
                     <div class="item-actions">
                         <button type="button" class="btn-sm btn-edit" onclick="editarFuncionario('${f.id}')">Editar</button>
@@ -3378,7 +3413,7 @@
             const qtdRotas = Object.keys(payload.dados.rotas).length;
             const qtdFila = Object.keys(payload.dados.fila_bipagem).length;
             const qtdFunc = Object.keys(payload.dados.funcionarios).length;
-            setStatusBackup(`✓ Exportado (${qtdRotas} rotas, ${qtdFila} fila, ${qtdFunc} logins): ${nomeArquivo}`, 'ok');
+            setStatusBackup(`✓ Exportado (${qtdRotas} rotas, ${qtdFila} fila, ${qtdFunc} Perfis): ${nomeArquivo}`, 'ok');
         } catch (err) {
             setStatusBackup(`✕ Erro ao exportar: ${err.message || err}`, 'erro');
         }
@@ -3429,14 +3464,14 @@
             const qtdFunc = Object.keys(estrutura.funcionarios).length;
 
             const avisoModo = modo === 'replace'
-                ? '<strong>ATENÇÃO:</strong> Os dados atuais de <strong>rotas</strong>, <strong>fila_bipagem</strong> e <strong>funcionarios</strong> no banco conectado serão <strong>substituídos</strong> pelos do arquivo.'
+                ? '<strong>ATENÇÃO:</strong> Os dados atuais de <strong>rotas</strong>, <strong>fila_bipagem</strong> e <strong>Perfis</strong> no banco conectado serão <strong>substituídos</strong> pelos do arquivo.'
                 : 'Os registros do arquivo serão <strong>mesclados/atualizados</strong> no banco conectado.';
 
             const confirmado = await abrirPopup({
                 tipo: modo === 'replace' ? 'warning' : 'info',
                 icone: '📥',
                 titulo: 'Confirmar Importação',
-                mensagem: `Importar backup com <strong>${qtdRotas} rotas</strong>, <strong>${qtdFila} itens de fila</strong> e <strong>${qtdFunc} logins</strong>?<br><br>${avisoModo}`,
+                mensagem: `Importar backup com <strong>${qtdRotas} rotas</strong>, <strong>${qtdFila} itens de fila</strong> e <strong>${qtdFunc} Perfis</strong>?<br><br>${avisoModo}`,
                 textoConfirmar: modo === 'replace' ? 'Substituir e Importar' : 'Importar Dados',
                 textoCancelar: 'Cancelar'
             });
@@ -3468,7 +3503,7 @@
                 }
             }
 
-            setStatusBackup(`✓ Importado com sucesso (${qtdRotas} rotas, ${qtdFila} fila, ${qtdFunc} logins)!`, 'ok');
+            setStatusBackup(`✓ Importado com sucesso (${qtdRotas} rotas, ${qtdFila} fila, ${qtdFunc} Perfis)!`, 'ok');
         } catch (err) {
             setStatusBackup(`✕ Falha ao ler/importar JSON: ${err.message || err}`, 'erro');
         } finally {
