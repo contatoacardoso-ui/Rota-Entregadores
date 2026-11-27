@@ -280,21 +280,38 @@
         input.upper::placeholder { text-transform: none; }
         input:focus, select:focus { border-color: var(--primary); }
 
+        .perm-section-box {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 11px 12px;
+            margin-bottom: 10px;
+        }
+        .perm-section-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
         .perms-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 8px;
-            margin-bottom: 8px;
         }
         .perm-check-card {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #0f172a;
+            background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 11px;
-            font-size: 0.79rem;
+            border-radius: 9px;
+            padding: 9px 10px;
+            font-size: 0.78rem;
             font-weight: 700;
             color: var(--text);
             cursor: pointer;
@@ -1521,53 +1538,64 @@
             </select>
         </div>
 
-        <label style="margin-bottom: 6px;">Permissões e Nível de Acesso</label>
-        <div class="perms-grid">
-            <label class="perm-check-card" for="permFuncMaster" style="grid-column: span 2;">
+        <label style="margin-bottom: 6px;">Permissões do Perfil</label>
+
+        <div style="margin-bottom: 10px;">
+            <label class="perm-check-card" for="permFuncMaster">
                 <input type="checkbox" id="permFuncMaster" onchange="aoMudarCheckboxMasterFunc()">
-                <span>👑 Função Master (Acesso Total)</span>
+                <span>👑 Função Master (Acesso Total a Bipagem e Rotas)</span>
             </label>
+        </div>
 
-            <label class="perm-check-card" for="permGerarQr">
-                <input type="checkbox" id="permGerarQr" checked>
-                <span>📱 Gerar QR Code</span>
-            </label>
-            <label class="perm-check-card" for="permLimparBipados">
-                <input type="checkbox" id="permLimparBipados" checked>
-                <span>🧹 Limpar Bipados</span>
-            </label>
+        <div class="perm-section-box">
+            <div class="perm-section-title">📋 Bipagem</div>
+            <div class="perms-grid">
+                <label class="perm-check-card" for="permGerarQr">
+                    <input type="checkbox" id="permGerarQr" checked>
+                    <span>📱 Gerar QR Code</span>
+                </label>
+                <label class="perm-check-card" for="permLimparBipados">
+                    <input type="checkbox" id="permLimparBipados" checked>
+                    <span>🧹 Limpar Bipados</span>
+                </label>
 
-            <label class="perm-check-card" for="permZerarFila">
-                <input type="checkbox" id="permZerarFila" checked>
-                <span>🗑️ Zerar Fila Bipagem</span>
-            </label>
-            <label class="perm-check-card" for="permMarcarPrioridadeFila">
-                <input type="checkbox" id="permMarcarPrioridadeFila" checked>
-                <span>⭐ Prioridade na Fila</span>
-            </label>
+                <label class="perm-check-card" for="permZerarFila">
+                    <input type="checkbox" id="permZerarFila" checked>
+                    <span>🗑️ Zerar Fila Bipagem</span>
+                </label>
+                <label class="perm-check-card" for="permMarcarPrioridadeFila">
+                    <input type="checkbox" id="permMarcarPrioridadeFila" checked>
+                    <span>⭐ Prioridade na Fila</span>
+                </label>
 
-            <label class="perm-check-card" for="permEditarMotoristaFila">
-                <input type="checkbox" id="permEditarMotoristaFila" checked>
-                <span>✏️ Editar Nome na Fila</span>
-            </label>
-            <label class="perm-check-card" for="permExcluirMotoristaFila">
-                <input type="checkbox" id="permExcluirMotoristaFila" checked>
-                <span>✕ Excluir da Fila</span>
-            </label>
+                <label class="perm-check-card" for="permEditarMotoristaFila">
+                    <input type="checkbox" id="permEditarMotoristaFila" checked>
+                    <span>✏️ Editar Nome na Fila</span>
+                </label>
+                <label class="perm-check-card" for="permExcluirMotoristaFila">
+                    <input type="checkbox" id="permExcluirMotoristaFila" checked>
+                    <span>✕ Excluir da Fila</span>
+                </label>
+            </div>
+        </div>
 
-            <label class="perm-check-card" for="permCadastrarRotas">
-                <input type="checkbox" id="permCadastrarRotas" checked>
-                <span>➕ Cadastrar Rotas</span>
-            </label>
-            <label class="perm-check-card" for="permEditarRotas">
-                <input type="checkbox" id="permEditarRotas" checked>
-                <span>✏️ Editar Rotas</span>
-            </label>
+        <div class="perm-section-box" style="margin-bottom: 6px;">
+            <div class="perm-section-title">🚚 Rotas</div>
+            <div class="perms-grid">
+                <label class="perm-check-card" for="permCadastrarRotas">
+                    <input type="checkbox" id="permCadastrarRotas" checked>
+                    <span>➕ Cadastrar Rotas</span>
+                </label>
+                <label class="perm-check-card" for="permEditarRotas">
+                    <input type="checkbox" id="permEditarRotas" checked>
+                    <span>✏️ Editar Rotas</span>
+                </label>
 
-            <label class="perm-check-card" for="permExcluirRotas" style="grid-column: span 2;">
-                <input type="checkbox" id="permExcluirRotas" checked>
-                <span>🗑️ Excluir Rotas</span>
-            </label>
+                <label class="perm-check-card" for="permExcluirRotas" style="grid-column: span 2;">
+                    <input type="checkbox" id="permExcluirRotas" checked>
+                    <span>🗑️ Excluir Rotas</span>
+                </label>
+            </div>
         </div>
 
         <div id="funcStatusMsg" class="backup-status-msg"></div>
